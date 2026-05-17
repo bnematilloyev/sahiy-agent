@@ -1,0 +1,112 @@
+from __future__ import annotations
+
+from typing import Any, Dict, Optional
+from uuid import UUID
+
+from app.core.exceptions import SessionAccessDeniedError, SessionClosedError
+from app.domain.dto import ChatReply
+from app.domain.entities import ChatSession
+from app.domain.enums import SessionStatus
+from app.repositories.session_repository import ChatSessionRepository
+from app.repositories.ticket_repository import TicketRepository
+from app.services.reply_service import ReplyService
+
+
+class ChatService:
+    """
+    Asosiy kirish nuqtasi: Sessiyani ochadi va ReplyService orqali javob qaytaradi.
+    Barcha kanallar (Telegram, Go, Web) shu servisdan foydalanadi.
+    """
+
+    def __init__(
+            self,
+            sessions: ChatSessionRepository,
+            replies: ReplyService,
+            tickets: TicketRepository | None = None,
+    ) -> None:
+        self._sessions = sessions
+        self._replies = replies
+        self._tickets = tickets
+
+    async def reply(
+            self,
+            user_id: str,
+            text: str,
+            channel: str = "telegram",
+            metadata: Optional[Dict[str, Any]] = None,
+            session_id: Optional[UUID] = None,
+    ) -> ChatReply:
+        """
+        Xabarga javob qaytarishning asosiy oqimi.
+        """
+        # 1. Sessiyani ochish yoki yaratish
+        session = await self._open_session(
+            user_id=user_id,
+            channel=channel,
+            session_id=session_id,
+        )
+
+        # 2. Context tayyorlash (metadata + channel)
+        ctx = {**(metadata or {}), "channel": channel}
+
+        # 3. ReplyService orqali mantiqiy javobni shakllantirish
+        # ReplyService ichida Classifier va FaqService chaqiriladi
+        return await self._replies.reply(
+            session_id=session.id,
+            user_id=user_id,
+            text=text,
+            context=ctx,
+        )
+
+    async def reset_session(self, user_id: str, channel: str = "telegram") -> None:
+        """
+        Suhbatni yangilash (/new buyrug'i uchun).
+        Eski sessiya va unga bog'liq ochiq ticketlarni yopadi.
+        """
+        active = await self._sessions.get_active(user_id, channel)
+        if active:
+            if self._tickets:
+                # Ochiq ticketlarni yopish (optional)
+                await self._tickets.close_all_for_session(active.id)
+
+            # Sessiyani yopiq holatga o'tkazish
+            await self._sessions.close(active.id)
+
+        # Yangi toza sessiya yaratish
+        await self._sessions.create(user_id=user_id, channel=channel)
+
+    async def _open_session(
+            self,
+            user_id: str,
+            channel: str,
+            session_id: Optional[UUID],
+    ) -> ChatSession:
+        """
+        Sessiya xavfsizligini va holatini tekshiruvchi ichki metod.
+        """
+        # Agar session_id berilmagan bo'lsa, foydalanuvchining oxirgi faol sessiyasini topadi
+        if session_id is None:
+            return await self._sessions.open_session(user_id=user_id, channel=channel)
+
+        # Berilgan ID bo'yicha sessiyani qidirish
+        session = await self._sessions.get_by_id(session_id)
+
+        # Agar bunday sessiya bo'lmasa, yangisini yaratish
+        if session is None:
+            return await self._sessions.create(
+                user_id=user_id,
+                channel=channel,
+                session_id=session_id,
+            )
+
+        # XAVFSIZLIK: Sessiya boshqa foydalanuvchiga tegishli emasligini tekshirish
+        if session.user_id != user_id:
+            raise SessionAccessDeniedError("Sessiya ushbu foydalanuvchiga tegishli emas")
+
+        # HOLAT: Sessiya yopilmaganligini tekshirish
+        if session.status != SessionStatus.ACTIVE.value:
+            # Agar yopiq bo'lsa, yangi sessiya yaratishga majburlash yoki xato qaytarish
+            # Sahiy loyihasi uchun yangi sessiya ochish ma'qulroq
+            return await self._sessions.open_session(user_id=user_id, channel=channel)
+
+        return session

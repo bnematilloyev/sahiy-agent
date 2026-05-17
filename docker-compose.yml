@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: sahiy-agent-db
+    environment:
+      POSTGRES_USER: sahiy
+      POSTGRES_PASSWORD: sahiy_test
+      POSTGRES_DB: sahiy_agent
+    ports:
+      - "5433:5432"
+    volumes:
+      - sahiy_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sahiy -d sahiy_agent"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Uncomment for containerized API (production: run uvicorn on host instead)
+  # api:
+  #   build: .
+  #   ports:
+  #     - "8001:8001"
+  #   env_file: .env
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+
+volumes:
+  sahiy_pgdata:
