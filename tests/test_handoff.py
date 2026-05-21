@@ -40,5 +40,6 @@ async def test_company_question_without_faq_uses_static_answer(db_session: Async
     await db_session.commit()
 
     assert result.response_type == ResponseType.AUTO
-    assert "online do'kon" in result.text.lower()
+    assert "12" in result.text
+    assert "million" in result.text.lower()
     assert result.ticket_id is None

@@ -29,12 +29,14 @@ def create_handlers(faq_repo: FAQRepository, ticket_repo: TicketRepository, ai=N
     faq = FaqService(faq_repo, embedder, ai_client)
     support = SupportHandler(ticket_repo)
     faq_handler = FaqHandler(faq, support)
+    order_handler = OrderHandler(OrderApi(get_settings()), ai_client)
     support.bind_faq(faq_handler)
+    support.bind_orders(order_handler)
 
     return IntentRouter(
         {
             QuestionCategory.FAQ: faq_handler,
-            QuestionCategory.API: OrderHandler(OrderApi(get_settings()), ai_client),
+            QuestionCategory.API: order_handler,
             QuestionCategory.TICKET: support,
         }
     )
@@ -57,4 +59,5 @@ def create_chat_service(session: AsyncSession) -> ChatService:
         sessions=ChatSessionRepository(session),
         replies=create_reply_service(session),
         tickets=TicketRepository(session),
+        messages=MessageRepository(session),
     )

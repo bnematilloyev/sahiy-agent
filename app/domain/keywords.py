@@ -19,6 +19,9 @@ API_KEYWORDS = (
     "tracking",
     "tovarim qayerda",
     "buyurtmam qayerda",
+    "kelmayapti",
+    "kelmay",
+    "kemayapti",
 )
 
 TICKET_KEYWORDS = (

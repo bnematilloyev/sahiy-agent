@@ -70,7 +70,7 @@ FAQ_ENTRIES = [
     {"id": 69, "category": "product", "question": "O'lchami mos kelmadi.", "answer": "Foto bilan yozing."},
     {"id": 70, "category": "payment", "question": "To'lov qaytarish jarayoni qancha davom etadi?", "answer": "48 soatdan 3 kungacha."},
     {"id": 71, "category": "delivery", "question": "Buyurtma punktga keldi, lekin xabar yo'q.", "answer": "Raqam yuboring."},
-    {"id": 72, "category": "delivery", "question": "Yetkazib berish qancha vaqt oladi?", "answer": "Toshkent shahri ichida 1-2 ish kuni, viloyatlarga 3-5 ish kuni."},
+    {"id": 72, "category": "delivery", "question": "Yetkazib berish qancha vaqt oladi?", "answer": "Buyurtma berganingizdan keyin odatda 12–15 kun ichida yetib keladi. Viloyatlarda 20 kungacha cho'zilishi mumkin."},
     {"id": 73, "category": "orders", "question": "Buyurtmani qanday bekor qilaman?", "answer": "Buyurtma jo'natilmaguncha profil orqali yoki operatorga murojaat qilib bekor qilishingiz mumkin."},
     {"id": 74, "category": "payment", "question": "Qanday to'lov usullari mavjud?", "answer": "Naqd pul, bank kartasi va Click/Payme orqali to'lash mumkin."},
     {"id": 75, "category": "returns", "question": "Mahsulotni qaytarish mumkinmi?", "answer": "Ha, 14 kun ichida sifatli holatda qaytarish mumkin. Chek va qadoq talab qilinadi."},
@@ -140,6 +140,25 @@ FAQ_ENTRIES = [
     {"id": 138, "category": "payment", "question": "To'lov chekini qayerdan topaman?", "answer": "Ilovadagi buyurtma ichida yoki to'lov tarixida saqlanadi."},
     {"id": 139, "category": "returns", "question": "Tovarni almashtirish uchun nima qilish kerak?", "answer": "Yangi tovar tanlab, eski DG raqamini yozib yuboring."},
     {"id": 140, "category": "orders", "question": "Buyurtmam nechchi kundan beri yo'lda, lekin holati o'zgarmayapti?", "answer": "Buyurtma DG raqamini yuboring, mutaxassislarimiz sotuvchi bilan bog'lanib tekshiradi."},
-    {"id": 141, "category": "general", "question": "Sahiy qanday kompaniya?", "answer": "Sahiy — O'zbekistondagi online do'kon. Texnika, maishiy jihozlar va elektronika sotiladi. Toshkentda 1-2 ish kuni, viloyatlarda 3-5 ish kuni ichida yetkaziladi."},
+    {
+        "id": 141,
+        "category": "general",
+        "question": "Sahiy qanday kompaniya?",
+        "answer": (
+            "Sahiy — Xitoydan millionlab turdagi tovarlarni onlayn buyurtma qiladigan platforma. "
+            "Buyurtma berganingizdan keyin odatda 12–15 kun ichida yetib keladi; "
+            "viloyatlarda 20 kungacha cho'zilishi mumkin."
+        ),
+    },
+    {
+        "id": 142,
+        "category": "general",
+        "question": "Sahiy nima?",
+        "answer": (
+            "Sahiy — Xitoydan millionlab turdagi tovarlarni onlayn buyurtma qiladigan platforma. "
+            "Buyurtma berganingizdan keyin odatda 12–15 kun ichida yetib keladi; "
+            "viloyatlarda 20 kungacha cho'zilishi mumkin."
+        ),
+    },
     {"id": 142, "category": "returns", "question": "Buyurtma singan kelsa qaytarib olasizlarmi?", "answer": "Ha. Tovar singan yoki nuqsonli kelsa, foto yuboring — almashtiramiz yoki pulni qaytaramiz. 14 kun ichida ham original holatda qaytarish mumkin."},
 ]

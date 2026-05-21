@@ -17,9 +17,16 @@ def test_settings(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "")
     monkeypatch.setenv("SESSION_IDLE_HOURS", "0")
+    monkeypatch.setenv("SAHIY_API_BASE_URL", "")
+    monkeypatch.setenv("SERVICE_USER_PHONE", "")
+    monkeypatch.setenv("SERVICE_USER_PASSWORD", "")
     config.get_settings.cache_clear()
+    from app.infrastructure.sahiy_api.factory import clear_sahiy_api_cache
+
+    clear_sahiy_api_cache()
     yield
     config.get_settings.cache_clear()
+    clear_sahiy_api_cache()
 
 
 @pytest.fixture(autouse=True)

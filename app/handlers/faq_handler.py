@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from app.core.prompts import NO_FAQ_FALLBACK
-from app.domain.classification import is_company_question
+from app.core.prompts import BROKEN_GOODS_POLICY_ANSWER, NO_FAQ_FALLBACK
+from app.domain.classification import is_broken_goods_policy_question, is_company_question
 from app.domain.dto import ChatContext, ChatReply
 from app.domain.enums import QuestionCategory, ResponseType
 from app.handlers.support_handler import SupportHandler
@@ -16,6 +16,13 @@ class FaqHandler:
         self._support = support
 
     async def reply(self, context: ChatContext) -> ChatReply:
+        if is_broken_goods_policy_question(context.text):
+            return ChatReply(
+                response_type=ResponseType.AUTO,
+                text=BROKEN_GOODS_POLICY_ANSWER,
+                category=self.category,
+            )
+
         if is_company_question(context.text):
             company = self._faq.static_answer_for_question(context.text)
             if company:

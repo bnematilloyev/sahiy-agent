@@ -42,3 +42,4 @@ class ChatReply:
     text: str
     category: QuestionCategory
     ticket_id: Optional[UUID] = None
+    channel_extra: Dict[str, Any] = field(default_factory=dict)

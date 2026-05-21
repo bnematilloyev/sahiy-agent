@@ -13,6 +13,7 @@ from app.core.prompts import (
     TICKET_ACK_TEMPLATE,
 )
 from app.domain.classification import is_concrete_incident
+from app.domain.order_refs import is_order_lookup_request
 from app.domain.dto import HANDOFF_REASON_KEY, ChatContext, ChatReply
 from app.domain.enums import QuestionCategory, ResponseType, TicketStatus
 from app.domain.keywords import infer_ticket_type
@@ -22,6 +23,7 @@ from app.repositories.ticket_repository import TicketRepository
 
 if TYPE_CHECKING:
     from app.handlers.faq_handler import FaqHandler
+    from app.handlers.order_handler import OrderHandler
 
 
 class SupportHandler:
@@ -30,15 +32,21 @@ class SupportHandler:
     def __init__(self, tickets: TicketRepository) -> None:
         self._tickets = tickets
         self._faq: Optional[FaqHandler] = None
+        self._orders: Optional[OrderHandler] = None
 
     def bind_faq(self, faq_handler: FaqHandler) -> None:
         self._faq = faq_handler
+
+    def bind_orders(self, order_handler: OrderHandler) -> None:
+        self._orders = order_handler
 
     async def reply(self, context: ChatContext) -> ChatReply:
         reason = str(context.metadata.get(HANDOFF_REASON_KEY, "")).strip()
         open_ticket = await self._tickets.get_open_for_session(context.session_id)
 
         if open_ticket:
+            if is_order_lookup_request(context.text) and self._orders:
+                return await self._orders.reply(context)
             if reason in ("off_topic", "unresolved", "operator_request") or is_operator_request(
                 context.text
             ):
@@ -119,6 +127,7 @@ def _is_policy_question(text: str) -> bool:
     hints = (
         "qaytar",
         "singan",
+        "siniq",
         "brak",
         "buzil",
         "kompaniya",
@@ -131,5 +140,9 @@ def _is_policy_question(text: str) -> bool:
         "kafolat",
         "ishlayapsiz",
         "javob",
+        "nima qil",
+        "qilasiz",
+        "qiladi",
+        "tovarlar",
     )
     return any(hint in lowered for hint in hints)

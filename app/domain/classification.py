@@ -97,7 +97,23 @@ def is_hypothetical_policy_question(text: str) -> bool:
         return False
     if "?" in text:
         return True
-    return any(marker in lowered for marker in HYPOTHETICAL_MARKERS)
+    if any(marker in lowered for marker in HYPOTHETICAL_MARKERS):
+        return True
+    if any(hint in lowered for hint in ("nima qil", "qilasizlar", "qilasiz", "qiladi")):
+        return True
+    return False
+
+
+def is_broken_goods_policy_question(text: str) -> bool:
+    """Umumiy siyosat: «singan tovarlarni nima qilasizlar»."""
+    if is_operator_request(text):
+        return False
+    lowered = _normalize_text(text)
+    if not any(w in lowered for w in ("singan", "siniq", "buzil", "brak")):
+        return False
+    return is_hypothetical_policy_question(text) or any(
+        w in lowered for w in ("nima qil", "qilasiz", "qiladi", "qanday", "siyosat", "qaytar")
+    )
 
 
 def is_concrete_incident(text: str) -> bool:

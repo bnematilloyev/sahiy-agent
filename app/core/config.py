@@ -57,6 +57,25 @@ class Settings(BaseSettings):
     go_backend_url: str = "http://localhost:8080"
     go_backend_timeout_seconds: int = 10
 
+    # Sahiy Laravel API (service_user — buyurtma holati)
+    sahiy_api_base_url: str = ""
+    sahiy_api_timeout_seconds: int = 15
+    service_user_phone: str = ""
+    service_user_password: str = ""
+    service_user_device_id: str = "sahiy-agent"
+    service_user_token_buffer_seconds: int = 60
+    sahiy_daigou_page_size: int = 10
+    sahiy_daigou_max_pages_search: int = 5
+    pickup_points_cache_ttl_seconds: int = 3600
+
+    @property
+    def has_service_user(self) -> bool:
+        return bool(
+            self.sahiy_api_base_url.strip()
+            and self.service_user_phone.strip()
+            and self.service_user_password
+        )
+
     @property
     def is_development(self) -> bool:
         return self.app_env == "development"

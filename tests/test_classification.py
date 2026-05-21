@@ -23,6 +23,7 @@ def test_concrete_broken_is_ticket():
 
 def test_company_question_detected():
     assert is_company_question("Sahiy qanday kompaniya?")
+    assert is_company_question("Sahiy nima ?")
 
 
 def test_order_ref_is_api():

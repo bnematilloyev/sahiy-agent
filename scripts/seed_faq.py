@@ -18,7 +18,7 @@ from app.repositories.faq_repository import FAQRepository
 FAQ_SEED_DATA = [
     {
         "question": "Yetkazib berish qancha vaqt oladi?",
-        "answer": "Toshkent shahri ichida 1-2 ish kuni, viloyatlarga 3-5 ish kuni.",
+        "answer": "Buyurtma berganingizdan keyin odatda 12–15 kun ichida yetib keladi. Viloyatlarda 20 kungacha cho'zilishi mumkin.",
         "category": "delivery",
     },
     {

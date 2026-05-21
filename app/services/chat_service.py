@@ -8,7 +8,8 @@ from app.core.exceptions import SessionAccessDeniedError, SessionClosedError
 from app.domain.dto import ChatReply
 from app.domain.entities import ChatSession
 from app.domain.enums import SessionStatus
-from app.repositories.ports import ChatSessionRepositoryPort, TicketRepositoryPort
+from app.repositories.ports import ChatSessionRepositoryPort, MessageRepositoryPort, TicketRepositoryPort
+from app.services.identity_service import IdentityService
 from app.services.reply_service import ReplyService
 
 
@@ -23,10 +24,12 @@ class ChatService:
             sessions: ChatSessionRepositoryPort,
             replies: ReplyService,
             tickets: TicketRepositoryPort | None = None,
+            messages: MessageRepositoryPort | None = None,
     ) -> None:
         self._sessions = sessions
         self._replies = replies
         self._tickets = tickets
+        self._messages = messages
 
     async def reply(
             self,
@@ -68,6 +71,25 @@ class ChatService:
             await self._close_session(active.id)
 
         await self._sessions.create(user_id=user_id, channel=channel)
+
+    async def register_verified_phone(
+        self,
+        user_id: str,
+        phone: str,
+        channel: str = "telegram",
+    ) -> tuple[Optional[int], Optional[str]]:
+        """
+        Validate phone format, verify in Sahiy API, persist PHONE/SAHIY_USER markers.
+        Returns (sahiy_user_id, error_text).
+        """
+        if self._messages is None:
+            return None, None
+        session = await self._sessions.open_session(user_id=user_id, channel=channel)
+        identity = IdentityService(self._messages)
+        sahiy_user_id, err_reply = await identity.register_phone_in_session(session.id, phone)
+        if err_reply is not None:
+            return None, err_reply.text
+        return sahiy_user_id, None
 
     async def _open_session(
             self,

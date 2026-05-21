@@ -64,8 +64,21 @@ NO_FAQ_FALLBACK = "Bu savol bo'yicha aniq ma'lumotim yo'q. Sahiy ilovasi yoki ve
 BUSY_MESSAGE = "Hozir tizim band. Bir necha daqiqadan keyin qayta yozing."
 CHITCHAT_REPLY = "Salom. Men Sahiy yordamchisiman — buyurtma, yetkazish, to'lov yoki qaytarish bo'yicha yozing."
 SAHIY_COMPANY_ANSWER = (
-    "Sahiy — O'zbekistondagi online do'kon. Texnika, maishiy jihozlar va elektronika "
-    "sotiladi. Toshkentda odatda 1-2 ish kuni, viloyatlarda 3-5 ish kuni ichida yetkaziladi."
+    "🏪 Sahiy nima?\n"
+    "_______\n"
+    "Sahiy — Xitoydan millionlab turdagi tovarlarni onlayn buyurtma qiladigan platforma.\n"
+    "\n"
+    "_______\n"
+    "📦 Yetkazish muddati\n"
+    "🔹 Buyurtma berganingizdan keyin odatda 12–15 kun ichida yetib keladi\n"
+    "🔹 Viloyatlarda esa 20 kungacha cho'zilishi mumkin\n"
+    "\n"
+    "_______\n"
+    "🛍️ Nimalar buyurtma qilish mumkin?\n"
+    "🔹 Milliondan ortiq turdagi mahsulotlar — elektronika, kiyim-kechak, uy-ro'zg'or va boshqalar\n"
+    "\n"
+    "_______\n"
+    "Buyurtma holati yoki boshqa savol bo'lsa — track raqam yoki savolingizni yozing."
 )
 
 # 4. Profanity Filter
@@ -78,6 +91,12 @@ TICKET_ACK_EMPATHETIC = "Tushundik, murojaat qabul qilindi (ticket: {ticket_id})
 BROKEN_ITEM_ACK = (
     "Kechirasiz bu noqulaylik uchun. Singan qismning fotosini shu yerga yuboring — "
     "24 soat ichida almashtirish yoki pul qaytarishni ko'rib chiqamiz. Ticket: {ticket_id}."
+)
+
+BROKEN_GOODS_POLICY_ANSWER = (
+    "Singan yoki kam kelgan tovar bo'lsa, mahsulot rasmini va xitoycha stikerini shu chatga yuboring. "
+    "Ko'rib chiqib, to'lovni qaytarish yoki qayta buyurtma berish mumkin. "
+    "Aniq holat uchun DG yoki uzun track raqamini ham yozing."
 )
 
 HANDOFF_OFF_TOPIC = (
@@ -96,6 +115,25 @@ OPEN_TICKET_OFF_TOPIC = (
     "Operator aloqada: @sahiy_operator"
 )
 
-# 6. API response
-API_RESPONSE_SYSTEM = """Sen Sahiy yordamchisisan. API ma'lumotiga qarab qisqa javob yoz.
-Format: BUYURTMA_RAqAM — holat, taxminiy muddat."""
+# 6. API response (buyurtma holati)
+API_RESPONSE_SYSTEM = """Sen Sahiy mijoz yordamchisisan. Buyurtmalar ro'yxatini berilgan JSON dagidek formatda yoz.
+
+QAT'IY QOIDALAR:
+1. Faqat order_sn (track) — ichki id yo'q.
+2. JSON dagi "sarlavha" ni o'zgartirma: "Jiyun", "Daigou", "Jiyun buyurtmalari" deb YOZMA — faqat "Buyurtmalar", "Yetkazib berish buyurtmalari" kabi sarlavhalarni ishlat.
+3. Holat matnini to'liq o'zbekcha yoz ("Jo'natilgan", "Yakunlangan") — qisqartma va xitoycha ishlatma.
+4. Bo'limlar orasida: _______
+5. Har buyurtma:
+   🔹 ORDER_SN
+      └ holat, sana
+6. Markdown **bold** ishlatma.
+7. JSON da yo'q buyurtma yoki "Qolgan N ta" kabi o'zingdan qo'shma xulosa yozma.
+8. So'zlarni qisqartirma (masalan "Yetkaz" emas, "Yetkazib berilgan")."""
+
+API_ORDER_USER_TEMPLATE = """Mijoz savoli:
+{query}
+
+Buyurtmalar JSON (sarlavha va holat tayyor — o'zgartirmang):
+{orders_json}
+
+Yuqoridagi formatni aynan saqlab javob yoz."""
