@@ -30,6 +30,17 @@ from scripts.data.faq_quick_replies import QUICK_REPLY_FAQ_ENTRIES
 FAQ_ENTRIES_ALL = FAQ_ENTRIES + QUICK_REPLY_FAQ_ENTRIES
 
 
+def _assert_unique_faq_ids() -> None:
+    seen: dict[int, str] = {}
+    for item in FAQ_ENTRIES_ALL:
+        faq_id = int(item["id"])
+        if faq_id in seen:
+            raise ValueError(
+                f"Duplicate FAQ id={faq_id}: {seen[faq_id]!r} and {item['question']!r}"
+            )
+        seen[faq_id] = str(item["question"])
+
+
 async def _reset_id_sequence(session) -> None:
     await session.execute(
         text(
@@ -42,6 +53,7 @@ async def _reset_id_sequence(session) -> None:
 
 
 async def seed(*, clear: bool, embed_only: bool) -> None:
+    _assert_unique_faq_ids()
     embedder, embedder_name = resolve_embedder(verbose=True)
     print(f"Using embedder: {embedder_name}")
     print(
@@ -55,6 +67,7 @@ async def seed(*, clear: bool, embed_only: bool) -> None:
 
         if clear:
             removed = await repo.delete_all()
+            await session.commit()
             print(f"Cleared {removed} existing row(s).")
 
         for index, item in enumerate(FAQ_ENTRIES_ALL, start=1):

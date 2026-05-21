@@ -151,7 +151,7 @@ FAQ_ENTRIES = [
         ),
     },
     {
-        "id": 142,
+        "id": 189,
         "category": "general",
         "question": "Sahiy nima?",
         "answer": (
