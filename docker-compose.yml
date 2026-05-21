@@ -6,8 +6,9 @@ services:
       POSTGRES_USER: sahiy
       POSTGRES_PASSWORD: sahiy_test
       POSTGRES_DB: sahiy_agent
+    # Local default 5433; production VPS: use docker-compose.override.yml → 127.0.0.1:5435
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
       - sahiy_pgdata:/var/lib/postgresql/data
     healthcheck:
