@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Upsert Sahiy FAQ (142 entries) and generate embeddings.
+Upsert Sahiy FAQ (142 base + 46 quick_replies type 1/2) and generate embeddings.
 
 Use when rows were inserted manually via SQL without vectors:
   python scripts/seed_faq_sahiy.py          # upsert text + embed
   python scripts/seed_faq_sahiy.py --embed-only   # only refresh embeddings
-  python scripts/seed_faq_sahiy.py --clear        # delete all, insert 140 fresh
+  python scripts/seed_faq_sahiy.py --clear        # delete all, insert fresh
 """
 
 from __future__ import annotations
@@ -19,39 +19,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from sqlalchemy import select, text
 
+from app.bootstrap.embedder import resolve_embedder
+from app.infrastructure.embeddings.factory import create_embedder
 from app.core.database import dispose_engine, get_session_factory
 from app.db.models import FAQEmbeddingModel
-from app.infrastructure.embeddings.factory import create_embedder
-from app.infrastructure.embeddings.mock import MockEmbedder
 from app.repositories.faq_repository import FAQRepository
 from scripts.data.faq_100 import FAQ_ENTRIES
+from scripts.data.faq_quick_replies import QUICK_REPLY_FAQ_ENTRIES
 
-
-def _get_embedder():
-    from app.core.config import get_settings
-    from app.infrastructure.embeddings.factory import create_embedder as _create
-    from app.infrastructure.embeddings.openai_embedder import OpenAiEmbedder
-
-    settings = get_settings()
-    provider = settings.resolved_embedding_provider()
-
-    if provider == "mock" or not settings.has_openai:
-        return MockEmbedder(), "MockEmbedder"
-
-    try:
-        OpenAiEmbedder(settings).embed("test")
-    except Exception as exc:
-        _create.cache_clear()
-        print("\n⚠️  OpenAI embedding ishlamadi — MockEmbedder ishlatiladi.")
-        print(f"   Sabab: {exc}")
-        print(
-            "   RAG qidiruv so'z bo'yicha ishlaydi (semantik emas). "
-            "OpenAI balans to'ldirgach: EMBEDDING_PROVIDER=openai va qayta seed.\n"
-        )
-        return MockEmbedder(), "MockEmbedder (OpenAI unavailable)"
-
-    embedder = _create()
-    return embedder, "OpenAiEmbedder (+ mock fallback on error)"
+FAQ_ENTRIES_ALL = FAQ_ENTRIES + QUICK_REPLY_FAQ_ENTRIES
 
 
 async def _reset_id_sequence(session) -> None:
@@ -66,9 +42,12 @@ async def _reset_id_sequence(session) -> None:
 
 
 async def seed(*, clear: bool, embed_only: bool) -> None:
-    embedder, embedder_name = _get_embedder()
+    embedder, embedder_name = resolve_embedder(verbose=True)
     print(f"Using embedder: {embedder_name}")
-    print(f"FAQ entries in seed file: {len(FAQ_ENTRIES)}")
+    print(
+        f"FAQ entries in seed file: {len(FAQ_ENTRIES_ALL)} "
+        f"(base {len(FAQ_ENTRIES)} + quick_replies {len(QUICK_REPLY_FAQ_ENTRIES)})"
+    )
 
     session_factory = get_session_factory()
     async with session_factory() as session:
@@ -78,7 +57,7 @@ async def seed(*, clear: bool, embed_only: bool) -> None:
             removed = await repo.delete_all()
             print(f"Cleared {removed} existing row(s).")
 
-        for index, item in enumerate(FAQ_ENTRIES, start=1):
+        for index, item in enumerate(FAQ_ENTRIES_ALL, start=1):
             faq_id = item["id"]
             vector = embedder.embed(item["question"])
 
@@ -117,8 +96,8 @@ async def seed(*, clear: bool, embed_only: bool) -> None:
                     )
                 )
 
-            if index % 20 == 0 or index == len(FAQ_ENTRIES):
-                print(f"  {index}/{len(FAQ_ENTRIES)} processed")
+            if index % 20 == 0 or index == len(FAQ_ENTRIES_ALL):
+                print(f"  {index}/{len(FAQ_ENTRIES_ALL)} processed")
 
         await _reset_id_sequence(session)
         await session.commit()
@@ -129,7 +108,7 @@ async def seed(*, clear: bool, embed_only: bool) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Seed/upsert Sahiy 142 FAQ with vectors.")
+    parser = argparse.ArgumentParser(description="Seed/upsert Sahiy FAQ with vectors.")
     parser.add_argument("--clear", action="store_true", help="Delete all FAQs before insert.")
     parser.add_argument(
         "--embed-only",

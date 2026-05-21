@@ -12,14 +12,17 @@ from app.infrastructure.llm.ports import AiClient
 
 from app.core.config import get_settings
 from app.core.prompts import (
-    NO_FAQ_FALLBACK, RAG_SYSTEM, RAG_USER_TEMPLATE,
-    SAHIY_COMPANY_ANSWER, PROFANITY_KEYWORDS
+    NO_FAQ_FALLBACK,
+    PROFANITY_KEYWORDS,
+    RAG_SYSTEM,
+    RAG_USER_TEMPLATE,
+    SAHIY_COMPANY_ANSWER,
+    wrap_user_message,
 )
 from app.domain.entities import FAQEntry, Message
 from app.domain.enums import MessageRole
 from app.domain.classification import is_company_question
 
-_MIN_MATCH_SCORE = 0.75
 logger = logging.getLogger(__name__)
 
 
@@ -45,16 +48,19 @@ class FaqService:
         vector = self._embedder.embed(query)
         matches = await self._faq_repo.search_similar(embedding=vector, threshold=threshold)
 
-        if not matches:
-            matches = await self._faq_repo.search_by_keywords(query)
+        if matches:
+            ranked = sorted(matches, key=lambda entry: entry.similarity, reverse=True)
+            min_score = threshold if threshold is not None else settings.rag_similarity_threshold
+            if ranked[0].similarity < min_score:
+                logger.info(
+                    "Low vector similarity: %s < %s",
+                    ranked[0].similarity,
+                    min_score,
+                )
+                return []
+            return ranked
 
-        ranked = sorted(matches, key=lambda entry: entry.similarity, reverse=True)
-
-        if ranked and ranked[0].similarity < _MIN_MATCH_SCORE:
-            logger.info(f"Low similarity score: {ranked[0].similarity}. Ignoring results.")
-            return []
-
-        return ranked
+        return await self._faq_repo.search_by_keywords(query)
 
     def _should_greet(self, history: List[Message]) -> bool:
         """Tarixda botning biror xabari borligini tekshiradi."""
@@ -85,18 +91,16 @@ class FaqService:
         # 3. Salomlashish qo'shish
         greeting = "Assalomu alaykum, hurmatli mijoz! " if self._should_greet(history) else ""
 
-        ranked = sorted(matches, key=lambda entry: entry.similarity, reverse=True)
-
         # 4. AI mavjud bo'lmasa yoki rules mode
         if not self._ai.is_available:
-            return greeting + self._compose_local_answer(ranked[0].answer)
+            return greeting + self._compose_local_answer(matches[0].answer)
 
         # 5. LLM orqali javob
-        context_matches = ranked[:3]
+        context_matches = matches[:3]
         prompt = RAG_USER_TEMPLATE.format(
             context=self._format_matches(context_matches),
             history=self._format_history(history) or "(yo'q)",
-            question=question,
+            wrapped_question=wrap_user_message(question),
         )
 
         try:
@@ -104,7 +108,7 @@ class FaqService:
             return f"{greeting}{ai_reply}".strip()
         except Exception as e:
             logger.error(f"RAG LLM failed: {e}")
-            return greeting + self._compose_local_answer(ranked[0].answer)
+            return greeting + self._compose_local_answer(matches[0].answer)
 
     @staticmethod
     def _compose_local_answer(answer: str) -> str:

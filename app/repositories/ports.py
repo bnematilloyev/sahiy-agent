@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import List, Optional, Protocol
 from uuid import UUID
 
@@ -24,6 +25,10 @@ class ChatSessionRepositoryPort(Protocol):
     async def open_session(self, user_id: str, channel: str) -> ChatSession: ...
 
     async def close(self, session_id: UUID) -> Optional[ChatSession]: ...
+
+    async def get_last_activity_at(self, session_id: UUID) -> datetime: ...
+
+    async def is_idle(self, session_id: UUID, idle_hours: Optional[float] = None) -> bool: ...
 
 
 class MessageRepositoryPort(Protocol):
@@ -82,3 +87,5 @@ class TicketRepositoryPort(Protocol):
     ) -> Optional[Ticket]: ...
 
     async def list_by_session(self, session_id: UUID) -> List[Ticket]: ...
+
+    async def close_open_for_session(self, session_id: UUID) -> int: ...

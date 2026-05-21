@@ -49,6 +49,10 @@ class Settings(BaseSettings):
     telegram_bot_token: str = ""
     telegram_http_timeout_seconds: int = 60
     telegram_send_retries: int = 3
+    telegram_typing_interval_seconds: float = 4.0
+
+    # Close active session after this many hours without messages (0 = disabled)
+    session_idle_hours: float = 24.0
 
     go_backend_url: str = "http://localhost:8080"
     go_backend_timeout_seconds: int = 10

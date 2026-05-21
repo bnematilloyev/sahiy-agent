@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator
-from typing import Optional
+from collections.abc import AsyncGenerator, Awaitable, Callable
+from typing import Optional, TypeVar
 
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -44,6 +44,22 @@ def get_session_factory() -> async_sessionmaker[AsyncSession]:
             autoflush=False,
         )
     return _session_factory
+
+
+T = TypeVar("T")
+
+
+async def run_in_session(func: Callable[[AsyncSession], Awaitable[T]]) -> T:
+    """Single unit-of-work: commit on success, rollback on error."""
+    session_factory = get_session_factory()
+    async with session_factory() as session:
+        try:
+            result = await func(session)
+            await session.commit()
+            return result
+        except Exception:
+            await session.rollback()
+            raise
 
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:

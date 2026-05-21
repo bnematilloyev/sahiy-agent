@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 
 from app.core.exceptions import LLMError, LLMTimeoutError
-from app.core.prompts import CLASSIFIER_SYSTEM, CLASSIFIER_USER_TEMPLATE
+from app.core.prompts import CLASSIFIER_SYSTEM, CLASSIFIER_USER_TEMPLATE, wrap_user_message
 from app.domain.enums import QuestionCategory
 from app.domain.keywords import classify_by_keywords
 from app.infrastructure.llm.ports import AiClient
@@ -20,7 +20,7 @@ class IntentService:
         self._ai = ai
 
     async def detect(self, text: str) -> QuestionCategory:
-        prompt = CLASSIFIER_USER_TEMPLATE.format(text=text.strip()[:2000])
+        prompt = CLASSIFIER_USER_TEMPLATE.format(wrapped=wrap_user_message(text))
         try:
             raw = await self._ai.complete(CLASSIFIER_SYSTEM, prompt, max_tokens=16)
         except (LLMTimeoutError, LLMError) as exc:

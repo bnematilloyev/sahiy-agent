@@ -3,11 +3,12 @@ from __future__ import annotations
 from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import case, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import MessageModel
 from app.domain.entities import Message
+from app.domain.enums import MessageRole
 from app.repositories.base import BaseRepository
 from app.repositories.mappers import to_message
 
@@ -35,7 +36,11 @@ class MessageRepository(BaseRepository):
         stmt = (
             select(MessageModel)
             .where(MessageModel.session_id == session_id)
-            .order_by(MessageModel.created_at.asc())
+            .order_by(
+                MessageModel.created_at.asc(),
+                case((MessageModel.role == MessageRole.USER.value, 0), else_=1),
+                MessageModel.id.asc(),
+            )
             .limit(limit)
         )
         result = await self._session.execute(stmt)
@@ -45,7 +50,7 @@ class MessageRepository(BaseRepository):
         stmt = (
             select(MessageModel)
             .where(MessageModel.session_id == session_id)
-            .order_by(MessageModel.created_at.desc())
+            .order_by(MessageModel.created_at.desc(), MessageModel.id.desc())
             .limit(limit)
         )
         result = await self._session.execute(stmt)

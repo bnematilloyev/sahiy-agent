@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-from app.core.prompts import CLASSIFIER_MARKER, NO_FAQ_FALLBACK, RAG_SYSTEM
+from app.core.prompts import CLASSIFIER_MARKER, NO_FAQ_FALLBACK, RAG_SYSTEM, extract_user_message
 from app.domain.keywords import classify_by_keywords
 
 
@@ -15,7 +15,7 @@ class RulesAi:
 
     async def complete(self, system_prompt: str, user_prompt: str, max_tokens: int = 1024) -> str:
         if CLASSIFIER_MARKER in system_prompt:
-            text = user_prompt.split(":", 1)[-1].strip()
+            text = extract_user_message(user_prompt)
             return classify_by_keywords(text)
         if system_prompt == RAG_SYSTEM or "FAQ kontekst" in user_prompt:
             return self._answer_from_faq(user_prompt)

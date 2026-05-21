@@ -10,31 +10,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from app.bootstrap.embedder import resolve_embedder
 from app.core.database import dispose_engine, get_session_factory
-from app.infrastructure.embeddings.factory import create_embedder
-from app.infrastructure.embeddings.mock import MockEmbedder
 from app.repositories.faq_repository import FAQRepository
 
 
-def _get_embedder():
-    from app.core.config import get_settings
-    from app.infrastructure.embeddings.factory import create_embedder as _create
-
-    if not get_settings().has_openai:
-        return MockEmbedder(), "MockEmbedder (no OPENAI_API_KEY)"
-
-    embedder = _create()
-    try:
-        embedder.embed("test")
-        return embedder, type(embedder).__name__
-    except Exception as exc:
-        _create.cache_clear()
-        print(f"OpenAI embedding unavailable ({exc}), using MockEmbedder.")
-        return MockEmbedder(), "MockEmbedder (fallback)"
-
-
 async def reindex(*, force: bool) -> None:
-    embedder, name = _get_embedder()
+    embedder, name = resolve_embedder()
     print(f"Using embedder: {name}")
 
     session_factory = get_session_factory()

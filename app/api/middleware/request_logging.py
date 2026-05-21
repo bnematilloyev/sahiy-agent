@@ -2,19 +2,20 @@ from __future__ import annotations
 
 import logging
 import time
-import uuid
 from typing import Callable
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
+from app.core.http import request_id_from
+
 logger = logging.getLogger(__name__)
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+        request_id = request_id_from(request)
         start = time.perf_counter()
 
         response = await call_next(request)

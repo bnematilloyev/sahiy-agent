@@ -3,12 +3,12 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 from uuid import UUID
 
+from app.core.config import get_settings
 from app.core.exceptions import SessionAccessDeniedError, SessionClosedError
 from app.domain.dto import ChatReply
 from app.domain.entities import ChatSession
 from app.domain.enums import SessionStatus
-from app.repositories.session_repository import ChatSessionRepository
-from app.repositories.ticket_repository import TicketRepository
+from app.repositories.ports import ChatSessionRepositoryPort, TicketRepositoryPort
 from app.services.reply_service import ReplyService
 
 
@@ -20,9 +20,9 @@ class ChatService:
 
     def __init__(
             self,
-            sessions: ChatSessionRepository,
+            sessions: ChatSessionRepositoryPort,
             replies: ReplyService,
-            tickets: TicketRepository | None = None,
+            tickets: TicketRepositoryPort | None = None,
     ) -> None:
         self._sessions = sessions
         self._replies = replies
@@ -65,14 +65,8 @@ class ChatService:
         """
         active = await self._sessions.get_active(user_id, channel)
         if active:
-            if self._tickets:
-                # Ochiq ticketlarni yopish (optional)
-                await self._tickets.close_all_for_session(active.id)
+            await self._close_session(active.id)
 
-            # Sessiyani yopiq holatga o'tkazish
-            await self._sessions.close(active.id)
-
-        # Yangi toza sessiya yaratish
         await self._sessions.create(user_id=user_id, channel=channel)
 
     async def _open_session(
@@ -86,6 +80,7 @@ class ChatService:
         """
         # Agar session_id berilmagan bo'lsa, foydalanuvchining oxirgi faol sessiyasini topadi
         if session_id is None:
+            await self._expire_idle_session_if_needed(user_id, channel)
             return await self._sessions.open_session(user_id=user_id, channel=channel)
 
         # Berilgan ID bo'yicha sessiyani qidirish
@@ -103,10 +98,21 @@ class ChatService:
         if session.user_id != user_id:
             raise SessionAccessDeniedError("Sessiya ushbu foydalanuvchiga tegishli emas")
 
-        # HOLAT: Sessiya yopilmaganligini tekshirish
         if session.status != SessionStatus.ACTIVE.value:
-            # Agar yopiq bo'lsa, yangi sessiya yaratishga majburlash yoki xato qaytarish
-            # Sahiy loyihasi uchun yangi sessiya ochish ma'qulroq
-            return await self._sessions.open_session(user_id=user_id, channel=channel)
+            raise SessionClosedError("Sessiya yopilgan")
 
         return session
+
+    async def _expire_idle_session_if_needed(self, user_id: str, channel: str) -> None:
+        if get_settings().session_idle_hours <= 0:
+            return
+        active = await self._sessions.get_active(user_id, channel)
+        if active is None:
+            return
+        if await self._sessions.is_idle(active.id):
+            await self._close_session(active.id)
+
+    async def _close_session(self, session_id: UUID) -> None:
+        if self._tickets:
+            await self._tickets.close_open_for_session(session_id)
+        await self._sessions.close(session_id)

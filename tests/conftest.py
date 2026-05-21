@@ -16,6 +16,7 @@ def test_settings(monkeypatch):
     monkeypatch.setenv("EMBEDDING_PROVIDER", "mock")
     monkeypatch.setenv("OPENAI_API_KEY", "")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "")
+    monkeypatch.setenv("SESSION_IDLE_HOURS", "0")
     config.get_settings.cache_clear()
     yield
     config.get_settings.cache_clear()

@@ -1,0 +1,471 @@
+{
+"select * from quick_replies qr": [
+	{
+		"id" : 78,
+		"title" : "{\"uz\":\"Akkauntim xavfsizligi qanday ta'minlanadi?\",\"ru\":\"Как обеспечивается безопасность моего аккаунта?\",\"en\":\"How is my account security ensured?\",\"zh\":\"如何保证我的账号安全？\"}",
+		"body" : "{\"uz\":\"Biz ikki faktorli autentifikatsiya, shifrlangan ma'lumotlar saqlash va xavfsiz to'lov tizimlaridan foydalanamiz. Parolingizni hech kimga bermang va shubhali harakatlar haqida darhol xabar bering.\",\"ru\":\"Мы используем двухфакторную аутентификацию, зашифрованное хранение данных и безопасные платежные системы. Не передавайте свой пароль никому и немедленно сообщайте о подозрительной активности.\",\"en\":\"We use two-factor authentication, encrypted data storage, and secure payment systems. Do not share your password with anyone and report suspicious activity immediately.\",\"zh\":\"我们使用双重身份验证、加密数据存储和安全的支付系统。请勿将您的密码告诉任何人，并立即报告任何可疑活动。\"}",
+		"sort" : 35,
+		"created_at" : "2026-02-06T15:25:57.000Z",
+		"updated_at" : "2026-02-06T15:25:57.000Z",
+		"type" : 2
+	},
+	{
+		"id" : 59,
+		"title" : "{\"uz\":\"Mahsulot joylash\",\"ru\":\"Размещение товара\"}",
+		"body" : "{\"uz\":\"Assalomu aleykum mahsulotni sahiy seller ilovamizga joylash uchun ushbu ilovani play market hamda app storedan yuklab olishingiz yoki kompyuter variantimiz orqali seller sahiy uz deb qidiruv berish orqali undan ro'yxatdan o'tasiz \\nro'yxatdan o'tish uchun siz telefon raqami hamda o'zingiz uchun qulay yodingizda qoladigan parol kiritasiz hamda ro'yxatdan o'tgach do'konlar bo'limi orqali do'kon yaratish tugmasini yuqoridan bosasiz \\nu joyda sizda do'koningi uchun nom kiritish hamda surat yuklash hamda ta'rif yani do'kon haqida (sifatli ,arzon,eng zo'ri,daxshat kabi hamda qo'pol ta'riflar kiritlmagan) ta'rif yozasiz pastki qismidan ruscha ta'rifniham berib o'tasiz \\nshundan so'ng do'kon uchun rasm qo'shish kerakligi so'raladi siz galereyadan yoki kamera yordamida do'koningiz uchun nomiga undagi mavjud mahsulotlarga xos  bo'lgan rasmni yuklashingiz shart bo'ladi( do'kon suratida boshqa logotiplar , mos bo'lmagan suratlar, taqiqlangan turli xildagi suratlar,sifatsiz suratlar yuklash taqiqlanadi) \\nshundan so'ng sizdan do'kon manzilini belgilash so'raladi siz xaritalar orqali joyni belgilashingiz shart bo'ladi \\nva tasdiqlash orqali do'koningiz muvaffaqiyatli yaratiladi\",\"ru\":\"Здравствуйте\\n\\nЧтобы разместить товар в нашем приложении Sahiy Seller, вам необходимо скачать приложение из Play Market или App Store, либо воспользоваться компьютерной версией, введя в поиске seller.sahiy.uz, и пройти регистрацию.\\n\\nДля регистрации нужно указать номер телефона и придумать удобный, запоминающийся пароль. После успешной регистрации перейдите в раздел «Магазины» и нажмите кнопку «Создать магазин» в верхней части экрана.\\n\\nДалее вам потребуется:\\n\\n* указать **название магазина**;\\n* загрузить **фотографию**;\\n* написать **описание магазина** (например: качественный, недорогой, лучший и т.п.).\\n  Использование грубых и неподобающих слов в описании запрещено.\\n* ниже обязательно добавить описание на русском языке.\\n\\nПосле этого система запросит добавление изображения для магазина. Вы должны загрузить фото из галереи или сделать снимок камерой. Изображение должно соответствовать названию магазина и представленным в нём товарам.\\nЗапрещается загружать:\\n\\n* логотипы других брендов,\\n* неподходящие изображения,\\n* запрещённые материалы,\\n* некачественные фотографии.\\n\\nЗатем необходимо указать адрес магазина, отметив его на карте.\\n\\nПосле подтверждения всех данных ваш магазин будет успешно создан.\"}",
+		"sort" : 18,
+		"created_at" : "2026-01-15T06:20:44.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 45,
+		"title" : "{\"uz\":\"Ulgurji xaridor\",\"ru\":\"Оптовый покупатель\"}",
+		"body" : "{\"uz\":\"Sahiy dasturi → Profil → \\\"Ulgurji xaridor bo'l\\\" sahifasidan ro'yxatdan o'ting.\",\"ru\":\"Приложение Сахий → Профиль → \\\"Стать оптовым покупателем\\\" для регистрации.\"}",
+		"sort" : 8,
+		"created_at" : "2026-01-14T09:53:35.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 99,
+		"title" : "{\"uz\":\"raqam so'rovi\",\"ru\":\"запрос номера\"}",
+		"body" : "{\"uz\":\"Assalomu alaykum. Hurmatli mijoz sizninng buyurtmangizni topshirishi uchun sizga kuryerlarimiz telefon qilib bog'lana olishmagan ekan. Siz bog'lanish raqami sifatida ilovada qoldirgan raqamingizga tusha olishmagan. Iltimos siz bilan bog'lana olishimiz uchun birzga ayni damda faol ishlayotgan raqam yozib qoldirsngiz.\",\"ru\":\"Здравствуйте. Уважаемый клиент, наши курьеры не смогли связаться с вами по телефону для доставки вашего заказа. Номер телефона, указанный вами в заявке, недоступен. Пожалуйста, укажите действующий номер, чтобы мы могли с вами связаться.\"}",
+		"sort" : 32,
+		"created_at" : "2026-05-15T14:24:35.000Z",
+		"updated_at" : "2026-05-15T14:24:35.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 61,
+		"title" : "{\"uz\":\"Juda oson va qulay registratsiya jarayoni\",\"ru\":\"Очень быстрый и удобный процесс регистрации\",\"en\":\"Simple and user-friendly registration process\",\"zh\":\"非常简单便捷的注册流程\"}",
+		"body" : "{\"uz\":\"Murakkab qog'ozbozlikni unuting. Bor-yo'g'i bir necha daqiqa vaqt ajrating va o'z do'koningiz egasiga aylaning.\",\"ru\":\"Забудьте о бюрократии. Всего пара кликов — и ваш магазин готов к работе.\",\"en\":\"No more paperwork. Set up your professional online store in just minutes.\",\"zh\":\"告别冗长的手续。只需几分钟即可开启您的在线店铺\"}",
+		"sort" : 18,
+		"created_at" : "2026-02-06T05:12:51.000Z",
+		"updated_at" : "2026-02-06T05:12:51.000Z",
+		"type" : 7
+	},
+	{
+		"id" : 62,
+		"title" : "{\"uz\":\"Milliardlab turdagi mahsulotlar uchun ochiq platforma\",\"ru\":\"Платформа для миллиардов различных видов товаров\",\"en\":\"A platform designed for billions of product varieties\",\"zh\":\"适用于数十亿种各类商品的平台\"}",
+		"body" : "{\"uz\":\"Sizning mahsulotingiz qanchalik noyob bo'lmasin, bizda uning uchun joy bor. Har qanday toifa uchun cheksiz imkoniyatlar\",\"ru\":\"Мы поддерживаем любые категории товаров. Вашему ассортименту нет границ\",\"en\":\"No matter what you sell, our platform scales to fit billions of unique items\",\"zh\":\"无论您的产品多么独特，我们的平台都能完美承载\"}",
+		"sort" : 19,
+		"created_at" : "2026-02-06T05:15:48.000Z",
+		"updated_at" : "2026-02-06T05:15:48.000Z",
+		"type" : 7
+	},
+	{
+		"id" : 79,
+		"title" : "{\"uz\":\"Qo'llab-quvvatlash xizmatiga qanday murojaat qilishim mumkin?\",\"ru\":\"Как я могу связаться со службой поддержки?\",\"en\":\"How can I contact customer support?\",\"zh\":\"我如何联系客户支持？\"}",
+		"body" : "{\"uz\":\"Qo'llab-quvvatlash xizmatiga \\\"Yordam markazi\\\" bo'limidan murojaat qiling.\",\"ru\":\"Обратитесь в службу поддержки через раздел «Центр помощи».\",\"en\":\"Please contact support through the \\\"Help Center\\\" section.\",\"zh\":\"请通过“帮助中心”板块联系支持服务。\"}",
+		"sort" : 36,
+		"created_at" : "2026-02-06T15:29:06.000Z",
+		"updated_at" : "2026-02-06T15:29:06.000Z",
+		"type" : 2
+	},
+	{
+		"id" : 60,
+		"title" : "{\"uz\":\"qanday ochaman\",\"ru\":\"qanday ochish\"}",
+		"body" : "{\"uz\":\"bu uchun siz sahiy seller ilovasini play market yoki app storedan yuklab olishingiz yoki kompyiterdan qidiirib undan kompyuiterda foydalnishingizham mumkin boladi siz ilovani ochib ornatgach unda roytxatdan otibb keyin sozlamalar qismi orqali siz tilni ozgartrib olishingizham mumkin boladi keyin siz bemalol siz dokon yaratish qismi orali dokon yaratib boshlaysiz bunda etibor qilishingiz kerak boaldigan jihatlari quyidagilar yani dokon ochishda unga togri holatda dokon uchun undagi mahsulotlar uchun mos keladigan rasmlarni qoyishingizni sorab qolamiz bu uchun hohasangiz dokon nomimga mos rasm qilib berishni suniy intellerktham qilibberadi va dokon ochishda tariflarni togrilab qoyishingizni sorab qolgan bolar edik yani iloji boricha ozingiz mustaqil holatda suniy intellekt qollashni bosmasdan hamozingiz yozib chiqsangiz boladi yani bu uchun siz dokon ichidagi mahsuloatlar nimalardan iborat boladi shuni qolda yozib chiqishingiz kerak boladi iloji boricha agar qanaqadur savollaringiz bolsa murojaat qilsangiz boladi yoki telegramdan yozsangizham boladi\",\"ru\":\"Для этого вам необходимо скачать приложение Sahiy Seller из Play Market или App Store. Также вы можете найти его через компьютер и пользоваться программой на компьютере.\\n\\nПосле установки приложения откройте его и пройдите регистрацию. Затем в разделе «Настройки» вы сможете изменить язык приложения.\\n\\nДалее вы можете спокойно создать свой магазин через раздел «Создать магазин» и начать работу. Обратите внимание на следующие важные моменты: при создании магазина необходимо загрузить корректные и подходящие изображения для магазина и товаров. При желании искусственный интеллект может автоматически создать изображение, подходящее под название вашего магазина.\\n\\nТакже при создании магазина мы просим правильно заполнить описание. Желательно заполнять его самостоятельно, не используя искусственный интеллект, а подробно описать, какие товары будут представлены в вашем магазине.\\n\\nЕсли у вас возникнут какие-либо вопросы, вы можете обратиться к нам или написать нам в Telegram\"}",
+		"sort" : 20,
+		"created_at" : "2026-01-25T06:43:02.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 56,
+		"title" : "{\"uz\":\"Balansdan to'lash\",\"ru\":\"Оплата с баланса\"}",
+		"body" : "{\"uz\":\"Balansingizdagi mablag'dan boshqa buyurtmalarni to'lashingiz mumkin.\",\"ru\":\"Вы можете использовать баланс для оплаты других товаров.\"}",
+		"sort" : 17,
+		"created_at" : "2026-01-14T10:04:40.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 57,
+		"title" : "{\"uz\":\"Buyurtma holati\",\"ru\":\"Статус заказа\"}",
+		"body" : "{\"uz\":\"Buyurtmalaringizni Profil → Buyurtmalarim bo'limidan kuzating.\",\"ru\":\"Отслеживайте заказы в разделе Профиль → Мои заказы.\"}",
+		"sort" : 19,
+		"created_at" : "2026-01-14T10:05:17.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 53,
+		"title" : "{\"uz\":\"Yordam kerakmi?\",\"ru\":\"Нужна помощь?\"}",
+		"body" : "{\"uz\":\"Sizga qanday yordam kerak? Muammoni batafsil yozing.\",\"ru\":\"Чем могу помочь? Опишите проблему подробнее.\"}",
+		"sort" : 5,
+		"created_at" : "2026-01-14T10:02:43.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 63,
+		"title" : "{\"uz\":\"Eng kam komissiya stavkalari (0,5% dan 19,9% gacha)\",\"ru\":\"Самые низкие ставки (от 0,5% до 19,9%)\",\"en\":\"Minimal commission rates ranging from 0.5% to 19.9%\",\"zh\":\"利润将在 1 天内直接转入您的银行卡\"}",
+		"body" : "{\"uz\":\"Daromadingizning katta qismi o'zingizda qolsin. Biz bozorga nisbatan eng arzon komissiya stavkalarini taklif qilamiz\",\"ru\":\"Сохраняйте больше прибыли себе благодаря самым низким ставкам на рынке\",\"en\":\"Maximize your margins with the most competitive commission rates in the industry\",\"zh\":\"极具竞争力的费率，确保您的利润最大化\"}",
+		"sort" : 20,
+		"created_at" : "2026-02-06T05:43:42.000Z",
+		"updated_at" : "2026-02-06T05:43:42.000Z",
+		"type" : 7
+	},
+	{
+		"id" : 64,
+		"title" : "{\"uz\":\"Foydangiz 1 kun ichida to'g'ridan-to'g'ri kartangizga tushadi\",\"ru\":\"Прибыль поступает прямо на карту в течение 1 дня\",\"en\":\"Your profit is transferred directly to your card within 1 day\",\"zh\":\"利润将在 1 天内直接转入您的银行卡\"}",
+		"body" : "{\"uz\":\"Pullaringizni haftalab kutmang. Sotilgan mahsulot puli 24 soat ichida kartangizda aks etadi\",\"ru\":\"Ваши деньги доступны сразу. Вывод на карту происходит в течение суток\",\"en\":\"Get paid without the wait. Funds reach your bank card within 24 hours\",\"zh\":\"资金不等待。销售货款在 24 小时内直接存入您的银行卡\"}",
+		"sort" : 21,
+		"created_at" : "2026-02-06T05:45:58.000Z",
+		"updated_at" : "2026-02-06T05:45:58.000Z",
+		"type" : 7
+	},
+	{
+		"id" : 80,
+		"title" : "{\"uz\":\"Mahsulot kafolati bormi?\",\"ru\":\"Есть ли гарантия на товар?\",\"en\":\"Is there a warranty for the product?\",\"zh\":\"产品有保修吗？\"}",
+		"body" : "{\"uz\":\"Ha, ko'plab mahsulotlar ishlab chiqaruvchi kafolatiga ega. Kafolat muddati mahsulot turiga bog'liq. Batafsil ma'lumotni mahsulot sahifasidan toping.\",\"ru\":\"Да, на многие товары предоставляется гарантия от производителя. Срок гарантии зависит от типа товара. Подробную информацию можно найти на странице товара.\",\"en\":\"Yes, many products have a manufacturer's warranty. The warranty period depends on the product type. Find detailed information on the product page.\",\"zh\":\"是的，许多产品都有制造商保修。保修期取决于产品类型。详细信息请参阅产品页面。\"}",
+		"sort" : 37,
+		"created_at" : "2026-02-06T15:30:13.000Z",
+		"updated_at" : "2026-02-06T15:30:13.000Z",
+		"type" : 2
+	},
+	{
+		"id" : 92,
+		"title" : "{\"uz\":\"Ассалому алайкум!\",\"ru\":\"Привет!\"}",
+		"body" : "{\"uz\":\"Ассалому алайкум!\",\"ru\":\"Привет!\"}",
+		"sort" : 26,
+		"created_at" : "2026-03-26T16:03:51.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 65,
+		"title" : "{\"uz\":\"Ortiqcha harajatlarsiz, o'zingiz uchun qulay joydan soting\",\"ru\":\"Продавайте из любого удобного места без лишних затрат\",\"en\":\"Sell from anywhere you want without extra expenses\",\"zh\":\"无需额外费用，随时随地进行销售\"}",
+		"body" : "{\"uz\":\"Ijara, kommunal to'lovlar va xodimlarga ehtiyoj yo'q. Faqat telefoningiz orqali biznesni boshqaring.\",\"ru\":\"Продавайте прямо из дома или склада, минимизируя операционные расходы.\",\"en\":\"Eliminate rent and utility bills. Manage your entire business from your pocket.\",\"zh\":\"无需租金或水电费。随时随地通过手机管理生意\"}",
+		"sort" : 22,
+		"created_at" : "2026-02-06T05:57:22.000Z",
+		"updated_at" : "2026-02-06T05:57:22.000Z",
+		"type" : 7
+	},
+	{
+		"id" : 81,
+		"title" : "{\"uz\":\"Manzilimni qanday o'zgartirishim mumkin?\",\"ru\":\"Как я могу изменить свой адрес?\",\"en\":\"How can I change my address?\",\"zh\":\"如何修改我的地址？\"}",
+		"body" : "{\"uz\":\"Manzilni o'zgartirish uchun \\\"Shaxsiy ma'lumotlar\\\" bo'limidagi \\\"Mening manzillarim\\\" sahifasiga o'ting. Yangi manzil qo'shishingiz yoki mavjud manzilni tahrirlashingiz mumkin.\",\"ru\":\"Для изменения адреса перейдите в раздел «Личные данные» на страницу «Мои адреса». Вы можете добавить новый адрес или отредактировать существующий.\",\"en\":\"To change your address, go to the \\\"My Addresses\\\" page in the \\\"Personal Information\\\" section. You can add a new address or edit an existing one.\",\"zh\":\"要更改地址，请转到“个人信息”部分中的“我的地址”页面。您可以添加新地址或编辑现有地址。\"}",
+		"sort" : 38,
+		"created_at" : "2026-02-06T15:31:22.000Z",
+		"updated_at" : "2026-02-06T15:31:22.000Z",
+		"type" : 2
+	},
+	{
+		"id" : 82,
+		"title" : "{\"uz\":\"Chegirmalar va aksiyalar haqida qanday bilib olaman?\",\"ru\":\"Как я узнаю о скидках и акциях?\",\"en\":\"How can I find out about discounts and promotions?\",\"zh\":\"我如何了解折扣和促销活动？\"}",
+		"body" : "{\"uz\":\"Chegirmalar va aksiyalar haqida push-bildirishnomalar orqali xabar beramiz.\",\"ru\":\"Мы будем уведомлять вас о скидках и акциях через push-уведомления.\",\"en\":\"We will notify you about discounts and promotions via push notifications.\",\"zh\":\"我们将通过推送通知向您发送有关折扣和促销活动的信息。\"}",
+		"sort" : 39,
+		"created_at" : "2026-02-06T15:32:58.000Z",
+		"updated_at" : "2026-02-06T15:32:58.000Z",
+		"type" : 2
+	},
+	{
+		"id" : 83,
+		"title" : "{\"uz\":\"Mahsulot haqiqiyligini qanday tekshirishim mumkin?\",\"ru\":\"Как я могу проверить подлинность товара?\",\"en\":\"How can I check the authenticity of the product?\",\"zh\":\"我如何检查产品的真伪？\"}",
+		"body" : "{\"uz\":\"Barcha mahsulotlar ishonchli yetkazib beruvchilardan keladi. Ko'pchilik mahsulotlarda haqiqiylik sertifikatlari va QR-kodlari mavjud. Agar shubhangiz bo'lsa, qo'llab-quvvatlash xizmatiga murojaat qiling.\",\"ru\":\"Все товары поступают от надежных поставщиков. Многие товары имеют сертификаты подлинности и QR-коды. Если у вас возникли сомнения, обратитесь в службу поддержки.\",\"en\":\"All products come from reliable suppliers. Most products have certificates of authenticity and QR codes. If you have any doubts, please contact support.\",\"zh\":\"所有产品均来自可靠的供应商。大多数产品都有防伪证书和二维码。如果您有任何疑问，请联系客服。\"}",
+		"sort" : 40,
+		"created_at" : "2026-02-06T15:34:19.000Z",
+		"updated_at" : "2026-02-06T15:34:19.000Z",
+		"type" : 2
+	},
+	{
+		"id" : 94,
+		"title" : "{\"uz\":\"Noqulayliklar uchun uzr\",\"ru\":\"Приносим извинения за неудобства.\"}",
+		"body" : "{\"uz\":\"Assalomu alaykum. Hurmatli mijoz kerltirilgan noqulayliklar va kechikishlar uchun uzr so'raymiz. ushbu buyurtmangiz muammosi haqida masul xodimga xabar berildi. tez orada muammoingiz hal qilinadi Xudo xoxlasa\",\"ru\":\"Здравствуйте. Уважаемый клиент, приносим извинения за причиненные неудобства и задержку. Проблема с вашим заказом передана ответственному сотруднику. Ваша проблема будет решена в ближайшее время, если на то будет воля Божья.\"}",
+		"sort" : 29,
+		"created_at" : "2026-04-04T10:21:07.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 66,
+		"title" : "{\"uz\":\"Qanday qilib ro'yxatdan o'tishim mumkin?\",\"ru\":\"Как я могу зарегистрироваться?\",\"en\":\"How can I register?\",\"zh\":\"如何注册？\"}",
+		"body" : "{\"uz\":\"Ro'yxatdan o'tish uchun asosiy sahifadagi \\\"Kirish\/Ro'yxatdan o'tish\\\" tugmasini bosing. Telefon raqamingizni kiriting va SMS orqali kelgan tasdiqlash kodini kiriting. So'ngra shaxsiy ma'lumotlaringizni to'ldiring.\",\"ru\":\"Нажмите кнопку «Вход\/Регистрация» на главной странице. Введите номер телефона и код подтверждения из СМС. Затем заполните личные данные.\",\"en\":\"Click the \\\"Login\/Registration\\\" button on the main page. Enter your phone number and the confirmation code received via SMS. Then fill in your personal information.\",\"zh\":\"点击主页上的“登录\/注册”按钮。输入您的电话号码和收到的短信验证码。然后填写您的个人信息。\"}",
+		"sort" : 23,
+		"created_at" : "2026-02-06T13:55:47.000Z",
+		"updated_at" : "2026-02-06T13:55:47.000Z",
+		"type" : 2
+	},
+	{
+		"id" : 67,
+		"title" : "{\"uz\":\"Mahsulotni qanday buyurtma qilishim mumkin?\",\"ru\":\"Как заказать товар?\",\"en\":\"How can I order a product?\",\"zh\":\"如何订购产品？\"}",
+		"body" : "{\"uz\":\"Kerakli mahsulotni toping, \\\"Savatga qo'shish\\\" tugmasini bosing. Savatga o'tib, buyurtmani rasmiylashtirishni boshlang. Yetkazib berish manzili va to'lov usulini tanlang, so'ngra buyurtmani tasdiqlang.\",\"ru\":\"Найдите нужный товар, нажмите «Добавить в корзину». Перейдите в корзину и начните оформление. Выберите адрес доставки и способ оплаты, затем подтвердите заказ.\",\"en\":\"Find the desired product and click \\\"Add to cart.\\\" Go to the cart and start the checkout process. Select the delivery address and payment method, then confirm the order.\",\"zh\":\"找到所需的商品，点击“加入购物车”。进入购物车并开始结账过程。选择送货地址和付款方式，然后确认订单。\"}",
+		"sort" : 24,
+		"created_at" : "2026-02-06T13:57:39.000Z",
+		"updated_at" : "2026-02-06T13:57:39.000Z",
+		"type" : 2
+	},
+	{
+		"id" : 68,
+		"title" : "{\"uz\":\"Qanday to'lov usullari mavjud?\",\"ru\":\"Какие способы оплаты доступны?\",\"en\":\"What payment methods are available?\",\"zh\":\"有哪些付款方式？\"}",
+		"body" : "{\"uz\":\"Biz quyidagi to'lov usullarini qo'llab-quvvatlaymiz: bank kartalari (UzCard, Humo), Click, Payme va Paynet to'lov tizimlari.\",\"ru\":\"Мы поддерживаем следующие способы: банковские карты (UzCard, Humo), платежные системы Click, Payme и Paynet.\",\"en\":\"We support the following methods: bank cards (UzCard, Humo), and payment systems like Click, Payme, and Paynet.\",\"zh\":\"我们支持以下方式：银行卡（UzCard、Humo）、Click、Payme 和 Paynet 支付系统。\"}",
+		"sort" : 25,
+		"created_at" : "2026-02-06T13:59:51.000Z",
+		"updated_at" : "2026-02-06T13:59:51.000Z",
+		"type" : 2
+	},
+	{
+		"id" : 85,
+		"title" : "{\"uz\":\"Salom\",\"ru\":\"salom\"}",
+		"body" : "{\"uz\":\"Assalomu alaykum hurmatli mijoz muammoyingiz xal etildimi.\",\"ru\":\"Здравствуйте, уважаемый клиент, ваша проблема была решена?\"}",
+		"sort" : 21,
+		"created_at" : "2026-02-07T04:35:59.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 69,
+		"title" : "{\"uz\":\"Yetkazib berish qancha vaqt oladi?\",\"ru\":\"Сколько времени занимает доставка?\",\"en\":\"How long does delivery take?\",\"zh\":\"送货需要多长时间？\"}",
+		"body" : "{\"uz\":\"O'zbekiston bo'ylab standart yetkazib berish 2-5 kun ichida amalga oshiriladi. Toshkent shahri bo'yicha 1-2 kun. Xitoydan buyurtma qilingan mahsulotlar uchun 15-25 kun. Tezkor yetkazib berish xizmati ham mavjud.\",\"ru\":\"Стандартная доставка по Узбекистану занимает 2-5 дней. По Ташкенту 1-2 дня. Для товаров из Китая — 15-25 дней. Также доступна экспресс-доставка.\",\"en\":\"Standard delivery across Uzbekistan takes 2-5 days. Within Tashkent, 1-2 days. For products ordered from China, 15-25 days. Express delivery is also available.\",\"zh\":\"乌兹别克斯坦境内的标准送货时间为 2-5 天。塔什干市内 1-2 天。从中国订购的产品需 15-25 天。还提供快递服务。\"}",
+		"sort" : 26,
+		"created_at" : "2026-02-06T14:01:26.000Z",
+		"updated_at" : "2026-02-06T14:01:26.000Z",
+		"type" : 2
+	},
+	{
+		"id" : 88,
+		"title" : "{\"uz\":\"Буюртма олиб кетилган!\",\"ru\":\"Заказ доставлен!\"}",
+		"body" : "{\"uz\":\"Буюртма курер орқали етказиб бериш учун олиб кетилган!\",\"ru\":\"Заказ передан курьеру для доставки!\"}",
+		"sort" : 2,
+		"created_at" : "2026-02-10T06:27:00.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 86,
+		"title" : "{\"uz\":\"Murojaat uchun\",\"ru\":\"Murojaat uchun\"}",
+		"body" : "{\"uz\":\"500441360\",\"ru\":\"500441360\"}",
+		"sort" : 22,
+		"created_at" : "2026-02-08T13:39:26.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 93,
+		"title" : "{\"uz\":\"buyurtmalar yetib kelish vaqti\",\"ru\":\"время прибытия заказа\"}",
+		"body" : "{\"uz\":\"Assalomu alaykum. Hurmatli mijoz buyurtmalar yo'lga chiqarib yuborilgan vaqtdan boshlab 15 kunda yetib keladi\",\"ru\":\"Здравствуйте. Уважаемый покупатель, заказы будут доставлены в течение 15 дней с момента отправки.\"}",
+		"sort" : 28,
+		"created_at" : "2026-03-31T14:44:36.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 90,
+		"title" : "{\"uz\":\"Umumiy malumot\",\"ru\":\"Общая информация\"}",
+		"body" : "{\"uz\":\"mahsulotlar buyurtm aqilkgan muddatingizdan boshlab 13-15 kun ichida keladi va kelganda siz uchun sms xabarnoma boradi telefon raqamingizga . murojaat uchun 773229501, 773229501 shunigdek agarda sizda mahsulot kelganida singan yoki kam kelgan holatda bo'lsa buni bizga rasmini hamda xitoycha stikerini tashlab bersangiz bu mahsulotingizni ko'rib chiqamiz va sizga buni ko'rib chiqib xabar beramiz buni qilgan to'lovingizni qaytarib beramiz yoki qayta buyurtma qilib beramiz sizga . agarda mahsulotlaringiz kelmayotgan bo'lsa bu uchun ayni o'sha mahsulotingizni DG raqami yoki uzun tartibli raqamini tashlab bersangiz biz ayni o'sha mahsulotingizni ko'rib beramiz !agarda qabul qilingan degan sms xabarnoma kelgan bolsa bunda demak mahsulotingiz kuryerda berilgan 2 kunda barcha mijozlarga yetkazib berishadi toshkent shahrida . agarda viloyatda bo'lsa bu uchun punktdan olib ketishlik kerak boladi .zakaz uchun taqiqlanmagan mashulotlarni ilovadan tanlab oldindan tolovni amalga oshirishingiz kerak boladi\",\"ru\":\"Товары доставляются в течение 13–15 дней с момента оформления заказа. Когда заказ поступит, на ваш номер телефона придёт SMS-уведомление.\\nДля обращений: +998 77 322 95 01\\n\\nЕсли товар пришёл повреждённым или в неполной комплектации, пожалуйста, отправьте нам его фотографию, а также фото китайской наклейки (стикера). Мы рассмотрим обращение и сообщим вам о результате. В этом случае мы вернём оплату или оформим повторный заказ.\\n\\nЕсли ваш товар не поступил, отправьте нам его DG-номер или длинный номер отслеживания — мы проверим информацию по заказу.\\n\\nЕсли вам пришло SMS с текстом «Принято», это означает, что товар передан курьеру. В городе Ташкент доставка осуществляется в течение 2 дней всем клиентам.\\nЕсли вы находитесь в области, заказ необходимо забрать из пункта выдачи.\\n\\nДля оформления заказа необходимо выбрать разрешённые товары в приложении и произвести предоплату.\"}",
+		"sort" : 24,
+		"created_at" : "2026-02-12T07:35:20.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 49,
+		"title" : "{\"uz\":\"Bepul yetkazish\",\"ru\":\"Бесплатная доставка\"}",
+		"body" : "{\"uz\":\"Yangilangan Sahiy ilovasidan buyurtma qilsangiz, yetkazish bepul.\",\"ru\":\"При заказазе через обновлённое приложение Сахий доставка бесплатная.\"}",
+		"sort" : 11,
+		"created_at" : "2026-01-14T09:57:10.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 73,
+		"title" : "{\"uz\":\"Buyurtmani qanday kuzatishim mumkin?\",\"ru\":\"Как я могу отследить заказ?\",\"en\":\"How can I track my order?\",\"zh\":\"我如何追踪我的订单？\"}",
+		"body" : "{\"uz\":\"Buyurtmani kuzatish uchun \\\"Mening buyurtmalarim\\\" bo'limiga o'ting. Har bir buyurtma uchun kuzatish raqami va joriy holat ko'rsatiladi. Shuningdek, SMS orqali holat haqida xabarnomalar olasiz.\",\"ru\":\"Перейдите в раздел «Мои заказы». Для каждого заказа будет указан номер отслеживания и текущий статус. Вы также будете получать СМС-уведомления о статусе.\",\"en\":\"To track your order, go to the \\\"My Orders\\\" section. A tracking number and current status will be shown for each order. You will also receive status notifications via SMS.\",\"zh\":\"要追踪您的订单，请转到“我的订单”部分。每份订单都会显示追踪号码和当前状态。您还将通过短信收到状态通知。\"}",
+		"sort" : 30,
+		"created_at" : "2026-02-06T14:08:24.000Z",
+		"updated_at" : "2026-02-06T14:08:24.000Z",
+		"type" : 2
+	},
+	{
+		"id" : 87,
+		"title" : "{\"uz\":\"yordam\",\"ru\":\"yordam\"}",
+		"body" : "{\"uz\":\"Hurmatli mijoz sizga qanday yordam bera olaman menga batafsil malumot yozing iloji bo`lsa buyurtma raqamini yozing\",\"ru\":\"Уважаемый клиент, чем я могу вам помочь? Пожалуйста, напишите подробную информацию и, если возможно, укажите номер заказа\"}",
+		"sort" : 3,
+		"created_at" : "2026-02-09T06:01:48.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 54,
+		"title" : "{\"uz\":\"Pul qaytariladi\",\"ru\":\"Деньги вернутся\"}",
+		"body" : "{\"uz\":\"To'langan pul 48 soat ichida hisobingizga qaytariladi.\",\"ru\":\"Деньги вернутся на ваш счёт в течение 48 часов.\"}",
+		"sort" : 15,
+		"created_at" : "2026-01-14T10:03:18.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 98,
+		"title" : "{\"uz\":\"Xitoy sotuvchi\",\"ru\":\"Продавец\"}",
+		"body" : "{\"uz\":\"Хитой мутахассисларига ёздик тез орада ижобий ҳал қилиб беришади, 2 кун оралиғида юборишади.\",\"ru\":\"Мы написали китайским экспертам, и они скоро, в течение двух дней, дадут положительное решение.\"}",
+		"sort" : 1,
+		"created_at" : "2026-04-16T15:54:03.000Z",
+		"updated_at" : "2026-04-19T09:45:53.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 95,
+		"title" : "{\"uz\":\"tekshiramiz 2\",\"ru\":\"tekshiramiz 2\"}",
+		"body" : "{\"uz\":\"Assalomu alaykum. buyurtmalaringiz xolatini tekshirmoqdamiz. tez orada aniqlashtirib sizga xabar beramiz. Kechikishlar uchun uzr.\",\"ru\":\"Assalomu alaykum. buyurtmalaringiz xolatini tekshirmoqdamiz. tez orada aniqlashtirib sizga xabar beramiz. Kechikishlar uchun uzr.\"}",
+		"sort" : 30,
+		"created_at" : "2026-04-05T12:34:34.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 50,
+		"title" : "{\"uz\":\"Ma'lumot yig'amiz\",\"ru\":\"Собираем данные\"}",
+		"body" : "{\"uz\":\"Ma'lumot yig'ishimiz bilan sizga javob yozamiz. Buyurtma raqamini qoldiring.\",\"ru\":\"Соберём информацию и напишем вам. Оставьте номер заказа.\"}",
+		"sort" : 12,
+		"created_at" : "2026-01-14T10:00:17.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 97,
+		"title" : "{\"uz\":\"Mutahasisga yuborildi\",\"ru\":\".\"}",
+		"body" : "{\"uz\":\"Mutahasisga yubordim buyurtmangiz holatini bilish uchun operatorlarimizdan javob kuting\",\"ru\":\".\"}",
+		"sort" : 27,
+		"created_at" : "2026-04-16T12:13:15.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 48,
+		"title" : "{\"uz\":\"Yetkazish muddati\",\"ru\":\"Срок доставки\"}",
+		"body" : "{\"uz\":\"Mahsulot yo'lga chiqqandan keyin 12-15 kun ichida yetib keladi.\",\"ru\":\"Доставка товара в течение 12-15 дней после отправки.\"}",
+		"sort" : 10,
+		"created_at" : "2026-01-14T09:56:29.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 91,
+		"title" : "{\"uz\":\"Seller umumiy ma'lumot\",\"ru\":\"Общая информация о продавце\"}",
+		"body" : "{\"uz\":\"Sahiy Seller — bu sotuvchilar uchun mo‘ljallangan platforma bo‘lib, unda siz o‘z do‘koningizni ro‘yxatdan o‘tkazib, mahsulotlaringizni Sahiy Market ilovasining mahalliy bo‘limida sotishingiz mumkin. \\n\\nSahiy Market orqali foydalanuvchilar Xitoydan arzon narxlarda mahsulotlar buyurtma qilishlari mumkin, sotuvchilar esa ushbu mahsulotlarni ulgurji xarid qilib, ularni mahalliy bozorda sotish imkoniyatiga ega bo‘ladilar. Platforma to‘liq ishga tushganda esa siz Sahiy mahalliy marketida birinchi sotuvchilardan biri bo‘lish imkoniyatiga ega bo‘lasiz. \\n\\nHozirda platforma test rejimida ishlamoqda, shu vaqt ichida siz ilova bilan tanishib, barcha imkoniyatlarini o‘rganib chiqishingiz mumkin.\",\"ru\":\"Sahiy Seller — это платформа для продавцов, где вы можете зарегистрировать свой магазин и продавать свои товары в локальном разделе приложения Sahiy Market.\\n\\nЧерез Sahiy Market пользователи могут заказывать товары из Китая по низким ценам, а продавцы получат возможность закупать эти товары оптом и продавать их на местном рынке. После полного запуска платформы у вас появится возможность стать одним из первых продавцов на местном рынке Sahiy.\\n\\nВ настоящее время платформа находится в тестовом режиме, в течение которого вы можете ознакомиться с приложением и изучить все его возможности.\"}",
+		"sort" : 25,
+		"created_at" : "2026-03-09T12:01:12.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 55,
+		"title" : "{\"uz\":\"To'lovsiz xarid yo'q\",\"ru\":\"Без оплаты покупок нет\"}",
+		"body" : "{\"uz\":\"Afsuski, hozircha to'lovsiz xarid qilish imkoni yo'q.\",\"ru\":\"К сожалению, оплата при получении пока недоступна.\"}",
+		"sort" : 16,
+		"created_at" : "2026-01-14T10:03:55.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 46,
+		"title" : "{\"uz\":\"Tekshiramiz\",\"ru\":\"Проверим\"}",
+		"body" : "{\"uz\":\"Yaxshi, tekshirib ko'ramiz. Buyurtma raqamingizni yozing.\",\"ru\":\"Хорошо, проверим. Оставьте номер вашего заказа.\"}",
+		"sort" : 4,
+		"created_at" : "2026-01-14T09:54:15.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 75,
+		"title" : "{\"uz\":\"SAHIY SELLER nima?\",\"ru\":\"Что такое SAHIY SELLER?\",\"en\":\"What is SAHIY SELLER?\",\"zh\":\"什么是 SAHIY SELLER？\"}",
+		"body" : "{\"uz\":\"SAHIY SELLER - bu mahalliy sotuvchilar uchun professional platforma. O'z mahsulotlaringizni platformada sotishingiz va keng auditoriyaga yetkazishingiz mumkun. Batafsil ma'lumot uchun SAHIY SELLER bo'limiga o'ting.\",\"ru\":\"SAHIY SELLER — это профессиональная платформа для местных продавцов. Вы можете продавать свои товары на платформе и охватывать широкую аудиторию. Для подробностей перейдите в раздел SAHIY SELLER.\",\"en\":\"SAHIY SELLER is a professional platform for local sellers. You can sell your products on the platform and reach a wide audience. For more details, go to the SAHIY SELLER section.\",\"zh\":\"SAHIY SELLER 是一个面向本地卖家的专业平台。您可以在该平台上销售您的产品并接触到广泛的受众。欲了解更多详情，请访问 SAHIY SELLER 部分。\"}",
+		"sort" : 32,
+		"created_at" : "2026-02-06T14:11:58.000Z",
+		"updated_at" : "2026-02-06T14:11:58.000Z",
+		"type" : 2
+	},
+	{
+		"id" : 77,
+		"title" : "{\"uz\":\"Qanday qilib mahsulot izlashim mumkin?\",\"ru\":\"Как я могу найти товар?\",\"en\":\"How can I search for a product?\",\"zh\":\"如何搜索产品？\"}",
+		"body" : "{\"uz\":\"Mahsulot izlash uchun asosiy sahifadagi qidiruv maydonini ishlating. Kalit so'zlar, kategoriyalar yoki rasm orqali qidirishingiz mumkun. Filterlardan foydalanib natijalarni aniqlashtirishingiz mumkin.\",\"ru\":\"Используйте поле поиска на главной странице. Вы можете искать по ключевым словам, категориям или изображениям. Используйте фильтры для уточнения результатов.\",\"en\":\"Use the search field on the main page. You can search by keywords, categories, or images. Use filters to refine the results.\",\"zh\":\"使用主页上的搜索栏。您可以按关键词、类别或图片进行搜索。使用过滤器来缩小搜索结果。\"}",
+		"sort" : 34,
+		"created_at" : "2026-02-06T14:20:28.000Z",
+		"updated_at" : "2026-02-06T14:20:28.000Z",
+		"type" : 2
+	},
+	{
+		"id" : 47,
+		"title" : "{\"uz\":\"Tilni o'zgartirish\",\"ru\":\"Изменить язык\"}",
+		"body" : "{\"uz\":\"Sahiy dasturiga kiring → Profil → Til\/Valyuta bo'limidan tilni o'zgartiring.\",\"ru\":\"Войдите в приложение Сахий → Профиль → Язык\/Валюта для изменения языка.\"}",
+		"sort" : 9,
+		"created_at" : "2026-01-14T09:55:45.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 51,
+		"title" : "{\"uz\":\"Mahsulot yetib keldi\",\"ru\":\"Товар прибыл\"}",
+		"body" : "{\"uz\":\"Mahsulot bizning manzilga yetib keldi. O'zingiz olib ketishingiz yoki yetkazib berishni buyurtma qilishingiz mumkin.\",\"ru\":\"Товар прибыл по нашему адресу. Вы можете забрать самостоятельно или заказать доставку.\"}",
+		"sort" : 13,
+		"created_at" : "2026-01-14T10:01:00.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 89,
+		"title" : "{\"uz\":\"Qachon keladi\",\"ru\":\"Когда он придет\"}",
+		"body" : "{\"uz\":\"mahsulotlar buyurtm yo'lga chiqgan muddatingizdan boshlab 13-15 kun ichida keladi va kelganda siz uchun sms xabarnoma boradi telefon raqamingizga .\",\"ru\":\"Gemini said\\nТовары прибудут в течение 13-15 дней с момента оформления заказа. Как только посылка поступит, на ваш номер телефона придет SMS-уведомление.\\n\\nКонтакты для связи:\\nТелефон: 773229501, 773229501\\n\\nУсловия при повреждении или недостаче:\\nЕсли при получении товар оказался поврежденным или пришел не в полном объеме, пожалуйста, отправьте нам:\\n\\nФотографию товара;\\n\\nФото китайского стикера (маркировки) на упаковке.\\n\\nМы рассмотрим вашу заявку и по результатам проверки либо вернем вам оплату, либо оформим повторный заказ.\\n\\nЕсли товар задерживается:\\nЕсли ваш заказ не пришел вовремя, отправьте нам DG-номер или длинный трек-номер данного товара. Мы проверим его статус и предоставим информацию.\"}",
+		"sort" : 23,
+		"created_at" : "2026-02-12T06:17:52.000Z",
+		"updated_at" : "2026-04-25T15:04:42.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 76,
+		"title" : "{\"uz\":\"Mahsulot narxi nima uchun o'zgaradi?\",\"ru\":\"Почему меняется цена товара?\",\"en\":\"Why does the product price change?\",\"zh\":\"为什么产品价格会变动？\"}",
+		"body" : "{\"uz\":\"Mahsulot narxi valyuta kursi, chegirmalar, aksiyalar va yetkazib beruvchi tomonidan o'zgarishlar tufayli o'zgarishi mumkun. Joriy narx savatchada ko'rsatiladi.\",\"ru\":\"Цена может меняться из-за курса валют, скидок, акций или изменений со стороны поставщика. Текущая цена отображается в корзине.\",\"en\":\"The price may change due to currency exchange rates, discounts, promotions, or updates from the supplier. The current price is shown in the cart.\",\"zh\":\"价格可能会因汇率、折扣、促销或供应商的变动而变化。当前价格显示在购物车中。\"}",
+		"sort" : 33,
+		"created_at" : "2026-02-06T14:13:02.000Z",
+		"updated_at" : "2026-02-06T14:13:02.000Z",
+		"type" : 2
+	},
+	{
+		"id" : 96,
+		"title" : "{\"uz\":\"ulgurji savdo haqida2\",\"ru\":\"о оптовой торговле2\"}",
+		"body" : "{\"uz\":\"Ulgurji savdo bu asosan biznesmenlar uchun. Bunda siz mahsulotlarni xitoydagi arginal narxda sotib olasiz, unga bizdan ustama qo'shimcha narx qo'shilmaydi. ammo har bir mahsulotning kargo xizmati bo'ladi. MASALAN TASAVVUR QILING MEN HOZIR toshkentdan 5ming so'mga semichka sotibolaman. Uni vodiyga oborib sotaman. O'zimdan semichkaning narxi ustiga yana ikkiming so'm qo'shaman+ toshkentdan vodiyga olib kelganim uchun yo'l haqqi o'laroq yana ming so'm qo'shaman= semichkaning narxi 8ming bo'lib qoladi.  Bu B2C savdo. B2Bda esa men semichkaga faqat ming so'm yo'l haqqi qo'shaman xolos.\",\"ru\":\"Оптовая торговля в основном предназначена для бизнесменов. В этом случае вы покупаете товары по первоначальной цене в Китае, никаких дополнительных затрат с нашей стороны нет. Однако для каждого товара предусмотрена услуга доставки. ПРЕДСТАВЬТЕ, НАПРИМЕР, Я СЕЙЧАС продаю рассаду из Ташкента за 5 тысяч сумов. Я доставляю ее в долину и продаю. Я добавляю к цене рассады еще две тысячи сумов + еще тысячу сумов за транспортные расходы на доставку из Ташкента в долину = цена рассады остается 8 тысяч. Это торговля B2C. В торговле B2B я добавляю к цене рассады только тысячу сумов за транспортировку.\"}",
+		"sort" : 31,
+		"created_at" : "2026-04-09T11:05:28.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 52,
+		"title" : "{\"uz\":\"Operatorlar bog'lanadi\",\"ru\":\"Операторы свяжутся\"}",
+		"body" : "{\"uz\":\"Operatorlarimiz tez orada siz bilan bog'lanadi.\",\"ru\":\"Наши операторы свяжутся с вами в ближайшее время.\"}",
+		"sort" : 14,
+		"created_at" : "2026-01-14T10:01:59.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 40,
+		"title" : "{\"uz\":\"Buyurtma bekor qilindi\",\"ru\":\"Заказ отменён\"}",
+		"body" : "{\"uz\":\"Buyurtmangiz sotuvchida mahsulot qolmagani sababli bekor qilindi. Pul 48 soat ichida qaytariladi.\",\"ru\":\"Ваш заказ отменён, так как у продавца нет товара. Возврат средств в течение 48 часов.\"}",
+		"sort" : 6,
+		"created_at" : "2026-01-13T12:04:02.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 44,
+		"title" : "{\"uz\":\"Rasmiy sayt\",\"ru\":\"Официальный сайт\"}",
+		"body" : "{\"uz\":\"Ha, biz rasmiy saytmiz va butun O'zbekistonda filiallarimiz bor.\",\"ru\":\"Да, мы официальный сайт с филиалами по всему Узбекистану.\"}",
+		"sort" : 7,
+		"created_at" : "2026-01-14T09:51:18.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	},
+	{
+		"id" : 58,
+		"title" : "{\"uz\":\"Ассалому алайкум!\",\"ru\":\"Привет!\"}",
+		"body" : "{\"uz\":\"Ассалому алайкум!\",\"ru\":\"Здравствуйте!\"}",
+		"sort" : 0,
+		"created_at" : "2026-01-14T10:05:58.000Z",
+		"updated_at" : "2026-04-16T15:54:40.000Z",
+		"type" : 1
+	}
+]}
