@@ -9,7 +9,11 @@ from app.infrastructure.sahiy_api.admin_auth import (
     _parse_captcha,
     _panel_login_token,
 )
-from app.infrastructure.sahiy_api.captcha_solver import normalize_captcha, parse_data_url
+from app.infrastructure.sahiy_api.captcha_solver import (
+    _pick_best_candidate,
+    normalize_captcha,
+    parse_data_url,
+)
 
 
 def test_parse_captcha_payload():
@@ -29,10 +33,18 @@ def test_parse_captcha_payload():
     assert sensitive is False
 
 
+def test_pick_best_candidate_prefers_four_chars():
+    assert _pick_best_candidate(["AB12", "AB123", "AB12"]) == "AB12"
+
+
 def test_parse_data_url():
     media, b64 = parse_data_url("data:image/png;base64,QUJD")
     assert media == "image/png"
     assert b64 == "QUJD"
+
+
+def test_normalize_captcha_homoglyphs():
+    assert normalize_captcha("4ZXΜ", case_sensitive=False) == "4ZXM"
 
 
 def test_normalize_captcha_case_insensitive():
