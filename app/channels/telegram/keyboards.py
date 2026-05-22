@@ -8,10 +8,19 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton,
 
 PHONE_BUTTON_TEXT = "📱 Telefon raqamni yuborish"
 
+_PHONE_BUTTON: Dict[str, str] = {
+    "uz_lat": "📱 Telefon raqamni yuborish",
+    "uz_cyrl": "📱 Телефон рақамни юбориш",
+    "ru": "📱 Отправить номер телефона",
+    "en": "📱 Send phone number",
+    "zh": "📱 发送电话号码",
+}
 
-def phone_request_keyboard() -> ReplyKeyboardMarkup:
+
+def phone_request_keyboard(lang: str = "uz_lat") -> ReplyKeyboardMarkup:
+    label = _PHONE_BUTTON.get(lang) or _PHONE_BUTTON.get("uz_lat", PHONE_BUTTON_TEXT)
     return ReplyKeyboardMarkup(
-        [[KeyboardButton(PHONE_BUTTON_TEXT, request_contact=True)]],
+        [[KeyboardButton(label, request_contact=True)]],
         resize_keyboard=True,
         one_time_keyboard=True,
     )

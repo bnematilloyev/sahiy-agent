@@ -21,6 +21,11 @@ from app.channels.telegram.keyboards import (
     remove_keyboard,
 )
 from app.core.config import get_settings
+from app.domain.language_menu import (
+    LANGUAGE_PICKER_PROMPT,
+    build_language_menu_extra,
+    parse_language_callback,
+)
 from app.domain.order_list_menu import parse_order_menu_callback
 from app.domain.reply_language import resolve_reply_language
 from app.domain.pickup_present import parse_callback
@@ -180,6 +185,7 @@ class TelegramBot(BotChannel):
         self._app.add_handler(MessageHandler(filters.CONTACT, self._on_contact))
         self._app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self._on_text))
         self._app.add_handler(MessageHandler(filters.PHOTO, self._on_photo))
+        self._app.add_handler(CallbackQueryHandler(self._on_language_callback, pattern=r"^lang_"))
         self._app.add_handler(CallbackQueryHandler(self._on_pickup_callback, pattern=r"^pp_"))
         self._app.add_handler(CallbackQueryHandler(self._on_order_menu_callback, pattern=r"^ord_"))
         self._app.add_error_handler(self._on_error)
@@ -212,13 +218,36 @@ class TelegramBot(BotChannel):
 
     async def _on_start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if update.message and update.effective_user:
-            if context.user_data is not None:
-                context.user_data["reply_language"] = "uz_lat"
-            lang = _tg_lang(update, context)
+            markup = inline_keyboard_from_extra(build_language_menu_extra())
             await self._safe_reply_text(
                 update,
-                _t(_WELCOME, lang),
-                reply_markup=phone_request_keyboard(),
+                LANGUAGE_PICKER_PROMPT,
+                reply_markup=markup,
+            )
+
+    async def _on_language_callback(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        query = update.callback_query
+        if not query or not query.data:
+            return
+        lang = parse_language_callback(query.data)
+        if not lang:
+            return
+        if context.user_data is not None:
+            context.user_data["reply_language"] = lang
+        await query.answer()
+        welcome = _t(_WELCOME, lang)
+        try:
+            await query.edit_message_text(welcome)
+        except TelegramError as exc:
+            logger.warning("edit_message_text (language) failed: %s", exc)
+            if query.message:
+                await query.message.reply_text(welcome)
+        if query.message:
+            await query.message.reply_text(
+                _t(_PHONE_PROMPT, lang),
+                reply_markup=phone_request_keyboard(lang),
             )
 
     async def _on_new(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -247,7 +276,7 @@ class TelegramBot(BotChannel):
             await self._safe_reply_text(
                 update,
                 _t(_new_chat_started, lang) + _t(_PHONE_PROMPT, lang),
-                reply_markup=phone_request_keyboard(),
+                reply_markup=phone_request_keyboard(lang),
             )
         except Exception:
             logger.exception("reset_session failed")
@@ -298,7 +327,7 @@ class TelegramBot(BotChannel):
             await self._safe_reply_text(
                 update,
                 _t(_PHONE_WRONG_CONTACT, lang),
-                reply_markup=phone_request_keyboard(),
+                reply_markup=phone_request_keyboard(lang),
             )
             return
 
@@ -317,14 +346,14 @@ class TelegramBot(BotChannel):
                 await self._safe_reply_text(
                     update,
                     error_text,
-                    reply_markup=phone_request_keyboard(),
+                    reply_markup=phone_request_keyboard(lang),
                 )
                 return
             if sahiy_user_id is None:
                 await self._safe_reply_text(
                     update,
                     _t(_PHONE_WRONG_CONTACT, lang),
-                    reply_markup=phone_request_keyboard(),
+                    reply_markup=phone_request_keyboard(lang),
                 )
                 return
 
