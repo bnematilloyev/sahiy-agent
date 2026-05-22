@@ -91,6 +91,17 @@ _ARRIVAL_CONTEXT = (
     "moi tovar",
     "moi zakaz",
 )
+_ALL_LIST_KW = (
+    "hammasi",
+    "hamma zakaz",
+    "barcha buyurtma",
+    "buyurtmalarim holati",
+    "all order",
+    "all orders",
+    "vse zakaz",
+    "vse tovary",
+)
+_WHERE_ORDERS_KW = ("qayerda", "qayda", "where", "gde")
 
 
 def _status_code(row: Dict[str, Any]) -> Optional[int]:
@@ -106,11 +117,12 @@ class OrderListIntent:
     """Qaysi manbalarga API chaqirish va qaysi qatorlarni ko'rsatish."""
 
     sources: FrozenSet[str]
-    row_filter: Optional[str] = None  # active | pending_arrival | cancelled | completed | delayed | in_china
+    row_filter: Optional[str] = None  # active | pending_arrival | cancelled | ...
+    include_completed: bool = False
 
     @staticmethod
     def default() -> OrderListIntent:
-        return OrderListIntent(sources=_ALL_SOURCES, row_filter=None)
+        return OrderListIntent(sources=_ALL_SOURCES, row_filter=None, include_completed=False)
 
     def scope_title(self, lang: str = "uz_lat") -> Optional[str]:
         _FILTER_TITLES = {
@@ -216,6 +228,24 @@ class OrderListIntent:
         return None
 
 
+def _is_where_orders_question(lowered: str) -> bool:
+    if not any(w in lowered for w in _WHERE_ORDERS_KW):
+        return False
+    return any(
+        w in lowered
+        for w in (
+            "zakaz",
+            "order",
+            "buyurtma",
+            "tovar",
+            "posylk",
+            "mani",
+            "moi",
+            "my ",
+        )
+    )
+
+
 def _is_pending_arrival_question(lowered: str) -> bool:
     if any(k in lowered for k in _ARRIVAL_KW):
         return True
@@ -232,18 +262,29 @@ def parse_order_list_intent(text: str) -> OrderListIntent:
         return OrderListIntent.default()
 
     row_filter: Optional[str] = None
+    include_completed = any(k in lowered for k in _ALL_LIST_KW)
+
     if any(k in lowered for k in _CANCELLED_KW):
         row_filter = "cancelled"
+        include_completed = False
     elif any(k in lowered for k in _DELAYED_KW):
         row_filter = "delayed"
+        include_completed = False
     elif _is_pending_arrival_question(lowered):
         row_filter = "pending_arrival"
-    elif any(k in lowered for k in _IN_CHINA_KW):
-        row_filter = "in_china"
-    elif any(k in lowered for k in _COMPLETED_KW):
-        row_filter = "completed"
+        include_completed = False
     elif any(k in lowered for k in _ACTIVE_KW):
         row_filter = "active"
+        include_completed = False
+    elif _is_where_orders_question(lowered):
+        row_filter = "active"
+        include_completed = False
+    elif any(k in lowered for k in _IN_CHINA_KW):
+        row_filter = "in_china"
+        include_completed = False
+    elif any(k in lowered for k in _COMPLETED_KW):
+        row_filter = "completed"
+        include_completed = True
 
     sources = set(_ALL_SOURCES)
     want_daigou = any(k in lowered for k in _DAIGOU_KW)
@@ -282,7 +323,11 @@ def parse_order_list_intent(text: str) -> OrderListIntent:
     elif row_filter in ("pending_arrival", "active"):
         sources = {"daigou", "jiyun"}
 
-    return OrderListIntent(sources=frozenset(sources), row_filter=row_filter)
+    return OrderListIntent(
+        sources=frozenset(sources),
+        row_filter=row_filter,
+        include_completed=include_completed and row_filter is None,
+    )
 
 
 def should_fetch_with_list_intent(query: str, *, track: Optional[str]) -> bool:

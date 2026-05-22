@@ -71,9 +71,9 @@ def test_telegram_messages_are_separate():
     data["list_scope"] = "Kutilayotgan buyurtmalar"
     messages = build_order_telegram_messages(data, lang="uz_lat")
     assert len(messages) >= 3
-    assert messages[0].startswith("📋")
-    assert "🇨🇳" in messages[1]
-    assert "🚚" in messages[2]
+    assert "📋" in messages[0]
+    assert "🚚" in messages[1] or "🇨🇳" in messages[1]
+    assert "🔹" in messages[1]
     assert "💡" in messages[-1]
 
 

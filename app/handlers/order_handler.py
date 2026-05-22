@@ -50,25 +50,32 @@ class OrderHandler:
         if track and isinstance(data, dict):
             data["requested_track"] = track
 
-        text = await self._format_reply(data, query, reply_language=lang)
-
         channel_extra: Dict[str, Any] = {}
-        if isinstance(data, dict) and data.get("order_chain") and not data.get("error"):
+        if (
+            isinstance(data, dict)
+            and data.get("order_chain")
+            and not data.get("error")
+            and not data.get("order_focus")
+            and not data.get("daigou_focus")
+            and not data.get("requested_track")
+        ):
             from app.domain.order_telegram_present import build_order_telegram_messages
 
             messages = build_order_telegram_messages(data, lang=lang)
-            if messages:
-                text = messages[0]
-                if len(messages) > 1:
-                    channel_extra["telegram_messages"] = messages[1:]
+            text = messages[0] if messages else ""
+            if len(messages) > 1:
+                channel_extra["telegram_messages"] = [
+                    m for m in messages[1:] if str(m).strip()
+                ]
+        else:
+            text = await self._format_reply(data, query, reply_language=lang)
 
-        # SKU + photos for single focused order
         if isinstance(data, dict) and not data.get("error"):
             sku_text, photo_urls = await self._maybe_fetch_skus(data, lang)
             if sku_text:
                 text = text + "\n\n" + sku_text
             if photo_urls:
-                channel_extra["media_photos"] = photo_urls
+                channel_extra["media_photos"] = [u for u in photo_urls if u]
 
         return ChatReply(
             response_type=ResponseType.API,

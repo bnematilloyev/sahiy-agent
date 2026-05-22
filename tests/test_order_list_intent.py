@@ -112,3 +112,15 @@ def test_should_fetch_active_orders_without_list_question():
     from app.domain.order_list_intent import should_fetch_with_list_intent
 
     assert should_fetch_with_list_intent("where is my active orders", track=None)
+
+
+def test_parse_where_orders_active():
+    intent = parse_order_list_intent("mani zakazlarim qayerda")
+    assert intent.row_filter == "active"
+    assert intent.include_completed is False
+
+
+def test_all_list_includes_completed_flag():
+    intent = parse_order_list_intent("buyurtmalarim holati")
+    assert intent.include_completed is True
+    assert intent.row_filter is None

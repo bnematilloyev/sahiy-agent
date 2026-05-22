@@ -51,9 +51,7 @@ def should_use_order_chain(intent: Optional[OrderListIntent]) -> bool:
     """Ikki fazali dedup zanjir — tor filtr/intentlarda emas."""
     if intent is None:
         return True
-    if intent.row_filter == "pending_arrival":
-        return True
-    if intent.row_filter in ("active",) and intent.sources == _ALL_SOURCES:
+    if intent.row_filter in ("pending_arrival", "active"):
         return True
     if intent.row_filter is None and intent.sources == _ALL_SOURCES:
         return True
@@ -134,11 +132,11 @@ def _payment_line(row: Dict[str, Any], lang: str) -> Optional[str]:
         suffix = "UZS"
     formatted = f"{amount:,}".replace(",", " ")
     labels = {
-        "uz_lat": f"💳 To'lov: {formatted} {suffix}",
-        "uz_cyrl": f"💳 Тўлов: {formatted} {suffix}",
-        "ru": f"💳 Оплата: {formatted} {suffix}",
-        "en": f"💳 Payment: {formatted} {suffix}",
-        "zh": f"💳 付款: {formatted} {suffix}",
+        "uz_lat": f"To'lov: {formatted} {suffix}",
+        "uz_cyrl": f"To'lov: {formatted} {suffix}",
+        "ru": f"Oplata: {formatted} {suffix}",
+        "en": f"Payment: {formatted} {suffix}",
+        "zh": f"付款: {formatted} {suffix}",
     }
     return labels.get(lang) or labels[UZ_LAT]
 
@@ -149,25 +147,11 @@ def _merge_delivery_extras(
     unpicked: Optional[Dict[str, Any]],
     lang: str,
 ) -> tuple[str, ...]:
-    extras: List[str] = []
     src = unpicked or delivery
-    if src:
-        branch = _delivery_branch(src)
-        if branch:
-            labels = {
-                "uz_lat": f"🏢 Filial: {branch}",
-                "ru": f"🏢 Филиал: {branch}",
-                "en": f"🏢 Branch: {branch}",
-                "zh": f"🏢 分支机构: {branch}",
-            }
-            extras.append(labels.get(lang) or labels[UZ_LAT])
-        pay = _payment_line(src, lang)
-        if pay:
-            extras.append(pay)
-        if delivery and _status_code(delivery) == 4:
-            st = status_text(delivery, "delivery", lang)
-            extras.insert(0, f"📍 {st}")
-    return tuple(extras)
+    if not src:
+        return ()
+    pay = _payment_line(src, lang)
+    return (pay,) if pay else ()
 
 
 def _shipped_track_keys(payload: Dict[str, Any]) -> Set[str]:
@@ -238,7 +222,7 @@ def _build_transit_items(
         if not isinstance(row, dict):
             continue
         code = _status_code(row)
-        if not include_completed and code == 5:
+        if not include_completed and code in (5, 7):
             continue
         track = order_sn_from_row(row)
         if not track or track == "—":
@@ -247,6 +231,9 @@ def _build_transit_items(
 
     for tkey, row in unpicked_idx.items():
         if not isinstance(row, dict):
+            continue
+        code = _status_code(row)
+        if not include_completed and code in (5, 7):
             continue
         track = order_sn_from_row(row)
         if not track or track == "—":
@@ -272,10 +259,7 @@ def build_order_chain(
     delivery_idx = _index_by_track(list(enrich.get("delivery_orders") or []))
     unpicked_idx = _index_by_track(list(enrich.get("unpicked_delivery") or []))
 
-    include_completed = intent is not None and intent.row_filter not in (
-        "pending_arrival",
-        "active",
-    )
+    include_completed = bool(intent and intent.include_completed)
 
     daigou_rows = _filter_daigou_purchase(
         list(payload.get("daigou_orders") or []),

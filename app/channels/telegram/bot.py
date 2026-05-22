@@ -584,7 +584,7 @@ class TelegramBot(BotChannel):
         """Send up to 10 product images as a Telegram media group (album)."""
         if not update.message or not photo_urls:
             return
-        urls = [u for u in photo_urls if u][:10]
+        urls = [u for u in photo_urls if u and str(u).strip()][:10]
         if not urls:
             return
         try:
