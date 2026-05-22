@@ -274,23 +274,22 @@ def is_order_list_question(text: str) -> bool:
         return False
     lowered = normalize_text(text)
     list_hints = (
-        "zakazlarim",
-        "zakazlar",
-        "buyurtmalarim",
-        "buyurtmalar",
-        "hamma zakaz",
-        "barcha buyurtma",
-        "buyurtmalarim qayerda",
-        "buyurtmalarim qayda",
-        "tovarlar",
-        "olganman",
-        "nima tovar",
-        "moy zakaz",
-        "moi tovar",
-        "moi tovary",
-        "gde moi",
-        "gde tovar",
-        "tovary",
+        # UZ
+        "zakazlarim", "zakazlar", "buyurtmalarim", "buyurtmalar",
+        "hamma zakaz", "barcha buyurtma",
+        "buyurtmalarim qayerda", "buyurtmalarim qayda",
+        "tovarlar", "olganman", "nima tovar",
+        # UZ-RU transliteration
+        "moy zakaz", "moi tovar", "moi tovary", "gde moi", "gde tovar", "tovary",
+        # RU (after normalize_text Cyrillic→latin conversion)
+        "moi zakazy", "moi zakaz", "moi tovary",
+        "gde moi zakaz", "gde zakaz", "gde tovar",
+        "moi zakazы", "moi tovarы",
+        "zakazy", "zakazы",
+        "pokazhi zakaz", "pokazat zakaz",
+        "moi posylki", "posylki",
+        "status zakaz", "status tovar",
+        "vse zakazy", "vse tovary",
     )
     if any(h in lowered for h in list_hints):
         return True
@@ -298,6 +297,13 @@ def is_order_list_question(text: str) -> bool:
         if any(
             w in lowered
             for w in ("qayerda", "qayda", "holat", "royxat", "kor", "ko'r", "korsat", "ko'rsat")
+        ):
+            return True
+    # RU: "мои заказы", "где мои" etc. after normalization
+    if any(w in lowered for w in ("moi", "moya", "moyi")):
+        if any(
+            w in lowered
+            for w in ("zakaz", "tovar", "posylk", "dostavk", "otpravk")
         ):
             return True
     return False

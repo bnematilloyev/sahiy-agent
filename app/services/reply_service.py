@@ -10,15 +10,13 @@ from app.domain.enums import MessageRole, QuestionCategory, ResponseType
 from app.domain.keywords import is_chitchat
 from app.domain.scope import is_off_topic, is_operator_request
 from app.domain.customer_identity import (
-    IDENTITY_REQUIRED_TEXT,
     extract_registration_phone,
     extract_sahiy_user_id,
     is_identity_only_message,
     requires_customer_identity,
 )
 from app.domain.pickup_keywords import is_identity_registration_text
-from app.domain.reply_language import localize, resolve_reply_language
-from app.domain.order_list_menu import build_order_list_menu_extra, needs_order_list_menu
+from app.domain.reply_language import UZ_LAT, localize, resolve_reply_language
 from app.domain.order_refs import is_order_lookup_request
 from app.domain.pickup_keywords import (
     is_pickup_conversation_turn,
@@ -109,13 +107,6 @@ class ReplyService:
 
         if is_identity_registration_text(text):
             result = self._identity.verified_user_id_reply(reply_lang)
-        elif needs_order_list_menu(text):
-            result = ChatReply(
-                response_type=ResponseType.AUTO,
-                text=localize("order_menu_prompt", reply_lang),
-                category=QuestionCategory.API,
-                channel_extra=build_order_list_menu_extra(),
-            )
         elif is_order_lookup_request(text):
             order_handler = self._router.pick(QuestionCategory.API)
             result = await order_handler.reply(chat_context)
@@ -159,37 +150,37 @@ class ReplyService:
         if meta.get("sahiy_user_id") is not None:
             return None
 
+        _rlang = meta.get("reply_language", "uz_lat")
         sahiy_id_in_text = extract_sahiy_user_id(text)
         if sahiy_id_in_text is not None:
             sahiy_uid, err = await self._identity.register_sahiy_user_id_in_session(
-                session_id, sahiy_id_in_text
+                session_id, sahiy_id_in_text, lang=_rlang
             )
             if err is not None:
                 return err
             meta["sahiy_user_id"] = sahiy_uid
             if is_identity_only_message(text):
-                lang = meta.get("reply_language", "uz_lat")
-                return self._identity.verified_user_id_reply(lang)
+                return self._identity.verified_user_id_reply(_rlang)
             return None
 
         phone_in_text = extract_registration_phone(text)
         if phone_in_text:
             sahiy_uid, err = await self._identity.register_phone_in_session(
-                session_id, phone_in_text
+                session_id, phone_in_text, lang=_rlang
             )
             if err is not None:
                 return err
             meta["verified_phone"] = phone_in_text
             meta["sahiy_user_id"] = sahiy_uid
             if is_identity_only_message(text):
-                lang = meta.get("reply_language", "uz_lat")
-                return self._identity.verified_reply(lang)
+                return self._identity.verified_reply(_rlang)
             return None
 
+        from app.domain.customer_identity import identity_required_text
         lang = resolve_reply_language(text, meta, None)
         return ChatReply(
             response_type=ResponseType.AUTO,
-            text=IDENTITY_REQUIRED_TEXT,
+            text=identity_required_text(lang),
             category=QuestionCategory.FAQ,
         )
 
@@ -214,9 +205,10 @@ class ReplyService:
                 result = await faq_handler.reply(chat_context)
             except Exception:
                 logger.exception("FAQ fallback failed")
+                lang = chat_context.metadata.get("reply_language", UZ_LAT)
                 result = ChatReply(
                     response_type=ResponseType.ERROR,
-                    text=localize("busy", reply_lang),
+                    text=localize("busy", lang),
                     category=QuestionCategory.FAQ,
                 )
         return result

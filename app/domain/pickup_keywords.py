@@ -52,6 +52,8 @@ _FOLLOWUP_HINT_RE = re.compile(
 _ORDER_CONTEXT_WORDS = (
     "zakaz",
     "zakazim",
+    "zakazlar",
+    "zakazlarim",
     "buyurtma",
     "buyurtmam",
     "buyurtmalar",
@@ -60,6 +62,20 @@ _ORDER_CONTEXT_WORDS = (
     "tracking",
     "kuzat",
     "holat",
+    # Rus
+    "zakas",
+    "zakazy",
+    "tovar",
+    "tovary",
+    "moitovary",
+    "gde",
+    "kogda",
+    "dostavka",
+    "otpravka",
+    "stati",
+    "status",
+    "mojzakaz",
+    "moizakazy",
 )
 
 _SUPPORT_TOPIC_WORDS = (

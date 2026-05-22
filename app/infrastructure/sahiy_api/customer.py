@@ -28,7 +28,7 @@ from app.domain.order_refs import (
     is_order_list_question,
     normalize_phone,
 )
-from app.infrastructure.sahiy_api.daigou import fetch_daigou_orders, find_daigou_by_sn
+from app.infrastructure.sahiy_api.daigou import fetch_daigou_orders, find_daigou_by_sn, intent_status_codes
 from app.infrastructure.sahiy_api.status_maps import (
     dashboard_label,
     delivery_label,
@@ -36,6 +36,42 @@ from app.infrastructure.sahiy_api.status_maps import (
 )
 
 logger = logging.getLogger(__name__)
+
+_USER_NOT_FOUND: dict[str, str] = {
+    "uz_lat": "Telefon bo'yicha mijoz topilmadi.",
+    "uz_cyrl": "Телефон бўйича мижоз топилмади.",
+    "ru": "Клиент с этим номером телефона не найден.",
+    "en": "No customer found with this phone number.",
+    "zh": "未找到该电话号码对应的客户。",
+}
+_IDENTIFICATION_REQUIRED: dict[str, str] = {
+    "uz_lat": "Avval 📱 telefon raqamingizni yuboring (kontakt tugmasi), keyin track raqamini yozing — shunda buyurtmangiz aniq topiladi.",
+    "uz_cyrl": "Аввал 📱 телефон рақамингизни юборинг (контакт тугмаси), кейин track рақамини ёзинг — шунда буюртмангиз аниқ топилади.",
+    "ru": "Сначала отправьте 📱 ваш номер телефона (кнопка контакта), затем напишите номер track — и мы точно найдём ваш заказ.",
+    "en": "First send 📱 your phone number (contact button), then write the track number — this way we'll find your order accurately.",
+    "zh": "请先发送📱您的电话号码（联系人按钮），然后输入tracking号码——这样我们能准确找到您的订单。",
+}
+_OWNERSHIP_MISMATCH: dict[str, str] = {
+    "uz_lat": "Bu buyurtma sizga tegishli emas.",
+    "uz_cyrl": "Бу буюртма сизга тегишли эмас.",
+    "ru": "Этот заказ не принадлежит вам.",
+    "en": "This order does not belong to you.",
+    "zh": "该订单不属于您。",
+}
+_ORDER_NOT_FOUND_IN_ACCOUNT: dict[str, str] = {
+    "uz_lat": "Sizning buyurtmalaringizda bu raqam topilmadi.\nRaqamni tekshirib qayta yuboring.",
+    "uz_cyrl": "Сизнинг буюртмаларингизда бу рақам топилмади.\nРақамни текшириб қайта юборинг.",
+    "ru": "Этот номер не найден в ваших заказах.\nПроверьте номер и отправьте снова.",
+    "en": "This number was not found in your orders.\nCheck the number and try again.",
+    "zh": "您的订单中未找到该号码。\n请检查号码后重新发送。",
+}
+_ORDER_NOT_FOUND_GLOBAL: dict[str, str] = {
+    "uz_lat": "Bu raqam bo'yicha buyurtma topilmadi.\nRaqamni tekshirib qayta yuboring.",
+    "uz_cyrl": "Бу рақам бўйича буюртма топилмади.\nРақамни текшириб қайта юборинг.",
+    "ru": "Заказ с этим номером не найден.\nПроверьте номер и отправьте снова.",
+    "en": "No order found with this number.\nCheck the number and try again.",
+    "zh": "未找到该号码的订单。\n请检查号码后重新发送。",
+}
 
 _TRACK_SEARCH_BY = (
     "track_number",
@@ -98,6 +134,7 @@ class CustomerApi:
         phone: Optional[str] = None,
         query: str = "",
         track_number: Optional[str] = None,
+        lang: str = "uz_lat",
     ) -> CustomerSnapshot | Dict[str, str]:
         track = track_number or extract_track(query)
         normalized_phone = normalize_phone(phone) if phone else extract_phone(query)
@@ -114,36 +151,42 @@ class CustomerApi:
                 user_id,
             )
             if user_id is None:
-                return {"error": "user_not_found", "message": "Telefon bo'yicha mijoz topilmadi."}
+                return {
+                    "error": "user_not_found",
+                    "message": _USER_NOT_FOUND.get(lang, _USER_NOT_FOUND["uz_lat"]),
+                }
 
         if user_id is None and track:
             logger.info("Sahiy track lookup start track=%r (no phone/user_id)", track)
             tracking = await self.get_tracking(track)
             owner_id = await self.resolve_user_id_for_track(track, tracking)
             if owner_id is None:
+                _id_msg = _IDENTIFICATION_REQUIRED.get(lang, _IDENTIFICATION_REQUIRED["uz_lat"])
                 return {
                     "error": "identification_required",
-                    "message": (
-                        f"🔎 {track}\n"
-                        "_______\n"
-                        "Avval 📱 telefon raqamingizni yuboring (kontakt tugmasi), "
-                        "keyin track raqamini yozing — shunda buyurtmangiz aniq topiladi."
-                    ),
+                    "message": f"🔎 {track}\n_______\n{_id_msg}",
                 }
             if verified_user_id is not None and owner_id != verified_user_id:
-                return self._ownership_mismatch_error(track)
+                return self._ownership_mismatch_error(track, lang=lang)
             snapshot = await self.build_snapshot(owner_id, phone=normalized_phone)
             if tracking:
                 snapshot.tracking = tracking
-            focused = await self._apply_track_focus(snapshot, track)
+            focused = await self._apply_track_focus(snapshot, track, lang=lang)
             if isinstance(focused, dict):
                 return focused
             return snapshot
 
         if user_id is None:
+            _id_msg2 = {
+                "uz_lat": "Telefon yoki track raqamini yuboring.",
+                "uz_cyrl": "Телефон ёки track рақамини юборинг.",
+                "ru": "Отправьте номер телефона или номер track.",
+                "en": "Please send your phone number or track number.",
+                "zh": "请发送您的电话号码或tracking号码。",
+            }
             return {
                 "error": "identification_required",
-                "message": "Telefon yoki track raqamini yuboring.",
+                "message": _id_msg2.get(lang, _id_msg2["uz_lat"]),
             }
 
         list_intent: Optional[OrderListIntent] = None
@@ -156,14 +199,14 @@ class CustomerApi:
             intent=list_intent,
         )
         if list_intent is not None and list_intent != OrderListIntent.default():
-            payload = apply_list_intent_to_payload(snapshot.to_api_payload(), list_intent)
-            snapshot = self._snapshot_from_filtered_payload(snapshot, payload, list_intent)
+            payload = apply_list_intent_to_payload(snapshot.to_api_payload(), list_intent, lang)
+            snapshot = self._snapshot_from_filtered_payload(snapshot, payload, list_intent, lang)
 
         if track and not is_order_list_question(query):
-            focused = await self._apply_track_focus(snapshot, track)
+            focused = await self._apply_track_focus(snapshot, track, lang=lang)
             if isinstance(focused, dict):
                 return focused
-            return await self._finalize_track_lookup(focused, track, user_id=user_id)
+            return await self._finalize_track_lookup(focused, track, user_id=user_id, lang=lang)
         return snapshot
 
     async def _finalize_track_lookup(
@@ -172,6 +215,7 @@ class CustomerApi:
         track: str,
         *,
         user_id: int,
+        lang: str = "uz_lat",
     ) -> CustomerSnapshot | Dict[str, str]:
         """Never return a full list when a specific track was requested."""
         snapshot.requested_track = track
@@ -190,13 +234,13 @@ class CustomerApi:
                 owner_id,
                 user_id,
             )
-            return self._ownership_mismatch_error(track)
+            return self._ownership_mismatch_error(track, lang=lang)
         if owner_id is not None:
-            return self._order_not_found_error(track, in_account=True)
-        return self._order_not_found_error(track, in_account=False)
+            return self._order_not_found_error(track, in_account=True, lang=lang)
+        return self._order_not_found_error(track, in_account=False, lang=lang)
 
     async def _apply_track_focus(
-        self, snapshot: CustomerSnapshot, track: str
+        self, snapshot: CustomerSnapshot, track: str, lang: str = "uz_lat"
     ) -> CustomerSnapshot | Dict[str, str]:
         """Find track in user's orders; return focused snapshot or error (not full list)."""
         payload = snapshot.to_api_payload()
@@ -220,7 +264,7 @@ class CustomerApi:
                 max_pages=settings.sahiy_daigou_max_pages_search,
             )
             if focus is None:
-                return self._order_not_found_error(track, in_account=True)
+                return self._order_not_found_error(track, in_account=True, lang=lang)
             snapshot.daigou_focus = focus
             snapshot.order_focus = {"source": "daigou", "row": focus}
             sns = {str(r.get("order_sn", "")).upper() for r in snapshot.daigou_orders}
@@ -242,7 +286,7 @@ class CustomerApi:
         if tracking and row_matches_track(tracking, track):
             owner_id = _extract_user_id(tracking)
             if owner_id is not None and owner_id != snapshot.user_id:
-                return self._ownership_mismatch_error(track)
+                return self._ownership_mismatch_error(track, lang=lang)
             snapshot.tracking = tracking
             snapshot.order_focus = {"source": "tracking", "row": tracking}
             return snapshot
@@ -254,10 +298,10 @@ class CustomerApi:
 
         owner_id = await self.resolve_user_id_for_track(track, tracking if tracking else None)
         if owner_id is not None and owner_id != snapshot.user_id:
-            return self._ownership_mismatch_error(track)
+            return self._ownership_mismatch_error(track, lang=lang)
         if owner_id is not None:
-            return self._order_not_found_error(track, in_account=True)
-        return self._order_not_found_error(track, in_account=False)
+            return self._order_not_found_error(track, in_account=True, lang=lang)
+        return self._order_not_found_error(track, in_account=False, lang=lang)
 
     async def _find_jiyun_row(self, user_id: int, track: str) -> Optional[Dict[str, Any]]:
         body = await self._client.get_json("/api/custom/orders", params={"user": user_id})
@@ -288,34 +332,21 @@ class CustomerApi:
         return None
 
     @staticmethod
-    def _ownership_mismatch_error(track: str) -> Dict[str, str]:
+    def _ownership_mismatch_error(track: str, lang: str = "uz_lat") -> Dict[str, str]:
+        _msg = _OWNERSHIP_MISMATCH.get(lang, _OWNERSHIP_MISMATCH["uz_lat"])
         return {
             "error": "ownership_mismatch",
             "ownership_mismatch": True,
-            "message": (
-                f"🔎 {track}\n"
-                "_______\n"
-                "Bu buyurtma sizga tegishli emas."
-            ),
+            "message": f"🔎 {track}\n_______\n{_msg}",
         }
 
     @staticmethod
-    def _order_not_found_error(track: str, *, in_account: bool) -> Dict[str, str]:
+    def _order_not_found_error(track: str, *, in_account: bool, lang: str = "uz_lat") -> Dict[str, str]:
         if in_account:
-            message = (
-                f"🔎 {track}\n"
-                "_______\n"
-                "Sizning buyurtmalaringizda bu raqam topilmadi.\n"
-                "Raqamni tekshirib qayta yuboring."
-            )
+            _msg = _ORDER_NOT_FOUND_IN_ACCOUNT.get(lang, _ORDER_NOT_FOUND_IN_ACCOUNT["uz_lat"])
         else:
-            message = (
-                f"🔎 {track}\n"
-                "_______\n"
-                "Bu raqam bo'yicha buyurtma topilmadi.\n"
-                "Raqamni tekshirib qayta yuboring."
-            )
-        return {"error": "order_not_found", "message": message}
+            _msg = _ORDER_NOT_FOUND_GLOBAL.get(lang, _ORDER_NOT_FOUND_GLOBAL["uz_lat"])
+        return {"error": "order_not_found", "message": f"🔎 {track}\n_______\n{_msg}"}
 
     async def find_user_id_by_phone(self, phone: str) -> Optional[int]:
         path = "/api/v2/admin/delivery/orders/search"
@@ -379,6 +410,7 @@ class CustomerApi:
         base: CustomerSnapshot,
         payload: Dict[str, Any],
         intent: OrderListIntent,
+        lang: str = "uz_lat",
     ) -> CustomerSnapshot:
         return CustomerSnapshot(
             user_id=base.user_id,
@@ -394,7 +426,7 @@ class CustomerApi:
             unpicked_delivery=list(payload.get("unpicked_delivery") or []),
             ownership_mismatch=base.ownership_mismatch,
             requested_track=base.requested_track,
-            list_scope=intent.scope_title(),
+            list_scope=intent.scope_title(lang),
         )
 
     async def build_snapshot(
@@ -414,7 +446,10 @@ class CustomerApi:
         if "jiyun" in fetch:
             task_map["jiyun"] = self._jiyun_orders(user_id)
         if "daigou" in fetch:
-            task_map["daigou"] = self._daigou_orders(user_id)
+            task_map["daigou"] = self._daigou_orders(
+                user_id,
+                row_filter=intent.row_filter if intent is not None else None,
+            )
         if "unpicked" in fetch:
             task_map["unpicked"] = self._unpicked_delivery(user_id)
 
@@ -466,13 +501,27 @@ class CustomerApi:
         body = await self._client.get_json("/api/custom/orders", params={"user": user_id})
         return _extract_list(body, keys=("data", "orders", "items"))
 
-    async def _daigou_orders(self, user_id: int) -> tuple[List[Dict[str, Any]], int]:
+    async def _daigou_orders(
+        self,
+        user_id: int,
+        *,
+        row_filter: Optional[str] = None,
+    ) -> tuple[List[Dict[str, Any]], int]:
         settings = get_settings()
+        status_codes = intent_status_codes(row_filter)
         items, total = await fetch_daigou_orders(
             self._client,
             user_id,
             page=1,
             size=settings.sahiy_daigou_page_size,
+            status_codes=status_codes,
+        )
+        logger.info(
+            "Daigou fetch user_id=%s row_filter=%r status_codes=%s → %d items",
+            user_id,
+            row_filter,
+            status_codes,
+            len(items),
         )
         return items, total
 

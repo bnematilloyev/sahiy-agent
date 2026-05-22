@@ -13,78 +13,55 @@ _ALL_SOURCES: FrozenSet[str] = frozenset(
 )
 
 _DAIGOU_KW = (
-    "daigou",
-    "daigo",
-    "dg zakaz",
-    "xitoy",
-    "xitoyda",
-    "xitoydagi",
-    "omborda",
-    "ombor",
-    "sotib olin",
+    "daigou", "daigo", "dg zakaz",
+    "xitoy", "xitoyda", "xitoydagi", "omborda", "ombor", "sotib olin",
+    # RU
+    "kitai", "kitajskij", "sklad kitai", "zakup", "skupka",
 )
 _DELIVERY_KW = (
-    "yetkazib",
-    "yetkazish",
-    "delivery",
-    "kuryer",
-    "pochta",
-    "yurt ich",
-    "logistika",
+    "yetkazib", "yetkazish", "delivery", "kuryer", "pochta", "yurt ich", "logistika",
+    # RU
+    "dostavka", "kuryer", "pochta",
 )
 _UNPICKED_KW = (
-    "olib ketilmagan",
-    "olib kelmagan",
-    "olib kelinmagan",
-    "markaziy stansiya",
-    "stansiyada",
-    "punktga kelmagan",
+    "olib ketilmagan", "olib kelmagan", "olib kelinmagan",
+    "markaziy stansiya", "stansiyada", "punktga kelmagan",
+    # RU
+    "ne polucheno", "ne zabral", "ne zabrana", "zhdet v punkete",
 )
 _DASHBOARD_KW = (
-    "filialda",
-    "punktda",
-    "filial punkt",
+    "filialda", "punktda", "filial punkt",
+    # RU
+    "v filiale", "v punkte",
 )
 _JIYUN_KW = ("jiyun",)
 
 _CANCELLED_KW = (
-    "bekor",
-    "bekorlangan",
-    "bekor qilingan",
-    "bekor bolgan",
-    "otmen",
-    "cancel",
-    "cancelled",
+    "bekor", "bekorlangan", "bekor qilingan", "bekor bolgan",
+    "otmen", "cancel", "cancelled",
+    # RU (Cyrillic will be transliterated by normalize_text)
+    "otmen", "otmenyon", "otmenennye", "otmena", "otmenili",
 )
 _ACTIVE_KW = (
-    "aktiv",
-    "faol",
-    "ochiq",
-    "jarayonda",
-    "davom et",
+    "aktiv", "faol", "ochiq", "jarayonda", "davom et",
+    # RU
+    "aktiv", "aktivny", "aktivnye", "tekushchie", "otkryt",
 )
 _COMPLETED_KW = (
-    "yakunlangan",
-    "tugagan",
-    "yetkazilgan",
-    "olib ketilgan",
-    "qabul qilingan",
+    "yakunlangan", "tugagan", "yetkazilgan", "olib ketilgan", "qabul qilingan",
+    # RU
+    "zavershyon", "zavershenye", "poluchennye", "poluchil", "zakryt",
 )
 _DELAYED_KW = (
-    "kelmayapti",
-    "kelmay",
-    "kelmagan",
-    "kemayapti",
-    "kemay",
-    "kemagan",
-    "yetkazilmagan",
-    "yetkazilmadi",
-    "kechik",
+    "kelmayapti", "kelmay", "kelmagan", "kemayapti", "kemay", "kemagan",
+    "yetkazilmagan", "yetkazilmadi", "kechik",
+    # RU
+    "ne prishel", "ne priehalo", "zaderzhka", "zaderzhalas", "opozdanie",
 )
 _IN_CHINA_KW = (
-    "xitoyda",
-    "xitoydagi",
-    "xitoy ombor",
+    "xitoyda", "xitoydagi", "xitoy ombor",
+    # RU
+    "v kitae", "iz kitaya", "kitajskij sklad",
 )
 
 
@@ -107,34 +84,100 @@ class OrderListIntent:
     def default() -> OrderListIntent:
         return OrderListIntent(sources=_ALL_SOURCES, row_filter=None)
 
-    def scope_title(self) -> Optional[str]:
+    def scope_title(self, lang: str = "uz_lat") -> Optional[str]:
+        _FILTER_TITLES = {
+            "cancelled": {
+                "uz_lat": "Bekor qilingan buyurtmalar",
+                "uz_cyrl": "Бекор қилинган буюртмалар",
+                "ru": "Отменённые заказы",
+                "en": "Cancelled orders",
+                "zh": "已取消订单",
+            },
+            "active": {
+                "uz_lat": "Aktiv buyurtmalar",
+                "uz_cyrl": "Актив буюртмалар",
+                "ru": "Активные заказы",
+                "en": "Active orders",
+                "zh": "活跃订单",
+            },
+            "completed": {
+                "uz_lat": "Yakunlangan buyurtmalar",
+                "uz_cyrl": "Якунланган буюртмалар",
+                "ru": "Завершённые заказы",
+                "en": "Completed orders",
+                "zh": "已完成订单",
+            },
+            "delayed": {
+                "uz_lat": "Kechikkan / olib ketilmagan",
+                "uz_cyrl": "Кечикқан / олиб кетилмаган",
+                "ru": "Задержанные / не полученные",
+                "en": "Delayed / not picked up",
+                "zh": "延迟/未取货",
+            },
+            "in_china": {
+                "uz_lat": "Xitoy bosqichidagi buyurtmalar",
+                "uz_cyrl": "Хитой босқичидаги буюртмалар",
+                "ru": "Заказы на этапе Китая",
+                "en": "Orders in China stage",
+                "zh": "中国阶段订单",
+            },
+        }
+        _SOURCE_ONLY_TITLES = {
+            "daigou": {
+                "uz_lat": "🇨🇳 Daigou (Xitoy omborigacha)",
+                "uz_cyrl": "🇨🇳 Daigou (Хитой омборигача)",
+                "ru": "🇨🇳 Daigou (до склада в Китае)",
+                "en": "🇨🇳 Daigou (to China warehouse)",
+                "zh": "🇨🇳 代购（至中国仓库）",
+            },
+            "delivery": {
+                "uz_lat": "📦 Yetkazib berish buyurtmalari",
+                "uz_cyrl": "📦 Етказиб бериш буюртмалари",
+                "ru": "📦 Заказы доставки",
+                "en": "📦 Delivery orders",
+                "zh": "📦 配送订单",
+            },
+            "unpicked": {
+                "uz_lat": "⏳ Olib ketilmagan buyurtmalar",
+                "uz_cyrl": "⏳ Олиб кетилмаган буюртмалар",
+                "ru": "⏳ Не полученные заказы",
+                "en": "⏳ Awaiting pickup orders",
+                "zh": "⏳ 待取货订单",
+            },
+            "dashboard": {
+                "uz_lat": "📍 Filialdagi buyurtmalar",
+                "uz_cyrl": "📍 Филиалдаги буюртмалар",
+                "ru": "📍 Заказы в филиале",
+                "en": "📍 Branch orders",
+                "zh": "📍 分支机构订单",
+            },
+        }
+        _FALLBACK = {
+            "uz_lat": "Buyurtmalar",
+            "uz_cyrl": "Буюртмалар",
+            "ru": "Заказы",
+            "en": "Orders",
+            "zh": "订单",
+        }
+
+        def _pick(d: dict) -> str:
+            return d.get(lang) or d.get("uz_lat", "")
+
         parts: List[str] = []
-        if self.row_filter == "cancelled":
-            parts.append("Bekor qilingan buyurtmalar")
-        elif self.row_filter == "active":
-            parts.append("Aktiv buyurtmalar")
-        elif self.row_filter == "completed":
-            parts.append("Yakunlangan buyurtmalar")
-        elif self.row_filter == "delayed":
-            parts.append("Kechikkan / olib ketilmagan")
-        elif self.row_filter == "in_china":
-            parts.append("Xitoy bosqichidagi buyurtmalar")
+        if self.row_filter and self.row_filter in _FILTER_TITLES:
+            parts.append(_pick(_FILTER_TITLES[self.row_filter]))
+
         if len(self.sources) == 1:
             only = next(iter(self.sources))
-            if only == "daigou" and not parts:
-                return "🇨🇳 Daigou (Xitoy omborigacha)"
-            if only == "daigou":
+            if only in _SOURCE_ONLY_TITLES and not parts:
+                return _pick(_SOURCE_ONLY_TITLES[only])
+            if only == "daigou" and parts:
                 parts.append("(daigou)")
-            elif only == "delivery" and not parts:
-                return "📦 Yetkazib berish buyurtmalari"
-            elif only == "unpicked" and not parts:
-                return "⏳ Olib ketilmagan buyurtmalar"
-            elif only == "dashboard" and not parts:
-                return "📍 Filialdagi buyurtmalar"
+
         if parts:
             return parts[0]
         if self.row_filter or self.sources != _ALL_SOURCES:
-            return "Buyurtmalar"
+            return _pick(_FALLBACK)
         return None
 
 
@@ -269,7 +312,9 @@ def filter_order_rows(
     return [r for r in rows if isinstance(r, dict) and _row_matches_filter(r, source, row_filter)]
 
 
-def apply_list_intent_to_payload(data: Dict[str, Any], intent: OrderListIntent) -> Dict[str, Any]:
+def apply_list_intent_to_payload(
+    data: Dict[str, Any], intent: OrderListIntent, lang: str = "uz_lat"
+) -> Dict[str, Any]:
     """Snapshot dict ustida manba va holat filtri."""
     out = dict(data)
     mapping = {
@@ -291,7 +336,7 @@ def apply_list_intent_to_payload(data: Dict[str, Any], intent: OrderListIntent) 
             out[key] = filtered
             if key == "daigou_orders":
                 out["daigou_total"] = len(filtered)
-    title = intent.scope_title()
+    title = intent.scope_title(lang)
     if title:
         out["list_scope"] = title
     return out

@@ -19,38 +19,108 @@ _SAHIY_USER_ID_RE = re.compile(
     re.IGNORECASE,
 )
 
-IDENTITY_REQUIRED_TEXT = (
-    "📱 Davom etish uchun Sahiy hisobingiz kerak.\n\n"
-    "Quyidagilardan birini yuboring:\n"
-    "🔹 Sahiy user ID — masalan: 111111 yoki id 111111\n"
-    "🔹 Telefon — 998901234567 yoki «Telefon raqamni yuborish» tugmasi\n\n"
-    "Tasdiqlangach savolingizga javob beraman."
-)
+_IDENTITY_REQUIRED: dict[str, str] = {
+    "uz_lat": (
+        "📱 Davom etish uchun Sahiy hisobingiz kerak.\n\n"
+        "Quyidagilardan birini yuboring:\n"
+        "🔹 Sahiy user ID — masalan: 111111 yoki id 111111\n"
+        "🔹 Telefon — 998901234567 yoki «Telefon raqamni yuborish» tugmasi\n\n"
+        "Tasdiqlangach savolingizga javob beraman."
+    ),
+    "uz_cyrl": (
+        "📱 Давом этиш учун Sahiy ҳисобингиз керак.\n\n"
+        "Қуйидагилардан бирини юборинг:\n"
+        "🔹 Sahiy user ID — масалан: 111111 ёки id 111111\n"
+        "🔹 Телефон — 998901234567 ёки «Телефон рақамни юбориш» тугмаси\n\n"
+        "Тасдиқлангач саволингизга жавоб бераман."
+    ),
+    "ru": (
+        "📱 Для продолжения необходим аккаунт Sahiy.\n\n"
+        "Отправьте одно из следующего:\n"
+        "🔹 Sahiy user ID — например: 111111 или id 111111\n"
+        "🔹 Телефон — 998901234567 или кнопка «Отправить номер телефона»\n\n"
+        "После подтверждения отвечу на ваш вопрос."
+    ),
+    "en": (
+        "📱 A Sahiy account is required to continue.\n\n"
+        "Please send one of the following:\n"
+        "🔹 Sahiy user ID — e.g.: 111111 or id 111111\n"
+        "🔹 Phone — 998901234567 or tap «Send phone number»\n\n"
+        "I'll answer your question after verification."
+    ),
+    "zh": (
+        "📱 继续操作需要Sahiy账户。\n\n"
+        "请发送以下其中一项：\n"
+        "🔹 Sahiy用户ID — 例如：111111 或 id 111111\n"
+        "🔹 电话 — 998901234567 或点击«发送电话号码»\n\n"
+        "验证后我将回答您的问题。"
+    ),
+}
 
-SAHIY_USER_ID_VERIFIED_TEXT = (
-    "✅ Sahiy user ID qabul qilindi. Endi savolingizni yozing."
-)
+_INVALID_PHONE_FORMAT: dict[str, str] = {
+    "uz_lat": "❌ Telefon formati noto'g'ri.\n\nTo'g'ri misol: 998901234567 yoki +998 90 123 45 67\nQayta yuboring.",
+    "uz_cyrl": "❌ Телефон формати нотўғри.\n\nТўғри мисол: 998901234567 ёки +998 90 123 45 67\nҚайта юборинг.",
+    "ru": "❌ Неверный формат номера телефона.\n\nПример: 998901234567 или +998 90 123 45 67\nОтправьте снова.",
+    "en": "❌ Invalid phone format.\n\nExample: 998901234567 or +998 90 123 45 67\nPlease send again.",
+    "zh": "❌ 电话格式不正确。\n\n示例：998901234567 或 +998 90 123 45 67\n请重新发送。",
+}
 
-INVALID_PHONE_FORMAT_TEXT = (
-    "❌ Telefon formati noto'g'ri.\n\n"
-    "To'g'ri misol: 998901234567 yoki +998 90 123 45 67\n"
-    "Qayta yuboring."
-)
+_PHONE_NOT_REGISTERED: dict[str, str] = {
+    "uz_lat": "❌ Bu telefon Sahiy tizimida topilmadi.\n\nIlovada ro'yxatdan o'tgan raqamni yuboring yoki «Telefon raqamni yuborish» tugmasidan foydalaning.",
+    "uz_cyrl": "❌ Бу телефон Sahiy тизимида топилмади.\n\nИловада рўйхатдан ўтган рақамни юборинг ёки «Телефон рақамни юбориш» тугмасидан фойдаланинг.",
+    "ru": "❌ Этот телефон не найден в системе Sahiy.\n\nОтправьте номер, зарегистрированный в приложении, или используйте кнопку «Отправить номер телефона».",
+    "en": "❌ This phone number was not found in Sahiy system.\n\nSend the number registered in the app, or use the «Send phone number» button.",
+    "zh": "❌ 该电话号码在Sahiy系统中未找到。\n\n请发送在应用程序中注册的号码，或使用«发送电话号码»按钮。",
+}
 
-PHONE_NOT_REGISTERED_TEXT = (
-    "❌ Bu telefon Sahiy tizimida topilmadi.\n\n"
-    "Ilovada ro'yxatdan o'tgan raqamni yuboring yoki "
-    "«Telefon raqamni yuborish» tugmasidan foydalaning."
-)
+_PHONE_VERIFIED: dict[str, str] = {
+    "uz_lat": "✅ Telefon tasdiqlandi. Endi buyurtma yoki boshqa savolingizni yozing.",
+    "uz_cyrl": "✅ Телефон тасдиқланди. Энди буюртма ёки бошқа саволингизни ёзинг.",
+    "ru": "✅ Телефон подтверждён. Теперь напишите ваш вопрос.",
+    "en": "✅ Phone confirmed. Now write your question.",
+    "zh": "✅ 电话已确认。请提出您的问题。",
+}
 
-PHONE_VERIFIED_TEXT = (
-    "✅ Telefon tasdiqlandi. Endi buyurtma yoki boshqa savolingizni yozing."
-)
+_API_UNAVAILABLE: dict[str, str] = {
+    "uz_lat": "Hozir mijozni tekshirib bo'lmadi (API vaqtincha ishlamayapti). Bir necha daqiqadan keyin qayta urinib ko'ring.",
+    "uz_cyrl": "Ҳозир мижозни текшириб бўлмади (API вақтинча ишламаяпти). Бир неча дақиқадан кейин қайта уриниб кўринг.",
+    "ru": "Не удалось проверить аккаунт (API временно недоступен). Попробуйте снова через несколько минут.",
+    "en": "Could not verify account (API temporarily unavailable). Please try again in a few minutes.",
+    "zh": "无法验证账户（API暂时不可用）。请几分钟后重试。",
+}
 
-API_UNAVAILABLE_TEXT = (
-    "Hozir mijozni tekshirib bo'lmadi (API vaqtincha ishlamayapti). "
-    "Bir necha daqiqadan keyin qayta urinib ko'ring."
-)
+
+def _t(table: dict[str, str], lang: str) -> str:
+    return table.get(lang) or table.get("uz_lat", "")
+
+
+def identity_required_text(lang: str = "uz_lat") -> str:
+    return _t(_IDENTITY_REQUIRED, lang)
+
+
+def invalid_phone_format_text(lang: str = "uz_lat") -> str:
+    return _t(_INVALID_PHONE_FORMAT, lang)
+
+
+def phone_not_registered_text(lang: str = "uz_lat") -> str:
+    return _t(_PHONE_NOT_REGISTERED, lang)
+
+
+def phone_verified_text(lang: str = "uz_lat") -> str:
+    return _t(_PHONE_VERIFIED, lang)
+
+
+def api_unavailable_text(lang: str = "uz_lat") -> str:
+    return _t(_API_UNAVAILABLE, lang)
+
+
+# Backward-compatible constants (UZ default — avvalgi ishlatganlar uchun)
+IDENTITY_REQUIRED_TEXT = _t(_IDENTITY_REQUIRED, "uz_lat")
+SAHIY_USER_ID_VERIFIED_TEXT = "✅ Sahiy user ID qabul qilindi. Endi savolingizni yozing."
+INVALID_PHONE_FORMAT_TEXT = _t(_INVALID_PHONE_FORMAT, "uz_lat")
+PHONE_NOT_REGISTERED_TEXT = _t(_PHONE_NOT_REGISTERED, "uz_lat")
+PHONE_VERIFIED_TEXT = _t(_PHONE_VERIFIED, "uz_lat")
+API_UNAVAILABLE_TEXT = _t(_API_UNAVAILABLE, "uz_lat")
 
 
 @dataclass(frozen=True)

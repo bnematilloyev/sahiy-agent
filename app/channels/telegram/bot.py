@@ -4,7 +4,7 @@ import asyncio
 import logging
 from typing import Any, Callable, Coroutine, Dict, Optional
 
-from telegram import Update
+from telegram import InputMediaPhoto, Update
 from telegram.error import Forbidden, NetworkError, TelegramError, TimedOut
 from telegram.ext import (
     Application,
@@ -27,8 +27,9 @@ from app.domain.pickup_present import parse_callback
 from app.handlers.pickup_handler import PickupHandler
 from app.infrastructure.sahiy_api.factory import get_sahiy_api_client
 from app.infrastructure.sahiy_api.pickup_points import get_pickup_points_cached
-from app.domain.customer_identity import PHONE_VERIFIED_TEXT, resolve_contact_phone
+from app.domain.customer_identity import phone_verified_text, resolve_contact_phone
 from app.domain.order_refs import normalize_phone
+from app.domain.reply_language import localize
 from telegram.request import HTTPXRequest
 
 from app.channels.ports import BotChannel
@@ -40,37 +41,123 @@ from app.services.factory import create_chat_service
 
 logger = logging.getLogger(__name__)
 
-WELCOME_TEXT = (
-    "Assalomu alaykum! Men Sahiy yordamchi botman.\n\n"
-    "Davom etish uchun Sahiy user ID yoki telefon raqamingizni yuboring:\n"
-    "• user ID — masalan 111111\n"
-    "• telefon — tugma yoki 998901234567\n\n"
-    "Buyurtmalar: «zakazlarimni ko'rsat» — turini tugma bilan tanlaysiz.\n"
-    "Topshirish punktlari: «filial», «postomat» deb yozing.\n\n"
-    "Yangi suhbat: /new"
-)
+_WELCOME: dict[str, str] = {
+    "uz_lat": (
+        "Assalomu alaykum! Men Sahiy yordamchi botman.\n\n"
+        "Davom etish uchun Sahiy user ID yoki telefon raqamingizni yuboring:\n"
+        "• user ID — masalan 111111\n"
+        "• telefon — tugma yoki 998901234567\n\n"
+        "Buyurtmalar: «zakazlarimni ko'rsat» — turini tugma bilan tanlaysiz.\n"
+        "Topshirish punktlari: «filial», «postomat» deb yozing.\n\n"
+        "Yangi suhbat: /new"
+    ),
+    "uz_cyrl": (
+        "Ассалому алайкум! Мен Sahiy ёрдамчи ботман.\n\n"
+        "Давом этиш учун Sahiy user ID ёки телефон рақамингизни юборинг:\n"
+        "• user ID — масалан 111111\n"
+        "• телефон — тугма ёки 998901234567\n\n"
+        "Буюртмалар: «заказларимни кўрсат» — турини тугма билан танлайсиз.\n"
+        "Топшириш пунктлари: «филиал», «постомат» деб ёзинг.\n\n"
+        "Янги суҳбат: /new"
+    ),
+    "ru": (
+        "Привет! Я бот-помощник Sahiy.\n\n"
+        "Для продолжения отправьте Sahiy user ID или номер телефона:\n"
+        "• user ID — например 111111\n"
+        "• телефон — кнопка или 998901234567\n\n"
+        "Заказы: напишите «мои заказы» — выберите тип кнопкой.\n"
+        "Пункты выдачи: напишите «филиал» или «постомат».\n\n"
+        "Новый диалог: /new"
+    ),
+    "en": (
+        "Hello! I'm Sahiy assistant bot.\n\n"
+        "To continue, send your Sahiy user ID or phone number:\n"
+        "• user ID — e.g. 111111\n"
+        "• phone — button or 998901234567\n\n"
+        "Orders: write «show my orders» — select type with a button.\n"
+        "Pickup points: write «branch» or «postamat».\n\n"
+        "New chat: /new"
+    ),
+    "zh": (
+        "您好！我是Sahiy助理机器人。\n\n"
+        "请发送Sahiy用户ID或电话号码以继续：\n"
+        "• 用户ID — 例如 111111\n"
+        "• 电话 — 按钮或 998901234567\n\n"
+        "订单：输入«显示我的订单» — 用按钮选择类型。\n"
+        "取货点：输入«分支机构»或«自取柜»。\n\n"
+        "新对话：/new"
+    ),
+}
 
-PHONE_PROMPT_TEXT = (
-    "Sahiy user ID (masalan 111111) yoki telefon raqamingizni yuboring — "
-    "«Telefon raqamni yuborish» tugmasi ham bo'ladi."
-)
+_PHONE_PROMPT: dict[str, str] = {
+    "uz_lat": "Sahiy user ID (masalan 111111) yoki telefon raqamingizni yuboring — «Telefon raqamni yuborish» tugmasi ham bo'ladi.",
+    "uz_cyrl": "Sahiy user ID (масалан 111111) ёки телефон рақамингизни юборинг — «Телефон рақамни юбориш» тугмаси ҳам бўлади.",
+    "ru": "Отправьте Sahiy user ID (например 111111) или номер телефона — также доступна кнопка «Отправить номер телефона».",
+    "en": "Send your Sahiy user ID (e.g. 111111) or phone number — you can also use the «Send phone number» button.",
+    "zh": "请发送Sahiy用户ID（例如111111）或电话号码 — 也可使用«发送电话号码»按钮。",
+}
 
-PHONE_SAVED_TEXT = (
-    "Rahmat! Telefon raqamingiz saqlandi. Buyurtma yoki yetkazish haqida savolingizni yozing."
-)
+_PHONE_SAVED: dict[str, str] = {
+    "uz_lat": "Rahmat! Telefon raqamingiz saqlandi. Buyurtma yoki yetkazish haqida savolingizni yozing.",
+    "uz_cyrl": "Раҳмат! Телефон рақамингиз сақланди. Буюртма ёки етказиш ҳақида саволингизни ёзинг.",
+    "ru": "Спасибо! Номер телефона сохранён. Напишите вопрос о заказе или доставке.",
+    "en": "Thank you! Your phone number has been saved. Write your question about orders or delivery.",
+    "zh": "谢谢！您的电话号码已保存。请提出关于订单或配送的问题。",
+}
 
-PHONE_WRONG_CONTACT_TEXT = (
-    "Telefon raqamini aniqlab bo'lmadi.\n\n"
-    "Sahiy user ID yozing (masalan 111111) yoki «Telefon raqamni yuborish» tugmasini bosing."
-)
+_PHONE_WRONG_CONTACT: dict[str, str] = {
+    "uz_lat": "Telefon raqamini aniqlab bo'lmadi.\n\nSahiy user ID yozing (masalan 111111) yoki «Telefon raqamni yuborish» tugmasini bosing.",
+    "uz_cyrl": "Телефон рақамини аниқлаб бўлмади.\n\nSahiy user ID ёзинг (масалан 111111) ёки «Телефон рақамни юбориш» тугмасини босинг.",
+    "ru": "Не удалось определить номер телефона.\n\nНапишите Sahiy user ID (например 111111) или нажмите «Отправить номер телефона».",
+    "en": "Could not determine phone number.\n\nWrite your Sahiy user ID (e.g. 111111) or press «Send phone number».",
+    "zh": "无法确认电话号码。\n\n请输入Sahiy用户ID（例如111111）或点击«发送电话号码»。",
+}
 
-FALLBACK_ERROR_TEXT = (
-    "Hozir javob yubora olmadim (tarmoq xatosi). Iltimos, 1–2 daqiqadan keyin qayta yozing."
-)
+_FALLBACK_ERROR: dict[str, str] = {
+    "uz_lat": "Hozir javob yubora olmadim (tarmoq xatosi). Iltimos, 1–2 daqiqadan keyin qayta yozing.",
+    "uz_cyrl": "Ҳозир жавоб юбора олмадим (тармоқ хатоси). Илтимос, 1–2 дақиқадан кейин қайта ёзинг.",
+    "ru": "Не могу отправить ответ сейчас (сетевая ошибка). Пожалуйста, напишите снова через 1–2 минуты.",
+    "en": "Could not send a reply now (network error). Please write again in 1–2 minutes.",
+    "zh": "暂时无法发送回复（网络错误）。请1–2分钟后重试。",
+}
 
-PHOTO_FALLBACK_TEXT = (
-    "Rasmingiz qabul qilindi. Operator tez orada bog'lanadi: @sahiy_operator"
-)
+_PHOTO_FALLBACK: dict[str, str] = {
+    "uz_lat": "Rasmingiz qabul qilindi. Operator tez orada bog'lanadi: @sahiy_operator",
+    "uz_cyrl": "Расмингиз қабул қилинди. Оператор тез орада боғланади: @sahiy_operator",
+    "ru": "Ваше изображение получено. Оператор свяжется с вами в ближайшее время: @sahiy_operator",
+    "en": "Your image has been received. An operator will contact you shortly: @sahiy_operator",
+    "zh": "您的图片已收到。操作员将尽快联系您：@sahiy_operator",
+}
+
+
+def _tg_lang(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
+    """Best-effort language from session or Telegram locale."""
+    stored = context.user_data.get("reply_language") if context.user_data else None
+    if stored:
+        return stored
+    lc = ""
+    if update.effective_user:
+        lc = (update.effective_user.language_code or "").lower()
+    if lc.startswith("ru"):
+        return "ru"
+    if lc.startswith("zh"):
+        return "zh"
+    if lc.startswith("en"):
+        return "en"
+    return "uz_lat"
+
+
+def _t(table: dict[str, str], lang: str) -> str:
+    return table.get(lang) or table.get("uz_lat", "")
+
+
+# UZ fallback constants for backward-compat references elsewhere in this file
+WELCOME_TEXT = _t(_WELCOME, "uz_lat")
+PHONE_PROMPT_TEXT = _t(_PHONE_PROMPT, "uz_lat")
+PHONE_SAVED_TEXT = _t(_PHONE_SAVED, "uz_lat")
+PHONE_WRONG_CONTACT_TEXT = _t(_PHONE_WRONG_CONTACT, "uz_lat")
+FALLBACK_ERROR_TEXT = _t(_FALLBACK_ERROR, "uz_lat")
+PHOTO_FALLBACK_TEXT = _t(_PHOTO_FALLBACK, "uz_lat")
 
 
 class TelegramBot(BotChannel):
@@ -131,17 +218,33 @@ class TelegramBot(BotChannel):
     ) -> None:
         logger.exception("Telegram handler error: %s", context.error)
 
-    async def _on_start(self, update: Update, _context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def _on_start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if update.message and update.effective_user:
+            lang = _tg_lang(update, context)
             await self._safe_reply_text(
                 update,
-                WELCOME_TEXT,
+                _t(_WELCOME, lang),
                 reply_markup=phone_request_keyboard(),
             )
 
-    async def _on_new(self, update: Update, _context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def _on_new(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if not update.message or not update.effective_user:
             return
+        lang = _tg_lang(update, context)
+        _new_chat_started: dict[str, str] = {
+            "uz_lat": "Yangi suhbat boshlandi.\n\n",
+            "uz_cyrl": "Янги суҳбат босhlandi.\n\n",
+            "ru": "Новый диалог начат.\n\n",
+            "en": "New chat started.\n\n",
+            "zh": "新对话已开始。\n\n",
+        }
+        _err_retry: dict[str, str] = {
+            "uz_lat": "Xatolik yuz berdi. Keyinroq urinib ko'ring.",
+            "uz_cyrl": "Хатолик юз берди. Кейинроқ уриниб кўринг.",
+            "ru": "Произошла ошибка. Попробуйте позже.",
+            "en": "An error occurred. Please try again later.",
+            "zh": "发生错误。请稍后重试。",
+        }
         user_id = str(update.effective_user.id)
         try:
             await self._with_chat(
@@ -149,12 +252,12 @@ class TelegramBot(BotChannel):
             )
             await self._safe_reply_text(
                 update,
-                "Yangi suhbat boshlandi.\n\n" + PHONE_PROMPT_TEXT,
+                _t(_new_chat_started, lang) + _t(_PHONE_PROMPT, lang),
                 reply_markup=phone_request_keyboard(),
             )
         except Exception:
             logger.exception("reset_session failed")
-            await self._safe_reply_text(update, "Xatolik yuz berdi. Keyinroq urinib ko'ring.")
+            await self._safe_reply_text(update, _t(_err_retry, lang))
 
     async def _on_text(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if not update.message or not update.effective_user or not update.effective_chat:
@@ -173,6 +276,7 @@ class TelegramBot(BotChannel):
             return
 
         user_id = str(update.effective_user.id)
+        lang = _tg_lang(update, context)
         caption = update.message.caption or "[Rasm yuborildi]"
         self._run_in_background(
             context,
@@ -181,7 +285,7 @@ class TelegramBot(BotChannel):
                 context,
                 user_id,
                 f"MEDIA_PHOTO: {caption}",
-                fallback_text=PHOTO_FALLBACK_TEXT,
+                fallback_text=_t(_PHOTO_FALLBACK, lang),
                 extra_metadata={"has_photo": True},
             ),
             name=f"photo-{user_id}",
@@ -194,11 +298,12 @@ class TelegramBot(BotChannel):
         contact = update.message.contact
         owner_id = update.effective_user.id
         raw_phone = contact.phone_number or ""
+        lang = _tg_lang(update, context)
         phone = resolve_contact_phone(raw_phone)
         if not phone:
             await self._safe_reply_text(
                 update,
-                PHONE_WRONG_CONTACT_TEXT,
+                _t(_PHONE_WRONG_CONTACT, lang),
                 reply_markup=phone_request_keyboard(),
             )
             return
@@ -224,7 +329,7 @@ class TelegramBot(BotChannel):
             if sahiy_user_id is None:
                 await self._safe_reply_text(
                     update,
-                    PHONE_WRONG_CONTACT_TEXT,
+                    _t(_PHONE_WRONG_CONTACT, lang),
                     reply_markup=phone_request_keyboard(),
                 )
                 return
@@ -240,12 +345,12 @@ class TelegramBot(BotChannel):
             )
         except Exception:
             logger.exception("register_verified_phone failed for user_id=%s", user_id)
-            await self._safe_reply_text(update, FALLBACK_ERROR_TEXT)
+            await self._safe_reply_text(update, _t(_FALLBACK_ERROR, lang))
             return
 
         await self._safe_reply_text(
             update,
-            PHONE_VERIFIED_TEXT,
+            phone_verified_text(lang),
             reply_markup=remove_keyboard(),
         )
 
@@ -300,13 +405,15 @@ class TelegramBot(BotChannel):
     ) -> None:
         metadata = self._build_metadata(update, context)
         metadata["reply_language"] = resolve_reply_language(text, metadata, None)
+        _lang = str(metadata.get("reply_language") or "uz_lat")
         chat_id = query.message.chat_id if query.message else None
         typing_task = None
         if chat_id is not None:
             typing_task = asyncio.create_task(self._typing_loop(context, chat_id))
 
-        reply_text = FALLBACK_ERROR_TEXT
+        reply_text = _t(_FALLBACK_ERROR, _lang)
         reply_markup = None
+        photo_urls_menu: list = []
         try:
             result = await self._with_chat(
                 lambda chat: chat.reply(
@@ -317,7 +424,9 @@ class TelegramBot(BotChannel):
                 )
             )
             reply_text = result.text
-            reply_markup = inline_keyboard_from_extra(getattr(result, "channel_extra", None))
+            extra = getattr(result, "channel_extra", {}) or {}
+            reply_markup = inline_keyboard_from_extra(extra)
+            photo_urls_menu = extra.get("media_photos") or []
             context.user_data["reply_language"] = metadata.get("reply_language")
         except Exception:
             logger.exception("order menu callback failed user_id=%s", user_id)
@@ -334,6 +443,9 @@ class TelegramBot(BotChannel):
                 await query.message.reply_text(reply_text, reply_markup=reply_markup)
             except TelegramError as exc:
                 logger.warning("order menu reply failed: %s", exc)
+
+        if photo_urls_menu and update.message:
+            await self._safe_send_media_group(update, photo_urls_menu)
 
     async def _on_pickup_callback(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -381,7 +493,7 @@ class TelegramBot(BotChannel):
         user_id: str,
         text: str,
         *,
-        fallback_text: str = FALLBACK_ERROR_TEXT,
+        fallback_text: Optional[str] = None,
         extra_metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         if not update.effective_chat:
@@ -391,10 +503,15 @@ class TelegramBot(BotChannel):
         if extra_metadata:
             metadata.update(extra_metadata)
         metadata["reply_language"] = resolve_reply_language(text, metadata, None)
+        _lang = str(metadata.get("reply_language") or "uz_lat")
+        if fallback_text is None:
+            fallback_text = _t(_FALLBACK_ERROR, _lang)
 
         chat_id = update.effective_chat.id
         typing_task = asyncio.create_task(self._typing_loop(context, chat_id))
         reply_text = fallback_text
+        reply_markup = None
+        photo_urls: list = []
         try:
             result = await self._with_chat(
                 lambda chat: chat.reply(
@@ -405,11 +522,12 @@ class TelegramBot(BotChannel):
                 )
             )
             reply_text = result.text
-            reply_markup = inline_keyboard_from_extra(getattr(result, "channel_extra", None))
+            extra = getattr(result, "channel_extra", {}) or {}
+            reply_markup = inline_keyboard_from_extra(extra)
+            photo_urls = extra.get("media_photos") or []
             context.user_data["reply_language"] = metadata.get("reply_language")
         except Exception:
             logger.exception("ChatService.reply failed for user_id=%s", user_id)
-            reply_markup = None
         finally:
             typing_task.cancel()
             try:
@@ -420,6 +538,10 @@ class TelegramBot(BotChannel):
         sent = await self._safe_reply_text(update, reply_text, reply_markup=reply_markup)
         if not sent:
             logger.error("Could not deliver reply to Telegram for user_id=%s", user_id)
+            return
+
+        if photo_urls and update.message:
+            await self._safe_send_media_group(update, photo_urls)
 
     async def _typing_loop(
         self, context: ContextTypes.DEFAULT_TYPE, chat_id: int
@@ -442,6 +564,28 @@ class TelegramBot(BotChannel):
             logger.warning("send_chat_action skipped (network): %s", exc)
         except TelegramError as exc:
             logger.warning("send_chat_action skipped: %s", exc)
+
+    async def _safe_send_media_group(
+        self,
+        update: Update,
+        photo_urls: list,
+    ) -> None:
+        """Send up to 10 product images as a Telegram media group (album)."""
+        if not update.message or not photo_urls:
+            return
+        urls = [u for u in photo_urls if u][:10]
+        if not urls:
+            return
+        try:
+            media = [InputMediaPhoto(media=url) for url in urls]
+            await update.message.reply_media_group(media=media)
+        except TelegramError as exc:
+            logger.warning("media_group send failed: %s", exc)
+            # fallback: send first image as single photo
+            try:
+                await update.message.reply_photo(photo=urls[0])
+            except TelegramError as exc2:
+                logger.warning("single photo fallback failed: %s", exc2)
 
     async def _safe_reply_text(
         self,

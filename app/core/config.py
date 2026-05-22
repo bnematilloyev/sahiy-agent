@@ -70,6 +70,16 @@ class Settings(BaseSettings):
     sahiy_daigou_max_pages_search: int = 5
     pickup_points_cache_ttl_seconds: int = 3600
 
+    # Sahiy admin API (panel login — SKU + rasm olish uchun)
+    sahiy_admin_username: str = ""
+    sahiy_admin_password: str = ""
+    sahiy_admin_token_ttl_seconds: int = 3000   # 50 min (expires_in=3600)
+    sahiy_sku_photos_enabled: bool = True        # False = rasmsiz, tez rejim
+
+    @property
+    def has_admin_api(self) -> bool:
+        return bool(self.sahiy_admin_username.strip() and self.sahiy_admin_password.strip())
+
     @property
     def has_service_user(self) -> bool:
         return bool(

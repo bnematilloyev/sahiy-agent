@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import logging
+from typing import Any, Dict, List, Optional
 
 from app.core.config import get_settings
 from app.core.exceptions import LLMError, LLMTimeoutError
@@ -8,11 +10,19 @@ from app.core.prompts import API_ORDER_USER_TEMPLATE, API_RESPONSE_SYSTEM
 from app.domain.reply_language import UZ_LAT, system_prompt_with_language
 from app.domain.dto import ChatContext, ChatReply
 from app.domain.enums import QuestionCategory, ResponseType
-from app.domain.order_present import format_orders_message, summarize_orders_for_prompt
+from app.domain.order_present import (
+    collect_sku_images,
+    format_orders_message,
+    format_sku_text,
+    order_sn_from_row,
+    summarize_orders_for_prompt,
+)
 from app.domain.order_refs import build_order_query_text, extract_track
 from app.domain.verified_phone import sahiy_user_id_from_context, verified_phone_from_context
 from app.infrastructure.llm.ports import AiClient
 from app.infrastructure.order_api import OrderApi
+
+logger = logging.getLogger(__name__)
 
 
 class OrderHandler:
@@ -27,23 +37,103 @@ class OrderHandler:
         sahiy_uid = sahiy_user_id_from_context(context)
 
         query = build_order_query_text(context.text, context.recent_messages)
+        lang = str(context.metadata.get("reply_language") or UZ_LAT)
         data = await self._orders.lookup(
             user_id=context.user_id,
             query=query,
             session_id=str(context.session_id),
             phone=phone,
             sahiy_user_id=sahiy_uid,
+            lang=lang,
         )
         track = extract_track(query)
         if track and isinstance(data, dict):
             data["requested_track"] = track
-        lang = str(context.metadata.get("reply_language") or UZ_LAT)
+
         text = await self._format_reply(data, query, reply_language=lang)
+
+        # SKU + photos for single focused order
+        channel_extra: Dict[str, Any] = {}
+        if isinstance(data, dict) and not data.get("error"):
+            sku_text, photo_urls = await self._maybe_fetch_skus(data, lang)
+            if sku_text:
+                text = text + "\n\n" + sku_text
+            if photo_urls:
+                channel_extra["media_photos"] = photo_urls
+
         return ChatReply(
             response_type=ResponseType.API,
             text=text,
             category=self.category,
+            channel_extra=channel_extra,
         )
+
+    async def _maybe_fetch_skus(
+        self, data: dict, lang: str
+    ) -> tuple[str, List[str]]:
+        """Fetch SKU detail for focused single daigou order. Returns (sku_text, photo_urls)."""
+        settings = get_settings()
+        if not settings.has_admin_api:
+            return "", []
+
+        # Only fetch SKUs when a single order is focused
+        order_focus = data.get("order_focus")
+        daigou_focus = data.get("daigou_focus")
+
+        row: Optional[Dict[str, Any]] = None
+        source = ""
+
+        if isinstance(order_focus, dict):
+            source = str(order_focus.get("source", ""))
+            row = order_focus.get("row") if isinstance(order_focus.get("row"), dict) else None
+
+        if not row and isinstance(daigou_focus, dict):
+            row = daigou_focus
+            source = "daigou"
+
+        if not row or source != "daigou":
+            return "", []
+
+        order_sn = order_sn_from_row(row)
+        if not order_sn or order_sn == "—":
+            return "", []
+
+        try:
+            from app.infrastructure.sahiy_api.daigou_admin import (
+                DaigouOrderDetail,
+                fetch_daigou_order_detail,
+                find_daigou_detail_by_sn,
+            )
+
+            detail: Optional[DaigouOrderDetail] = None
+
+            # Try by numeric order id first (fastest)
+            order_id = row.get("id")
+            if order_id:
+                try:
+                    detail = await fetch_daigou_order_detail(int(order_id))
+                except Exception:
+                    pass
+
+            # Fallback: search by SN
+            if not detail:
+                user_id = data.get("user_id") or row.get("user_id")
+                if user_id:
+                    detail = await find_daigou_detail_by_sn(int(user_id), order_sn)
+
+            if not detail or not detail.skus:
+                return "", []
+
+            sku_text = format_sku_text(detail, lang)
+            photo_urls: List[str] = []
+            if settings.sahiy_sku_photos_enabled:
+                photo_urls = collect_sku_images(detail, max_photos=5)
+
+            return sku_text, photo_urls
+
+        except Exception as exc:
+            logger.warning("SKU fetch failed for %s: %s", order_sn, exc)
+            return "", []
 
     async def _format_reply(
         self, data: dict, query: str, *, reply_language: str = UZ_LAT
@@ -52,7 +142,6 @@ class OrderHandler:
         if data.get("error") or data.get("ownership_mismatch"):
             return format_orders_message(data, reply_language=reply_language)
 
-        # Ro'yxat javoblarini barqaror formatda berish (LLM qisqartirmasin / Jiyun demasin)
         if summary.get("bolimlar"):
             return format_orders_message(data, reply_language=reply_language)
 

@@ -15,7 +15,7 @@ ORDER_MENU_PROMPT = (
     "Quyidagi tugmalardan birini tanlang 👇"
 )
 
-# callback_code -> mijoz tilidagi so'rov (parse_order_list_intent uchun)
+# callback_code -> natural-language query (parse_order_list_intent uchun, UZ default)
 _MENU_QUERY: Dict[str, str] = {
     "all": "buyurtmalarim holati",
     "active": "aktiv buyurtmalarim",
@@ -27,11 +27,23 @@ _MENU_QUERY: Dict[str, str] = {
     "completed": "yakunlangan buyurtmalarim",
 }
 
-_MENU_ROWS: Tuple[Tuple[Tuple[str, str], ...], ...] = (
-    (("📋 Hammasi", "all"), ("✅ Aktiv", "active")),
-    (("🇨🇳 Xitoy (daigou)", "daigou"), ("📦 Yetkazib berish", "delivery")),
-    (("⏳ Olib ketilmagan", "unpicked"), ("❌ Bekor", "cancelled")),
-    (("📍 Filialda", "dashboard"), ("✔️ Yakunlangan", "completed")),
+# Localized button labels per code + lang
+_MENU_LABELS: Dict[str, Dict[str, str]] = {
+    "all":       {"uz_lat": "📋 Hammasi",          "uz_cyrl": "📋 Ҳаммаси",           "ru": "📋 Все",              "en": "📋 All",          "zh": "📋 全部"},
+    "active":    {"uz_lat": "✅ Aktiv",             "uz_cyrl": "✅ Актив",             "ru": "✅ Активные",         "en": "✅ Active",        "zh": "✅ 活跃"},
+    "daigou":    {"uz_lat": "🇨🇳 Xitoy (daigou)",  "uz_cyrl": "🇨🇳 Хитой (daigou)", "ru": "🇨🇳 Китай (daigou)", "en": "🇨🇳 China (daigou)","zh": "🇨🇳 中国(代购)"},
+    "delivery":  {"uz_lat": "📦 Yetkazib berish",  "uz_cyrl": "📦 Етказиб бериш",    "ru": "📦 Доставка",         "en": "📦 Delivery",      "zh": "📦 配送"},
+    "unpicked":  {"uz_lat": "⏳ Olib ketilmagan",  "uz_cyrl": "⏳ Олиб кетилмаган",  "ru": "⏳ Не получено",      "en": "⏳ Not picked up", "zh": "⏳ 待取货"},
+    "cancelled": {"uz_lat": "❌ Bekor",             "uz_cyrl": "❌ Бекор",             "ru": "❌ Отменённые",       "en": "❌ Cancelled",     "zh": "❌ 已取消"},
+    "dashboard": {"uz_lat": "📍 Filialda",          "uz_cyrl": "📍 Филиалда",          "ru": "📍 В филиале",        "en": "📍 At branch",     "zh": "📍 分支机构"},
+    "completed": {"uz_lat": "✔️ Yakunlangan",      "uz_cyrl": "✔️ Якунланган",       "ru": "✔️ Завершённые",     "en": "✔️ Completed",    "zh": "✔️ 已完成"},
+}
+
+_MENU_CODE_ORDER: Tuple[Tuple[str, str], ...] = (
+    ("all", "active"),
+    ("daigou", "delivery"),
+    ("unpicked", "cancelled"),
+    ("dashboard", "completed"),
 )
 
 
@@ -69,11 +81,13 @@ def _is_vague_show_request(text: str) -> bool:
     return any(h in lowered for h in hints)
 
 
-def build_order_list_menu_extra() -> Dict[str, Any]:
+def build_order_list_menu_extra(lang: str = "uz_lat") -> Dict[str, Any]:
     rows: List[List[Dict[str, str]]] = []
-    for row in _MENU_ROWS:
+    for code_pair in _MENU_CODE_ORDER:
         buttons = []
-        for label, code in row:
+        for code in code_pair:
+            labels = _MENU_LABELS.get(code, {})
+            label = labels.get(lang) or labels.get("uz_lat", code)
             buttons.append(
                 {
                     "text": label,

@@ -6,25 +6,30 @@ import logging
 from uuid import UUID
 
 from app.domain.customer_identity import (
-    API_UNAVAILABLE_TEXT,
-    INVALID_PHONE_FORMAT_TEXT,
     PhoneVerifyResult,
-    PHONE_NOT_REGISTERED_TEXT,
-    PHONE_VERIFIED_TEXT,
-    SAHIY_USER_ID_VERIFIED_TEXT,
+    api_unavailable_text,
+    invalid_phone_format_text,
+    phone_not_registered_text,
+    phone_verified_text,
     sahiy_phone_search_candidates,
     validate_uzbek_phone,
 )
 
-SAHIY_USER_ID_INVALID_TEXT = (
-    "❌ Sahiy user ID noto'g'ri.\n\n"
-    "Masalan: 111111 yoki id 191052 — ilovadagi hisob raqamingizni yozing."
-)
+_SAHIY_USER_ID_INVALID: dict[str, str] = {
+    "uz_lat": "❌ Sahiy user ID noto'g'ri.\n\nMasalan: 111111 yoki id 191052 — ilovadagi hisob raqamingizni yozing.",
+    "uz_cyrl": "❌ Sahiy user ID нотўғри.\n\nМасалан: 111111 ёки id 191052 — иловадаги ҳисоб рақамингизни ёзинг.",
+    "ru": "❌ Неверный Sahiy user ID.\n\nНапример: 111111 или id 191052 — напишите номер вашего аккаунта в приложении.",
+    "en": "❌ Invalid Sahiy user ID.\n\nExample: 111111 or id 191052 — write your app account number.",
+    "zh": "❌ Sahiy用户ID无效。\n\n示例：111111 或 id 191052 — 请填写您的应用账户编号。",
+}
 
-SAHIY_USER_ID_NOT_FOUND_TEXT = (
-    "❌ Bu user ID bo'yicha mijoz topilmadi.\n\n"
-    "Telefon raqamini yuboring yoki boshqa ID ni tekshirib ko'ring."
-)
+_SAHIY_USER_ID_NOT_FOUND: dict[str, str] = {
+    "uz_lat": "❌ Bu user ID bo'yicha mijoz topilmadi.\n\nTelefon raqamini yuboring yoki boshqa ID ni tekshirib ko'ring.",
+    "uz_cyrl": "❌ Бу user ID бўйича мижоз топилмади.\n\nТелефон рақамини юборинг ёки бошқа ID ни текшириб кўринг.",
+    "ru": "❌ Клиент с таким user ID не найден.\n\nОтправьте номер телефона или проверьте другой ID.",
+    "en": "❌ No customer found with this user ID.\n\nSend your phone number or check another ID.",
+    "zh": "❌ 未找到该用户ID对应的客户。\n\n请发送电话号码或检查其他ID。",
+}
 from app.domain.dto import ChatReply
 from app.domain.enums import MessageRole, QuestionCategory, ResponseType
 from app.domain.verified_phone import PHONE_MESSAGE_PREFIX, SAHIY_USER_MESSAGE_PREFIX
@@ -89,13 +94,13 @@ class IdentityService:
             return False
 
     async def register_sahiy_user_id_in_session(
-        self, session_id: UUID, sahiy_user_id: int
+        self, session_id: UUID, sahiy_user_id: int, lang: str = "uz_lat"
     ) -> tuple[Optional[int], Optional[ChatReply]]:
         if sahiy_user_id < 1:
-            return None, self._reply(SAHIY_USER_ID_INVALID_TEXT)
+            return None, self._reply(_SAHIY_USER_ID_INVALID.get(lang, _SAHIY_USER_ID_INVALID["uz_lat"]))
 
         if not await self.verify_sahiy_user_id(sahiy_user_id):
-            return None, self._reply(SAHIY_USER_ID_NOT_FOUND_TEXT)
+            return None, self._reply(_SAHIY_USER_ID_NOT_FOUND.get(lang, _SAHIY_USER_ID_NOT_FOUND["uz_lat"]))
 
         await self._messages.create(
             session_id=session_id,
@@ -105,7 +110,7 @@ class IdentityService:
         return sahiy_user_id, None
 
     async def register_phone_in_session(
-        self, session_id: UUID, phone: str
+        self, session_id: UUID, phone: str, lang: str = "uz_lat"
     ) -> tuple[Optional[int], Optional[ChatReply]]:
         """
         Validate phone, lookup Sahiy user_id, save to session.
@@ -113,13 +118,13 @@ class IdentityService:
         """
         result = await self.verify_phone(phone)
         if result.error == "invalid_format":
-            return None, self._reply(INVALID_PHONE_FORMAT_TEXT)
+            return None, self._reply(invalid_phone_format_text(lang))
         if result.error == "api_unavailable":
-            return None, self._reply(API_UNAVAILABLE_TEXT)
+            return None, self._reply(api_unavailable_text(lang))
         if result.error == "not_found":
-            return None, self._reply(PHONE_NOT_REGISTERED_TEXT)
+            return None, self._reply(phone_not_registered_text(lang))
         if not result.ok or result.sahiy_user_id is None or not result.phone:
-            return None, self._reply(PHONE_NOT_REGISTERED_TEXT)
+            return None, self._reply(phone_not_registered_text(lang))
 
         await self.persist_identity(session_id, result.phone, result.sahiy_user_id)
         return result.sahiy_user_id, None

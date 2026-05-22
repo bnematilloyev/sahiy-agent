@@ -13,6 +13,14 @@ from app.infrastructure.sahiy_api.factory import get_sahiy_customer_api
 
 logger = logging.getLogger(__name__)
 
+_UNKNOWN_MSG: Dict[str, str] = {
+    "uz_lat": "Ma'lumot olinmadi.",
+    "uz_cyrl": "Маълумот олинмади.",
+    "ru": "Не удалось получить данные.",
+    "en": "Could not retrieve data.",
+    "zh": "无法获取数据。",
+}
+
 
 class OrderApi:
     def __init__(self, settings: Settings, customer_api: Optional[CustomerApi] = None) -> None:
@@ -29,14 +37,15 @@ class OrderApi:
         *,
         phone: Optional[str] = None,
         sahiy_user_id: Optional[int] = None,
+        lang: str = "uz_lat",
     ) -> Dict[str, Any]:
         if self._customer is not None:
             return await self._lookup_sahiy(
                 query,
                 phone=phone,
                 sahiy_user_id=sahiy_user_id,
+                lang=lang,
             )
-
         return await self._lookup_go(user_id, query, session_id)
 
     async def _lookup_sahiy(
@@ -45,24 +54,26 @@ class OrderApi:
         *,
         phone: Optional[str] = None,
         sahiy_user_id: Optional[int] = None,
+        lang: str = "uz_lat",
     ) -> Dict[str, Any]:
-        # Telegram channel user_id is NOT Sahiy DB user_id — use phone or explicit sahiy_user_id.
         logger.info(
-            "Sahiy order lookup phone=%s sahiy_user_id=%s query=%r",
+            "Sahiy order lookup phone=%s sahiy_user_id=%s lang=%s query=%r",
             phone,
             sahiy_user_id,
+            lang,
             query[:80],
         )
         result = await self._customer.lookup(
             verified_user_id=sahiy_user_id,
             phone=phone,
             query=query,
+            lang=lang,
         )
         if isinstance(result, dict) and result.get("error"):
             return result
         if isinstance(result, CustomerSnapshot):
             return result.to_api_payload()
-        return {"error": "unknown", "message": "Ma'lumot olinmadi."}
+        return {"error": "unknown", "message": _UNKNOWN_MSG.get(lang, _UNKNOWN_MSG["uz_lat"])}
 
     async def _lookup_go(
         self,
@@ -98,4 +109,3 @@ class OrderApi:
             "eta": "2 kun",
             "note": "Demo data — Go backend ulanmagan",
         }
-

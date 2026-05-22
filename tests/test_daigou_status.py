@@ -28,4 +28,24 @@ def test_format_with_daigou_focus():
     text = format_orders_message(data)
     assert "DG111" in text
     assert "Sklatda" in text
+    # daigou_focus mavjud bo'lsa focused view qaytadi (section header yo'q)
+
+
+def test_format_section_header_uz():
+    data = {
+        "daigou_orders": [{"order_sn": "DG222", "status": 6}],
+        "daigou_total": 1,
+    }
+    text = format_orders_message(data, reply_language="uz_lat")
     assert "Xitoy omborigacha" in text
+    assert "DG222" in text
+
+
+def test_format_section_header_ru():
+    data = {
+        "daigou_orders": [{"order_sn": "DG222", "status": 6}],
+        "daigou_total": 1,
+    }
+    text = format_orders_message(data, reply_language="ru")
+    assert "До склада в Китае" in text
+    assert "В пути" in text

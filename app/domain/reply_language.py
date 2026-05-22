@@ -177,6 +177,11 @@ _STRINGS: Dict[str, Dict[str, str]] = {
             "По этому вопросу у меня нет точной информации. "
             "Полные сведения можно получить в приложении Sahiy или на сайте."
         ),
+        EN: (
+            "I don't have exact information on this topic. "
+            "You can get full details through the Sahiy app or website."
+        ),
+        ZH: "关于这个问题，我没有准确信息。您可以通过Sahiy应用或网站获取完整信息。",
     },
     "chitchat": {
         UZ_LAT: (
@@ -191,11 +196,18 @@ _STRINGS: Dict[str, Dict[str, str]] = {
             "Здравствуйте. Я помощник Sahiy — напишите по заказу, доставке, "
             "оплате или возврату."
         ),
+        EN: (
+            "Hello. I'm Sahiy assistant — write about orders, delivery, "
+            "payment or returns."
+        ),
+        ZH: "您好，我是Sahiy助手 — 请就订单、配送、付款或退货问题留言。",
     },
     "busy": {
         UZ_LAT: "Hozir tizim band. Bir necha daqiqadan keyin qayta yozing.",
         UZ_CYRL: "Ҳозир тизим банд. Бир неча дақиқадан кейин қайта ёзинг.",
         RU: "Сейчас система занята. Напишите снова через несколько минут.",
+        EN: "The system is busy right now. Please write again in a few minutes.",
+        ZH: "系统目前繁忙，请几分钟后再试。",
     },
     "order_menu_prompt": {
         UZ_LAT: (
@@ -210,21 +222,32 @@ _STRINGS: Dict[str, Dict[str, str]] = {
             "Какие заказы показать?\n"
             "Выберите одну кнопку ниже 👇"
         ),
+        EN: (
+            "Which orders would you like to see?\n"
+            "Please select a button below 👇"
+        ),
+        ZH: "您想查看哪些订单？\n请选择下方按钮 👇",
     },
     "identity_verified_uid": {
         UZ_LAT: "✅ Sahiy user ID qabul qilindi. Endi savolingizni yozing.",
         UZ_CYRL: "✅ Sahiy user ID қабул қилинди. Энди саволингизни ёзинг.",
         RU: "✅ Sahiy user ID принят. Теперь напишите ваш вопрос.",
+        EN: "✅ Sahiy user ID accepted. Now write your question.",
+        ZH: "✅ Sahiy用户ID已接受。请提出您的问题。",
     },
     "identity_verified_phone": {
         UZ_LAT: "✅ Telefon raqamingiz tasdiqlandi. Endi savolingizni yozing.",
         UZ_CYRL: "✅ Телефон рақамингиз тасдиқланди. Энди саволингизни ёзинг.",
         RU: "✅ Номер телефона подтверждён. Теперь напишите ваш вопрос.",
+        EN: "✅ Phone number confirmed. Now write your question.",
+        ZH: "✅ 电话号码已确认。请提出您的问题。",
     },
     "orders_header": {
         UZ_LAT: "📋 Buyurtmalaringiz holati",
         UZ_CYRL: "📋 Буюртмаларингиз ҳолати",
         RU: "📋 Статус ваших заказов",
+        EN: "📋 Your orders status",
+        ZH: "📋 您的订单状态",
     },
     "orders_empty": {
         UZ_LAT: (
@@ -239,16 +262,25 @@ _STRINGS: Dict[str, Dict[str, str]] = {
             "📭 Активных заказов не найдено.\n_______\n"
             "Если недавно оформляли заказ, напишите чуть позже."
         ),
+        EN: (
+            "📭 No active orders found.\n_______\n"
+            "If you placed an order recently, please write again shortly."
+        ),
+        ZH: "📭 未找到活跃订单。\n_______\n如果您最近下过订单，请稍后再写。",
     },
     "orders_track_hint": {
         UZ_LAT: "Batafsil: track raqam (DG... yoki TRACK...) yuboring.",
         UZ_CYRL: "Батафсил: track рақам (DG... ёки TRACK...) юборинг.",
         RU: "Подробнее: отправьте номер track (DG... или TRACK...).",
+        EN: "Details: send track number (DG... or TRACK...).",
+        ZH: "详情：发送跟踪号码（DG... 或 TRACK...）。",
     },
     "rag_greeting": {
         UZ_LAT: "Assalomu alaykum, hurmatli mijoz! ",
         UZ_CYRL: "Ассалому алайкум, ҳурматли мижоз! ",
         RU: "Здравствуйте, уважаемый клиент! ",
+        EN: "Hello, dear customer! ",
+        ZH: "您好，尊敬的客户！",
     },
 }
 
