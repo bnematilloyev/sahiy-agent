@@ -12,7 +12,11 @@ from app.domain.reply_language import (
 from app.core.prompts import RAG_SYSTEM
 
 
-def test_detect_russian():
+def test_detect_uzbek_cyrillic_kelmagan_tovarlar():
+    assert detect_reply_language("Келмаган товарларим борми") == UZ_CYRL
+
+
+def test_detect_russian_tovary_still_works():
     assert detect_reply_language("Где мои товары?") == RU
 
 

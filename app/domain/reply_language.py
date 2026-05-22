@@ -60,6 +60,10 @@ _UZ_LAT_HINTS = (
     "salom",
     "assalom",
     "tovarim",
+    "tovarlarim",
+    "kelmagan",
+    "kemagan",
+    "bormi",
     "kelsa",
     "uchun",
     "qabul",
@@ -67,6 +71,17 @@ _UZ_LAT_HINTS = (
     "kerak",
     "rasmlari",
     "infosi",
+)
+_UZ_CYRL_HINTS = (
+    "борми",
+    "келмаган",
+    "кетилмаган",
+    "товарларим",
+    "товарим",
+    "буюртма",
+    "қабул",
+    "керак",
+    "салом",
 )
 _EN_MARKERS = (
     "where",
@@ -88,6 +103,16 @@ _EN_MARKERS = (
 _ZH_RE = re.compile(r"[\u4e00-\u9fff]")
 
 
+def _ru_marker_hits(text: str) -> int:
+    """Rus markerlari — so'z chegarasida (tovar ⊂ tovarlarim bo'lmasin)."""
+    low = text.lower()
+    count = 0
+    for marker in _RU_MARKERS:
+        if re.search(rf"(?<![а-яё]){re.escape(marker)}(?![а-яё])", low):
+            count += 1
+    return count
+
+
 def detect_reply_language(text: str) -> Optional[str]:
     """Joriy xabardan til; aniqlanmasa None."""
     raw = (text or "").strip()
@@ -102,7 +127,12 @@ def detect_reply_language(text: str) -> Optional[str]:
 
     if _has_cyrillic(raw):
         low = raw.lower()
-        if sum(1 for m in _RU_MARKERS if m in low) >= 1:
+        norm = normalize_text(raw)
+        if any(m in norm for m in _UZ_LAT_HINTS):
+            return UZ_CYRL
+        if any(m in low for m in _UZ_CYRL_HINTS):
+            return UZ_CYRL
+        if _ru_marker_hits(raw) >= 1:
             return RU
         return UZ_CYRL
 
