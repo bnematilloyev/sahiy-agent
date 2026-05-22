@@ -15,6 +15,7 @@ SAMPLE_PAGE = {
             "order_sn": "DG60492965",
             "amount": 5.12,
             "goods_amount": 1.62,
+            "freight_fee": 3.5,
             "status": 6,
             "status_name": "交易完成",
             "expresses": [
@@ -72,6 +73,8 @@ def test_parse_custom_daigou_row_actual_price_fallback():
     detail = parse_detail_from_row(SAMPLE_PAGE["data"][0])
     assert detail is not None
     assert detail.order_sn == "DG60492965"
+    assert detail.freight_fee == 3.5
+    assert detail.amount == 5.12
     assert len(detail.skus) == 1
     sku = detail.skus[0]
     assert sku.actual_price == 1.62

@@ -12,6 +12,7 @@ from app.domain.dto import ChatContext, ChatReply
 from app.domain.enums import QuestionCategory, ResponseType
 from app.domain.order_present import (
     collect_sku_images,
+    enrich_order_summary_uzs,
     format_orders_message,
     format_sku_text,
     order_sn_from_row,
@@ -206,7 +207,7 @@ class OrderHandler:
     async def _format_reply(
         self, data: dict, query: str, *, reply_language: str = UZ_LAT
     ) -> str:
-        summary = summarize_orders_for_prompt(data)
+        summary = summarize_orders_for_prompt(data, lang=reply_language)
         if data.get("error") or data.get("ownership_mismatch"):
             return format_orders_message(data, reply_language=reply_language)
 
@@ -222,6 +223,8 @@ class OrderHandler:
         if not self._ai.is_available:
             return format_orders_message(data, reply_language=reply_language)
 
+        rate = await self._cny_uzs_rate()
+        summary = enrich_order_summary_uzs(summary, rate, reply_language)
         prompt = API_ORDER_USER_TEMPLATE.format(
             query=query,
             orders_json=json.dumps(summary, ensure_ascii=False, indent=2),

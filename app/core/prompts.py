@@ -135,7 +135,8 @@ QAT'IY QOIDALAR:
 6. Markdown **bold** ishlatma.
 7. JSON da yo'q buyurtma yoki "Qolgan N ta" kabi o'zingdan qo'shma xulosa yozma.
 8. So'zlarni qisqartirma (masalan "Yetkaz" emas, "Yetkazib berilgan").
-9. Javobni to'liq yoz — oxirgi jumlani va holat tafsilotlarini qisqartirma."""
+9. Javobni to'liq yoz — oxirgi jumlani va holat tafsilotlarini qisqartirma.
+10. JSON da mahsulot_jami, xitoy_ichida_yetkazish, jami (so'm) bo'lsa — har buyurtmada alohida ko'rsat. xitoy_ichida_yetkazish — Xitoy ichidagi yetkazish (O'zbekistonga yetkazish alohida emas); jami faqat yig'indisi."""
 
 API_ORDER_USER_TEMPLATE = """Mijoz savoli:
 {query}

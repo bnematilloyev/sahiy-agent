@@ -1,5 +1,7 @@
 """Tests for CNY→UZS exchange rate and SKU price formatting."""
 
+import pytest
+
 from app.domain.order_present import (
     _localize_spec_label,
     format_sku_text,
@@ -37,8 +39,9 @@ def test_format_sku_text_in_uzs():
         order_sn="DG1",
         status=6,
         status_name="",
-        goods_amount=9.26,
+        goods_amount=7.26,
         amount=9.26,
+        freight_fee=2.0,
         skus=[
             SkuInfo(
                 name="Test slipper",
@@ -65,8 +68,47 @@ def test_format_sku_text_in_uzs():
     assert "└ Birlik narxi: 12 705 so'm" in text
     assert "└ Qator jami: 12 705 so'm" in text
     assert "└ Do'kon: 1688" in text
+    assert "💵 Mahsulotlar jami: 12 705 so'm" in text
+    assert "💵 Xitoy ichida yetkazish: 3 500 so'm" in text
     assert "💵 Buyurtma jami: 16 205 so'm" in text
     assert "¥" not in text
+
+
+def test_order_pricing_from_row_freight_fallback():
+    from app.infrastructure.sahiy_api.daigou_admin import order_pricing_from_row
+
+    pricing = order_pricing_from_row({"goods_amount": 5062, "amount": 6062})
+    assert pricing["goods_amount"] == pytest.approx(50.62)
+    assert pricing["amount"] == pytest.approx(60.62)
+    assert pricing["freight_fee"] == pytest.approx(10.0)
+
+
+def test_enrich_order_summary_uzs():
+    from app.domain.order_present import enrich_order_summary_uzs
+
+    summary = {
+        "bolimlar": {
+            "jiyun_orders": {
+                "buyurtmalar": [
+                    {
+                        "sn": "773405557484852",
+                        "holat": "Yakunlangan",
+                        "narx_cny": {
+                            "goods_amount": 50.62,
+                            "freight_fee": 10.0,
+                            "amount": 60.62,
+                        },
+                    }
+                ]
+            }
+        }
+    }
+    out = enrich_order_summary_uzs(summary, 1750, "uz_lat")
+    item = out["bolimlar"]["jiyun_orders"]["buyurtmalar"][0]
+    assert item["mahsulot_jami"] == "88 585 so'm"
+    assert item["xitoy_ichida_yetkazish"] == "17 500 so'm"
+    assert item["jami"] == "106 085 so'm"
+    assert "narx_cny" not in item
 
 
 def test_format_sku_text_russian():

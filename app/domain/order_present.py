@@ -195,13 +195,19 @@ def _location(row: Dict[str, Any], source: str) -> str:
     return str(branch).strip() if branch else ""
 
 
-def normalize_order_row(row: Dict[str, Any], source: str, lang: str = UZ_LAT) -> Dict[str, str]:
-    return {
+def normalize_order_row(row: Dict[str, Any], source: str, lang: str = UZ_LAT) -> Dict[str, Any]:
+    out: Dict[str, Any] = {
         "sn": order_sn_from_row(row),
         "holat": status_text(row, source, lang),
         "sana": _format_date(row.get("updated_at") or row.get("created_at") or row.get("paid_at")),
         "joy": _location(row, source),
     }
+    from app.infrastructure.sahiy_api.daigou_admin import order_pricing_from_row
+
+    pricing = order_pricing_from_row(row)
+    if pricing.get("amount", 0) > 0:
+        out["narx_cny"] = pricing
+    return out
 
 
 def _format_line(item: Dict[str, str]) -> str:
@@ -453,6 +459,20 @@ _SKU_LINE: Dict[str, str] = {
     "en": "Line total",
     "zh": "小计",
 }
+_SKU_GOODS: Dict[str, str] = {
+    "uz_lat": "Mahsulotlar jami",
+    "uz_cyrl": "Маҳsulotlar jami",
+    "ru": "Сумма товаров",
+    "en": "Products subtotal",
+    "zh": "商品小计",
+}
+_SKU_FREIGHT: Dict[str, str] = {
+    "uz_lat": "Xitoy ichida yetkazish",
+    "uz_cyrl": "Хитoy ichida yetkazish",
+    "ru": "Доставка по Китаю",
+    "en": "Delivery within China",
+    "zh": "中国国内配送",
+}
 _SKU_TOTAL: Dict[str, str] = {
     "uz_lat": "Buyurtma jami",
     "uz_cyrl": "Буюртма жами",
@@ -600,8 +620,78 @@ def format_sku_text(
         if i < len(detail.skus):
             parts.append("")
 
-    parts.extend(["", _SEP, f"💵 {_t(_SKU_TOTAL, lang)}: {_format_money(detail.amount, lang, cny_to_uzs)}"])
+    parts.extend(["", _SEP])
+    show_breakdown = detail.freight_fee > 0 or (
+        detail.goods_amount > 0 and detail.amount > detail.goods_amount
+    )
+    if show_breakdown and detail.goods_amount > 0:
+        parts.append(
+            f"💵 {_t(_SKU_GOODS, lang)}: "
+            f"{_format_money(detail.goods_amount, lang, cny_to_uzs)}"
+        )
+    freight = detail.freight_fee
+    if freight <= 0 and detail.amount > detail.goods_amount > 0:
+        freight = round(detail.amount - detail.goods_amount, 2)
+    if freight > 0:
+        parts.append(
+            f"💵 {_t(_SKU_FREIGHT, lang)}: {_format_money(freight, lang, cny_to_uzs)}"
+        )
+    parts.append(
+        f"💵 {_t(_SKU_TOTAL, lang)}: {_format_money(detail.amount, lang, cny_to_uzs)}"
+    )
     return "\n".join(parts)
+
+
+def enrich_order_summary_uzs(
+    summary: Dict[str, Any],
+    cny_to_uzs: float,
+    lang: str = UZ_LAT,
+) -> Dict[str, Any]:
+    """JSON summary dagi narx_cny ni so'mga aylantiradi (AI javobi uchun)."""
+    if not cny_to_uzs or cny_to_uzs <= 0:
+        return summary
+    out = dict(summary)
+    sections = dict(out.get("bolimlar") or {})
+    for key, block in sections.items():
+        if not isinstance(block, dict):
+            continue
+        orders = []
+        for item in block.get("buyurtmalar") or []:
+            if not isinstance(item, dict):
+                orders.append(item)
+                continue
+            row = dict(item)
+            pricing = row.pop("narx_cny", None)
+            if isinstance(pricing, dict) and pricing.get("amount", 0) > 0:
+                goods = float(pricing.get("goods_amount") or 0)
+                freight = float(pricing.get("freight_fee") or 0)
+                total = float(pricing.get("amount") or 0)
+                if freight <= 0 and total > goods > 0:
+                    freight = round(total - goods, 2)
+                if goods > 0:
+                    row["mahsulot_jami"] = format_uzs(goods, cny_to_uzs, lang)
+                if freight > 0:
+                    row["xitoy_ichida_yetkazish"] = format_uzs(freight, cny_to_uzs, lang)
+                row["jami"] = format_uzs(total, cny_to_uzs, lang)
+            orders.append(row)
+        sections[key] = {**block, "buyurtmalar": orders}
+    out["bolimlar"] = sections
+    focus = out.get("dg")
+    if isinstance(focus, dict) and isinstance(focus.get("narx_cny"), dict):
+        row = dict(focus)
+        pricing = row.pop("narx_cny")
+        goods = float(pricing.get("goods_amount") or 0)
+        freight = float(pricing.get("freight_fee") or 0)
+        total = float(pricing.get("amount") or 0)
+        if freight <= 0 and total > goods > 0:
+            freight = round(total - goods, 2)
+        if goods > 0:
+            row["mahsulot_jami"] = format_uzs(goods, cny_to_uzs, lang)
+        if freight > 0:
+            row["xitoy_ichida_yetkazish"] = format_uzs(freight, cny_to_uzs, lang)
+        row["jami"] = format_uzs(total, cny_to_uzs, lang)
+        out["dg"] = row
+    return out
 
 
 def collect_sku_images(detail: "DaigouOrderDetail", *, max_photos: int = 5) -> List[str]:

@@ -56,6 +56,7 @@ class DaigouOrderDetail:
     status_name: str
     goods_amount: float
     amount: float
+    freight_fee: float = 0.0
     skus: List[SkuInfo] = field(default_factory=list)
 
 
@@ -115,6 +116,20 @@ def _parse_sku(raw: Dict[str, Any]) -> SkuInfo:
     )
 
 
+def order_pricing_from_row(raw: Dict[str, Any]) -> Dict[str, float]:
+    """CNY: goods_amount, freight_fee, amount (buyurtma jami)."""
+    goods = _money(raw.get("goods_amount"))
+    amount = _money(raw.get("amount"))
+    freight = _money(raw.get("freight_fee"))
+    if freight <= 0 and amount > goods > 0:
+        freight = round(amount - goods, 2)
+    return {
+        "goods_amount": goods,
+        "freight_fee": freight,
+        "amount": amount if amount > 0 else round(goods + freight, 2),
+    }
+
+
 def _parse_order(raw: Dict[str, Any]) -> Optional[DaigouOrderDetail]:
     order_id = raw.get("id")
     if not order_id:
@@ -122,16 +137,16 @@ def _parse_order(raw: Dict[str, Any]) -> Optional[DaigouOrderDetail]:
     skus_raw = raw.get("skus") or []
     skus = [_parse_sku(s) for s in skus_raw if isinstance(s, dict)]
 
-    def _f(key: str) -> float:
-        return _money(raw.get(key))
+    pricing = order_pricing_from_row(raw)
 
     return DaigouOrderDetail(
         order_id=int(order_id),
         order_sn=str(raw.get("order_sn") or ""),
         status=int(raw.get("status") or 0),
         status_name=str(raw.get("status_name") or ""),
-        goods_amount=_f("goods_amount"),
-        amount=_f("amount"),
+        goods_amount=pricing["goods_amount"],
+        amount=pricing["amount"],
+        freight_fee=pricing["freight_fee"],
         skus=skus,
     )
 
