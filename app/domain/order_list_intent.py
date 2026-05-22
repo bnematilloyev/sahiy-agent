@@ -44,8 +44,9 @@ _CANCELLED_KW = (
 )
 _ACTIVE_KW = (
     "aktiv", "faol", "ochiq", "jarayonda", "davom et",
+    "active", "active order", "active orders", "my active",
     # RU
-    "aktiv", "aktivny", "aktivnye", "tekushchie", "otkryt",
+    "aktivny", "aktivnye", "tekushchie", "otkryt",
 )
 _COMPLETED_KW = (
     "yakunlangan", "tugagan", "yetkazilgan", "olib ketilgan", "qabul qilingan",
@@ -278,7 +279,7 @@ def parse_order_list_intent(text: str) -> OrderListIntent:
         sources = {"delivery", "unpicked"}
     elif row_filter == "in_china":
         sources = {"daigou", "delivery"}
-    elif row_filter == "pending_arrival":
+    elif row_filter in ("pending_arrival", "active"):
         sources = {"daigou", "jiyun"}
 
     return OrderListIntent(sources=frozenset(sources), row_filter=row_filter)
@@ -291,7 +292,11 @@ def should_fetch_with_list_intent(query: str, *, track: Optional[str]) -> bool:
     intent = parse_order_list_intent(query)
     if intent != OrderListIntent.default():
         return True
-    return is_order_list_question(query)
+    if is_order_list_question(query):
+        return True
+    from app.domain.order_refs import is_order_lookup_request
+
+    return is_order_lookup_request(query) and not track
 
 
 def _row_matches_filter(row: Dict[str, Any], source: str, row_filter: str) -> bool:

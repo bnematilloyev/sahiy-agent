@@ -199,7 +199,7 @@ def _filter_daigou_purchase(
     return out
 
 
-def _build_jiyun_items(
+def _build_transit_items(
     jiyun_rows: List[Dict[str, Any]],
     delivery_idx: Dict[str, Dict[str, Any]],
     unpicked_idx: Dict[str, Dict[str, Any]],
@@ -209,18 +209,13 @@ def _build_jiyun_items(
 ) -> List[OrderChainItem]:
     items: List[OrderChainItem] = []
     seen: Set[str] = set()
-    for row in jiyun_rows:
-        if not isinstance(row, dict):
-            continue
-        code = _status_code(row)
-        if not include_completed and code == 5:
-            continue
-        track = order_sn_from_row(row)
-        if not track or track == "—":
-            continue
-        tkey = normalize_track_key(track)
+
+    def _append(track: str, tkey: str, row: Dict[str, Any], status_source: str) -> None:
         if tkey in seen:
-            continue
+            return
+        code = _status_code(row)
+        if not include_completed and code == 7:
+            return
         seen.add(tkey)
         delivery = delivery_idx.get(tkey)
         unpicked = unpicked_idx.get(tkey)
@@ -230,7 +225,7 @@ def _build_jiyun_items(
             OrderChainItem(
                 track=track,
                 phase="in_transit",
-                status=status_text(row, "jiyun", lang),
+                status=status_text(row, status_source, lang),
                 date=_format_date(
                     row.get("updated_at") or row.get("shipped_at") or row.get("created_at")
                 ),
@@ -238,6 +233,26 @@ def _build_jiyun_items(
                 extras=extras,
             )
         )
+
+    for row in jiyun_rows:
+        if not isinstance(row, dict):
+            continue
+        code = _status_code(row)
+        if not include_completed and code == 5:
+            continue
+        track = order_sn_from_row(row)
+        if not track or track == "—":
+            continue
+        _append(track, normalize_track_key(track), row, "jiyun")
+
+    for tkey, row in unpicked_idx.items():
+        if not isinstance(row, dict):
+            continue
+        track = order_sn_from_row(row)
+        if not track or track == "—":
+            continue
+        _append(track, tkey, row, "delivery")
+
     return items
 
 
@@ -278,7 +293,7 @@ def build_order_chain(
         if order_sn_from_row(row) != "—"
     ]
 
-    transit_items = _build_jiyun_items(
+    transit_items = _build_transit_items(
         list(payload.get("jiyun_orders") or []),
         delivery_idx,
         unpicked_idx,
@@ -289,7 +304,7 @@ def build_order_chain(
     daigou_total = int(payload.get("daigou_total") or len(daigou_rows))
     sections: List[OrderChainSection] = []
 
-    if intent and intent.row_filter == "pending_arrival":
+    if intent and intent.row_filter in ("pending_arrival", "active"):
         if china_items:
             sections.append(
                 OrderChainSection(key="china_purchase", items=tuple(china_items), total=daigou_total)

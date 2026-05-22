@@ -247,6 +247,10 @@ _ORDER_LOOKUP_CONTEXT_WORDS = (
     "moi tovar",
     "moi tovary",
     "moi zakaz",
+    "order",
+    "orders",
+    "my order",
+    "my orders",
 )
 
 

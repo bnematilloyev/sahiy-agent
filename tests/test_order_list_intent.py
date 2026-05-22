@@ -102,5 +102,13 @@ def test_apply_list_scope_in_message():
     assert "Bekor" in text
 
 
-def test_default_intent_all_sources():
-    assert parse_order_list_intent("buyurtmalarim qayerda") == OrderListIntent.default()
+def test_parse_active_orders_english():
+    intent = parse_order_list_intent("where is my active orders")
+    assert intent.row_filter == "active"
+    assert intent.sources == frozenset({"daigou", "jiyun"})
+
+
+def test_should_fetch_active_orders_without_list_question():
+    from app.domain.order_list_intent import should_fetch_with_list_intent
+
+    assert should_fetch_with_list_intent("where is my active orders", track=None)

@@ -77,6 +77,19 @@ def test_telegram_messages_are_separate():
     assert "💡" in messages[-1]
 
 
+def test_active_orders_english_use_chain():
+    intent = parse_order_list_intent("where is my active orders")
+    data = apply_list_intent_to_payload(_sample_payload(), intent)
+    assert data.get("use_order_chain") is True
+    keys = [s["key"] for s in data.get("order_chain") or []]
+    assert "delivery_orders" not in data or not data.get("delivery_orders")
+    assert keys == ["china_purchase", "in_transit"]
+    transit = next(s for s in data["order_chain"] if s["key"] == "in_transit")
+    tracks = [i["track"] for i in transit["items"]]
+    assert "773402738804490" not in tracks
+    assert "435147294520990" in tracks
+
+
 def test_build_order_chain_skipped_for_cancelled_intent():
     intent = parse_order_list_intent("bekor buyurtmalarim")
     sections = build_order_chain(_sample_payload(), intent)

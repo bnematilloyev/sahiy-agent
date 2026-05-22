@@ -202,11 +202,14 @@ class CustomerApi:
             phone=normalized_phone,
             intent=list_intent,
         )
-        if list_intent is not None:
-            payload = apply_list_intent_to_payload(snapshot.to_api_payload(), list_intent, lang)
-            snapshot = self._snapshot_from_filtered_payload(snapshot, payload, list_intent, lang)
 
-        if track and not is_order_list_question(query):
+        track_only = track and not is_order_list_question(query)
+        if not track_only:
+            intent = list_intent if list_intent is not None else OrderListIntent.default()
+            payload = apply_list_intent_to_payload(snapshot.to_api_payload(), intent, lang)
+            snapshot = self._snapshot_from_filtered_payload(snapshot, payload, intent, lang)
+
+        if track_only:
             focused = await self._apply_track_focus(snapshot, track, lang=lang)
             if isinstance(focused, dict):
                 return focused

@@ -443,8 +443,9 @@ class TelegramBot(BotChannel):
             try:
                 await query.message.reply_text(reply_text, reply_markup=reply_markup)
                 for follow_up in extra_menu.get("telegram_messages") or []:
-                    if follow_up:
-                        await query.message.reply_text(str(follow_up))
+                    text = str(follow_up).strip()
+                    if text:
+                        await query.message.reply_text(text)
             except TelegramError as exc:
                 logger.warning("order menu reply failed: %s", exc)
 
@@ -546,8 +547,9 @@ class TelegramBot(BotChannel):
             return
 
         for follow_up in extra.get("telegram_messages") or []:
-            if follow_up:
-                await self._safe_reply_text(update, str(follow_up))
+            text = str(follow_up).strip()
+            if text:
+                await self._safe_reply_text(update, text)
 
         if photo_urls and update.message:
             await self._safe_send_media_group(update, photo_urls)
