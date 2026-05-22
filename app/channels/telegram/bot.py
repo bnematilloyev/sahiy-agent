@@ -131,19 +131,11 @@ _PHOTO_FALLBACK: dict[str, str] = {
 
 
 def _tg_lang(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
-    """Best-effort language from session or Telegram locale."""
-    stored = context.user_data.get("reply_language") if context.user_data else None
-    if stored:
-        return stored
-    lc = ""
-    if update.effective_user:
-        lc = (update.effective_user.language_code or "").lower()
-    if lc.startswith("ru"):
-        return "ru"
-    if lc.startswith("zh"):
-        return "zh"
-    if lc.startswith("en"):
-        return "en"
+    """Sessiya tili; default — o'zbek lotin (Telegram locale emas)."""
+    if context.user_data:
+        stored = context.user_data.get("reply_language")
+        if stored:
+            return str(stored)
     return "uz_lat"
 
 
@@ -220,6 +212,8 @@ class TelegramBot(BotChannel):
 
     async def _on_start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if update.message and update.effective_user:
+            if context.user_data is not None:
+                context.user_data["reply_language"] = "uz_lat"
             lang = _tg_lang(update, context)
             await self._safe_reply_text(
                 update,
