@@ -76,18 +76,12 @@ class Settings(BaseSettings):
     sahiy_admin_access_token: str = ""  # Panel JWT — captcha kerak emas (qo'lda .env ga)
     sahiy_admin_token_ttl_seconds: int = 3000   # 50 min (expires_in=3600)
     sahiy_admin_captcha_max_attempts: int = 5    # panel login: yangi captcha urinishlari
-    sahiy_admin_captcha_model: str = ""           # bo'sh = sonnet (haiku captcha OCR zaif)
+    sahiy_admin_captcha_model: str = ""           # bo'sh = ANTHROPIC_MODEL ishlatiladi
     sahiy_sku_photos_enabled: bool = True        # False = rasmsiz, tez rejim
 
     @property
     def sahiy_admin_captcha_model_resolved(self) -> str:
-        explicit = self.sahiy_admin_captcha_model.strip()
-        if explicit:
-            return explicit
-        # Haiku captcha OCR da xato ko'p — SKU uchun sonnet ishlatamiz
-        if "haiku" in self.anthropic_model.lower():
-            return "claude-sonnet-4-20250514"
-        return self.anthropic_model
+        return self.sahiy_admin_captcha_model.strip() or self.anthropic_model
 
     @property
     def has_admin_api(self) -> bool:

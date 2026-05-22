@@ -142,8 +142,10 @@ async def _ocr_once(
             ),
             timeout=timeout,
         )
+    except anthropic.NotFoundError:
+        raise
     except Exception as exc:
-        logger.warning("Captcha OCR request failed: %s", exc)
+        logger.warning("Captcha OCR request failed (model=%s): %s", model, exc)
         return None
 
     for block in response.content:
@@ -151,6 +153,59 @@ async def _ocr_once(
             result = normalize_captcha(block.text, case_sensitive=case_sensitive)
             if result:
                 return result
+    return None
+
+
+def _captcha_model_chain(settings) -> List[str]:
+    """Primary captcha model, then ANTHROPIC_MODEL fallback (deduped)."""
+    models: List[str] = []
+    for name in (settings.sahiy_admin_captcha_model_resolved, settings.anthropic_model):
+        name = (name or "").strip()
+        if name and name not in models:
+            models.append(name)
+    return models
+
+
+async def _ocr_with_models(
+    client: anthropic.AsyncAnthropic,
+    *,
+    models: List[str],
+    media_type: str,
+    b64: str,
+    timeout: int,
+    case_sensitive: bool,
+) -> Optional[str]:
+    for model in models:
+        candidates: List[str] = []
+        model_missing = False
+        for prompt in (_PROMPT_PRIMARY, _PROMPT_RETRY, _PROMPT_PRIMARY):
+            try:
+                result = await _ocr_once(
+                    client,
+                    model=model,
+                    media_type=media_type,
+                    b64=b64,
+                    prompt=prompt,
+                    timeout=timeout,
+                    case_sensitive=case_sensitive,
+                )
+            except anthropic.NotFoundError:
+                logger.warning("Captcha OCR model not found: %s", model)
+                model_missing = True
+                break
+            if result:
+                candidates.append(result)
+                if len(result) == _CAPTCHA_LEN and candidates.count(result) >= 2:
+                    logger.info("Captcha OCR early match (%s): %r", model, result)
+                    return result
+
+        if model_missing:
+            continue
+
+        best = _pick_best_candidate(candidates)
+        if best:
+            return best
+
     return None
 
 
@@ -169,28 +224,18 @@ async def solve_captcha_from_data_url(
     if not b64:
         return None
 
-    model = settings.sahiy_admin_captcha_model_resolved
+    model_chain = _captcha_model_chain(settings)
     client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
     timeout = max(settings.ai_timeout_seconds, 45)
 
-    candidates: List[str] = []
-    for prompt in (_PROMPT_PRIMARY, _PROMPT_RETRY, _PROMPT_PRIMARY):
-        result = await _ocr_once(
-            client,
-            model=model,
-            media_type=media_type,
-            b64=b64,
-            prompt=prompt,
-            timeout=timeout,
-            case_sensitive=case_sensitive,
-        )
-        if result:
-            candidates.append(result)
-            if len(result) == _CAPTCHA_LEN and candidates.count(result) >= 2:
-                logger.info("Captcha OCR early match: %r", result)
-                return result
-
-    best = _pick_best_candidate(candidates)
+    best = await _ocr_with_models(
+        client,
+        models=model_chain,
+        media_type=media_type,
+        b64=b64,
+        timeout=timeout,
+        case_sensitive=case_sensitive,
+    )
     if best and len(best) != _CAPTCHA_LEN:
         logger.warning(
             "Captcha OCR length %d != expected %d — submitting anyway",
@@ -198,5 +243,5 @@ async def solve_captcha_from_data_url(
             _CAPTCHA_LEN,
         )
     elif not best:
-        logger.warning("Captcha OCR returned no candidates")
+        logger.warning("Captcha OCR returned no candidates (models=%s)", model_chain)
     return best
