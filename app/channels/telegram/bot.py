@@ -414,6 +414,7 @@ class TelegramBot(BotChannel):
         reply_text = _t(_FALLBACK_ERROR, _lang)
         reply_markup = None
         photo_urls_menu: list = []
+        extra_menu: Dict[str, Any] = {}
         try:
             result = await self._with_chat(
                 lambda chat: chat.reply(
@@ -424,9 +425,9 @@ class TelegramBot(BotChannel):
                 )
             )
             reply_text = result.text
-            extra = getattr(result, "channel_extra", {}) or {}
-            reply_markup = inline_keyboard_from_extra(extra)
-            photo_urls_menu = extra.get("media_photos") or []
+            extra_menu = getattr(result, "channel_extra", {}) or {}
+            reply_markup = inline_keyboard_from_extra(extra_menu)
+            photo_urls_menu = extra_menu.get("media_photos") or []
             context.user_data["reply_language"] = metadata.get("reply_language")
         except Exception:
             logger.exception("order menu callback failed user_id=%s", user_id)
@@ -441,6 +442,9 @@ class TelegramBot(BotChannel):
         if query.message:
             try:
                 await query.message.reply_text(reply_text, reply_markup=reply_markup)
+                for follow_up in extra_menu.get("telegram_messages") or []:
+                    if follow_up:
+                        await query.message.reply_text(str(follow_up))
             except TelegramError as exc:
                 logger.warning("order menu reply failed: %s", exc)
 
@@ -512,6 +516,7 @@ class TelegramBot(BotChannel):
         reply_text = fallback_text
         reply_markup = None
         photo_urls: list = []
+        extra: Dict[str, Any] = {}
         try:
             result = await self._with_chat(
                 lambda chat: chat.reply(
@@ -539,6 +544,10 @@ class TelegramBot(BotChannel):
         if not sent:
             logger.error("Could not deliver reply to Telegram for user_id=%s", user_id)
             return
+
+        for follow_up in extra.get("telegram_messages") or []:
+            if follow_up:
+                await self._safe_reply_text(update, str(follow_up))
 
         if photo_urls and update.message:
             await self._safe_send_media_group(update, photo_urls)

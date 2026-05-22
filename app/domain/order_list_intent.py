@@ -278,6 +278,8 @@ def parse_order_list_intent(text: str) -> OrderListIntent:
         sources = {"delivery", "unpicked"}
     elif row_filter == "in_china":
         sources = {"daigou", "delivery"}
+    elif row_filter == "pending_arrival":
+        sources = {"daigou", "jiyun"}
 
     return OrderListIntent(sources=frozenset(sources), row_filter=row_filter)
 
@@ -365,6 +367,8 @@ def apply_list_intent_to_payload(
     data: Dict[str, Any], intent: OrderListIntent, lang: str = "uz_lat"
 ) -> Dict[str, Any]:
     """Snapshot dict ustida manba va holat filtri."""
+    from app.domain.order_chain import apply_order_chain_to_payload, should_use_order_chain
+
     out = dict(data)
     mapping = {
         "delivery": "delivery_orders",
@@ -388,4 +392,6 @@ def apply_list_intent_to_payload(
     title = intent.scope_title(lang)
     if title:
         out["list_scope"] = title
+    if should_use_order_chain(intent):
+        out = apply_order_chain_to_payload(out, intent, lang=lang, raw=data)
     return out

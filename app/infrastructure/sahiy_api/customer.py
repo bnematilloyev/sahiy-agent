@@ -99,6 +99,8 @@ class CustomerSnapshot:
     ownership_mismatch: bool = False
     requested_track: Optional[str] = None
     list_scope: Optional[str] = None
+    order_chain: Optional[List[Dict[str, Any]]] = None
+    use_order_chain: bool = False
 
     def to_api_payload(self) -> Dict[str, Any]:
         return {
@@ -116,6 +118,8 @@ class CustomerSnapshot:
             "ownership_mismatch": self.ownership_mismatch,
             "requested_track": self.requested_track,
             "list_scope": self.list_scope,
+            "order_chain": self.order_chain,
+            "use_order_chain": self.use_order_chain,
             "status_labels": {
                 "delivery": delivery_label,
                 "dashboard": dashboard_label,
@@ -198,7 +202,7 @@ class CustomerApi:
             phone=normalized_phone,
             intent=list_intent,
         )
-        if list_intent is not None and list_intent != OrderListIntent.default():
+        if list_intent is not None:
             payload = apply_list_intent_to_payload(snapshot.to_api_payload(), list_intent, lang)
             snapshot = self._snapshot_from_filtered_payload(snapshot, payload, list_intent, lang)
 
@@ -426,7 +430,9 @@ class CustomerApi:
             unpicked_delivery=list(payload.get("unpicked_delivery") or []),
             ownership_mismatch=base.ownership_mismatch,
             requested_track=base.requested_track,
-            list_scope=intent.scope_title(lang),
+            list_scope=payload.get("list_scope") or intent.scope_title(lang),
+            order_chain=payload.get("order_chain"),
+            use_order_chain=bool(payload.get("use_order_chain")),
         )
 
     async def build_snapshot(
@@ -436,7 +442,12 @@ class CustomerApi:
         phone: Optional[str] = None,
         intent: Optional[OrderListIntent] = None,
     ) -> CustomerSnapshot:
-        fetch = intent.sources if intent is not None else OrderListIntent.default().sources
+        from app.domain.order_chain import enrichment_sources, should_use_order_chain
+
+        base_intent = intent if intent is not None else OrderListIntent.default()
+        fetch = set(base_intent.sources)
+        if should_use_order_chain(base_intent):
+            fetch |= set(enrichment_sources())
 
         task_map: Dict[str, Any] = {}
         if "delivery" in fetch:
@@ -448,7 +459,7 @@ class CustomerApi:
         if "daigou" in fetch:
             task_map["daigou"] = self._daigou_orders(
                 user_id,
-                row_filter=intent.row_filter if intent is not None else None,
+                row_filter=base_intent.row_filter if intent is not None else None,
             )
         if "unpicked" in fetch:
             task_map["unpicked"] = self._unpicked_delivery(user_id)

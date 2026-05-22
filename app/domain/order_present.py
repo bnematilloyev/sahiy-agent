@@ -222,7 +222,43 @@ def summarize_orders_for_prompt(
     if data.get("error"):
         return data
 
-    sections: Dict[str, Any] = {}
+    if data.get("order_chain"):
+        sections: Dict[str, Any] = {}
+        total = 0
+        chain_titles = {
+            "china_purchase": _section_title("daigou_orders", lang),
+            "in_transit": _section_title("jiyun_orders", lang),
+        }
+        for block in data.get("order_chain") or []:
+            if not isinstance(block, dict):
+                continue
+            key = str(block.get("key") or "")
+            items_raw = block.get("items") or []
+            count = int(block.get("total") or len(items_raw))
+            items = [
+                {
+                    "sn": it.get("track", "—"),
+                    "holat": it.get("status", "—"),
+                    "sana": it.get("date", ""),
+                    "joy": it.get("location", ""),
+                }
+                for it in items_raw[:max_per_section]
+                if isinstance(it, dict)
+            ]
+            if items:
+                sections[key] = {
+                    "sarlavha": chain_titles.get(key, key),
+                    "buyurtmalar": items,
+                    "jami": count,
+                }
+                total += count
+        out: Dict[str, Any] = {"jami": total, "bolimlar": sections}
+        focus = data.get("daigou_focus")
+        if isinstance(focus, dict):
+            out["dg"] = normalize_order_row(focus, "daigou", lang)
+        return out
+
+    sections = {}
     total = 0
     for key, source in _SECTIONS:
         rows = data.get(key) or []

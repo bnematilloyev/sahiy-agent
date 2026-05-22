@@ -20,6 +20,9 @@ CUSTOM_DAIGOU_PATH = "/api/custom-daigou-orders/"
 #       10=Bekor qilingan, 11=O'chirilgan, 12=Xatolik
 # Status 6 daigou ro'yxatida ko'rsatilmaydi — shu buyurtma jiyun/delivery da bor.
 DAIGOU_HANDOFF_STATUS = 6
+DAIGOU_PURCHASE_STATUSES: list[int] = [0, 1, 2, 3, 4, 5]
+_DEFAULT_DAIGOU_STATUSES: list[int] = DAIGOU_PURCHASE_STATUSES
+
 _INTENT_STATUS_MAP: Dict[str, List[int]] = {
     "active": [1, 2, 3, 4, 5],
     "pending_arrival": [1, 2, 3, 4, 5],
@@ -32,7 +35,7 @@ _INTENT_STATUS_MAP: Dict[str, List[int]] = {
 def intent_status_codes(row_filter: Optional[str]) -> Optional[List[int]]:
     """Intent asosida API ga beradigan status ro'yxati."""
     if not row_filter:
-        return None
+        return list(_DEFAULT_DAIGOU_STATUSES)
     return _INTENT_STATUS_MAP.get(row_filter)
 
 

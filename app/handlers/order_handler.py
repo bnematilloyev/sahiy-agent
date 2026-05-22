@@ -52,8 +52,17 @@ class OrderHandler:
 
         text = await self._format_reply(data, query, reply_language=lang)
 
-        # SKU + photos for single focused order
         channel_extra: Dict[str, Any] = {}
+        if isinstance(data, dict) and data.get("order_chain") and not data.get("error"):
+            from app.domain.order_telegram_present import build_order_telegram_messages
+
+            messages = build_order_telegram_messages(data, lang=lang)
+            if messages:
+                text = messages[0]
+                if len(messages) > 1:
+                    channel_extra["telegram_messages"] = messages[1:]
+
+        # SKU + photos for single focused order
         if isinstance(data, dict) and not data.get("error"):
             sku_text, photo_urls = await self._maybe_fetch_skus(data, lang)
             if sku_text:
@@ -193,6 +202,12 @@ class OrderHandler:
         summary = summarize_orders_for_prompt(data)
         if data.get("error") or data.get("ownership_mismatch"):
             return format_orders_message(data, reply_language=reply_language)
+
+        if data.get("order_chain"):
+            from app.domain.order_telegram_present import build_order_telegram_messages
+
+            messages = build_order_telegram_messages(data, lang=reply_language)
+            return messages[0] if messages else format_orders_message(data, reply_language=reply_language)
 
         if summary.get("bolimlar"):
             return format_orders_message(data, reply_language=reply_language)

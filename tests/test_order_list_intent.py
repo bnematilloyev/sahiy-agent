@@ -34,7 +34,7 @@ def test_parse_aktiv_filter():
 def test_parse_tovarim_qachon_keladi_pending_arrival():
     intent = parse_order_list_intent("tovarim qachon keladi")
     assert intent.row_filter == "pending_arrival"
-    assert intent.sources == OrderListIntent.default().sources
+    assert intent.sources == frozenset({"daigou", "jiyun"})
 
 
 def test_pending_arrival_excludes_completed_and_cancelled():
