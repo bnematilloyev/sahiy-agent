@@ -1,0 +1,1872 @@
+{
+  "3": {
+    "3": {
+      "question_ru": "Доставка до точки бесплатная?",
+      "answer_ru": "Да, доставка до точки бесплатная при заказе через обновленное приложение Сахий.",
+      "question_en": "Is delivery to the point free?",
+      "answer_en": "Yes, delivery to the point is free when you order through the updated Sahiy app.",
+      "question_zh": "到点免费送货吗？",
+      "answer_zh": "是的，当您通过更新的 Sahiy 应用程序订购时，送货到点是免费的。"
+    }
+  },
+  "4": {
+    "4": {
+      "question_ru": "Возможна ли доставка на мой домашний адрес?",
+      "answer_ru": "Доступно только для города Ташкента и Ташкентской области. В другие регионы его доставляют почтой или почтой.",
+      "question_en": "Is it possible to deliver to my home address?",
+      "answer_en": "Available only for Tashkent city and Tashkent region. For other regions, it is delivered by post or mail.",
+      "question_zh": "可以送货到我的家庭住址吗？",
+      "answer_zh": "仅适用于塔什干市和塔什干地区。对于其他地区，则通过邮寄或邮寄的方式递送。"
+    }
+  },
+  "5": {
+    "5": {
+      "question_ru": "Есть ли смысл в провинции?",
+      "answer_ru": "У нас нет постоянных точек в регионах. Заказы отправляются почтовой службой (EMU, BTS и т.д.) по прибытии в Ташкент.",
+      "question_en": "Is there a point in the provinces?",
+      "answer_en": "We do not have permanent points in the regions. Orders are sent by postal service (EMU, BTS, etc.) upon arrival in Tashkent.",
+      "question_zh": "各省有一个点吗？",
+      "answer_zh": "我们在这些地区没有常驻点。订单在抵达塔什干后通过邮政服务（EMU、BTS 等）发送。"
+    }
+  },
+  "6": {
+    "6": {
+      "question_ru": "Мой заказ задерживается более чем на 20-30 дней, что мне делать?",
+      "answer_ru": "Приносим извинения за задержку. Отправьте номер(а) заказа DG — наши специалисты свяжутся с продавцом, чтобы проверить статус и предложить решение.",
+      "question_en": "My order is more than 20-30 days late, what should I do?",
+      "answer_en": "We apologize for the delay. Submit the order DG number(s) — our experts will contact the seller to check the status and offer a solution.",
+      "question_zh": "我的订单晚了超过 20-30 天，我该怎么办？",
+      "answer_zh": "对于延迟，我们深表歉意。提交订单 DG 编号 — 我们的专家将联系卖家检查状态并提供解决方案。"
+    }
+  },
+  "7": {
+    "7": {
+      "question_ru": "Будет ли доставка задержана во время китайских праздников?",
+      "answer_ru": "Да, продавцы и логистика работают медленнее, особенно во время октябрьских и других крупных праздников.",
+      "question_en": "Will delivery be delayed during Chinese holidays?",
+      "answer_en": "Yes, vendors and logistics are slower, especially during October holidays and other major holidays.",
+      "question_zh": "春节期间发货会延迟吗？",
+      "answer_zh": "是的，供应商和物流速度较慢，尤其是在十月假期和其他重大假期期间。"
+    }
+  },
+  "8": {
+    "8": {
+      "question_ru": "Вышел статус \"доставлено заказчику\", но я его не получил.",
+      "answer_ru": "Именно так оно часто отображается при отправке по почте. Проверьте ближайшее почтовое отделение или пункт EMU. Если вы пришлете номер заказа, мы уточним.",
+      "question_en": "The status \"delivered to customer\" came out, but I did not receive it.",
+      "answer_en": "This is how it is often displayed when it is sent by mail. Check the nearest post office or EMU point. If you send the order number, we will clarify.",
+      "question_zh": "状态显示“已交付给客户”，但我没有收到。",
+      "answer_zh": "这是通过邮件发送时通常显示的方式。检查最近的邮局或动车组点。如果您发送订单号，我们将予以澄清。"
+    }
+  },
+  "9": {
+    "9": {
+      "question_ru": "Какова стоимость груза?",
+      "answer_ru": "Доставка в Пунт бесплатная. Для тяжелых заказов специалист точно рассчитает дополнительную плату за груз.",
+      "question_en": "What is the cost of cargo?",
+      "answer_en": "Delivery to Punt is free. For heavy orders, the specialist will accurately calculate the additional cargo fee.",
+      "question_zh": "货物的成本是多少？",
+      "answer_zh": "送货至 Punt 是免费的。对于大宗订单，专员会准确计算附加运费。"
+    }
+  },
+  "10": {
+    "10": {
+      "question_ru": "Как мне отслеживать статус моего заказа?",
+      "answer_ru": "Откройте раздел «Мои заказы» в приложении или отправьте нам свой номер DG или номер отслеживания (YT, JT, 78...).",
+      "question_en": "How do I track my order status?",
+      "answer_en": "Open the \"My Orders\" section in the app or send us your DG number or tracking number (YT, JT, 78...).",
+      "question_zh": "我如何追踪我的订单状态？",
+      "answer_zh": "打开应用程序中的“我的订单”部分或向我们发送您的 DG 编号或跟踪编号（YT、JT、78...）。"
+    }
+  },
+  "11": {
+    "11": {
+      "question_ru": "У меня несколько заказов, не могли бы вы проверить их все?",
+      "answer_ru": "Запишите все номера DG или номера отслеживания, мы проверим и ответим.",
+      "question_en": "I have several orders, can you please check them all?",
+      "answer_en": "Write down all the DG or tracking numbers, we will check and reply.",
+      "question_zh": "我有几笔订单，您能全部检查一下吗？",
+      "answer_zh": "写下所有 DG 或跟踪号码，我们将检查并回复。"
+    }
+  },
+  "12": {
+    "12": {
+      "question_ru": "Статус заморожен, изменений нет.",
+      "answer_ru": "Отправьте номер вашего заказа. Наши специалисты свяжутся с продавцом и определят ситуацию.",
+      "question_en": "The status is frozen, there is no change.",
+      "answer_en": "Submit your order number. Our specialists will contact the seller and determine the situation.",
+      "question_zh": "状态被冻结，没有任何变化。",
+      "answer_zh": "提交您的订单号。我们的专家将联系卖家并确定情况。"
+    }
+  },
+  "13": {
+    "13": {
+      "question_ru": "Я хочу отменить свой заказ.",
+      "answer_ru": "Отмена возможна, если заказ еще не отправлен. Отправьте номер.",
+      "question_en": "I want to cancel my order.",
+      "answer_en": "Cancellation is possible if the order has not yet been shipped. Send the number.",
+      "question_zh": "我想取消订单。",
+      "answer_zh": "如果订单尚未发货，则可以取消。发送号码。"
+    }
+  },
+  "14": {
+    "14": {
+      "question_ru": "Где я могу найти номер своего заказа?",
+      "answer_ru": "В разделе приложения «Мои заказы» для каждого заказа отображается номер DG.",
+      "question_en": "Where do I find my order number?",
+      "answer_en": "The \"My Orders\" section of the application shows the DG number for each order.",
+      "question_zh": "在哪里可以找到我的订单号？",
+      "answer_zh": "应用程序的“我的订单”部分显示每个订单的 DG 编号。"
+    }
+  },
+  "15": {
+    "15": {
+      "question_ru": "Пришел не тот товар.",
+      "answer_ru": "Приносим свои извинения. Пожалуйста, отправьте номер заказа, изображение китайской наклейки и изображение полученного товара. Принимаем решение обменять или вернуть деньги.",
+      "question_en": "The wrong product arrived.",
+      "answer_en": "We apologize. Please send your order DG number, picture of Chinese sticker and picture of received goods. We decide to exchange or refund.",
+      "question_zh": "送错产品了。",
+      "answer_zh": "我们道歉。请发送您的订单 DG 号码、中文贴纸图片和收到货物的图片。我们决定换货或退款。"
+    }
+  },
+  "16": {
+    "16": {
+      "question_ru": "Пришёл бракованный товар.",
+      "answer_ru": "Отправьте номер генерального директора вместе с фото и видео. Наши специалисты организуют замену или возврат денег.",
+      "question_en": "A defective product has arrived.",
+      "answer_en": "Send DG number along with photo and video. Our experts will arrange a replacement or refund.",
+      "question_zh": "有缺陷的产品已到达。",
+      "answer_zh": "发送 DG 号码以及照片和视频。我们的专家将安排更换或退款。"
+    }
+  },
+  "17": {
+    "17": {
+      "question_ru": "Можно ли обменять товар, который не пришел?",
+      "answer_ru": "Да. Запишите номера недостающих предметов и вновь выбранных предметов. Если есть разница в цене, она будет урегулирована через баланс.",
+      "question_en": "Is it possible to exchange goods that have not arrived?",
+      "answer_en": "Yes. Write down the missing item numbers and the newly selected items. If there is a price difference, it will be settled through the balance.",
+      "question_zh": "未到货的商品可以换货吗？",
+      "answer_zh": "是的。记下缺失的项目编号和新选择的项目。如有价格差异，将通过余额结算。"
+    }
+  },
+  "18": {
+    "18": {
+      "question_ru": "Можно ли вернуть товар?",
+      "answer_ru": "Да, возможен обмен или возврат денег в случае поломки или неправильного товара. Отправьте соответствующие фотографии и номер DG.",
+      "question_en": "Can the product be returned?",
+      "answer_en": "Yes, it is possible to exchange or refund in case of broken or wrong product. Send relevant pictures and DG no.",
+      "question_zh": "产品可以退货吗？",
+      "answer_zh": "是的，如果产品损坏或错误，可以换货或退款。发送相关图片和DG编号。"
+    }
+  },
+  "19": {
+    "19": {
+      "question_ru": "Я оплатил, но заказ не подтвердился.",
+      "answer_ru": "Возможно, деньги были добавлены на ваш баланс. Проверьте свой баланс в приложении.",
+      "question_en": "I paid, but the order was not confirmed.",
+      "answer_en": "The money may have been added to your balance. Check your balance in the app.",
+      "question_zh": "我付款了，但订单尚未确认。",
+      "answer_zh": "这笔钱可能已添加到您的余额中。在应用程序中检查您的余额。"
+    }
+  },
+  "20": {
+    "20": {
+      "question_ru": "Платил дважды.",
+      "answer_ru": "Возвращаем излишек на баланс. Отправьте номер вашего заказа.",
+      "question_en": "Paid twice.",
+      "answer_en": "We return the excess to the balance. Submit your order number.",
+      "question_zh": "付了两次钱。",
+      "answer_zh": "我们将多余的部分退回余额。提交您的订单号。"
+    }
+  },
+  "21": {
+    "21": {
+      "question_ru": "Сколько времени занимает возврат средств?",
+      "answer_ru": "Возврат средств обычно осуществляется в течение 48 часов в случае отмененных или проблемных заказов.",
+      "question_en": "How long does a refund take?",
+      "answer_en": "Refunds are usually made within 48 hours for canceled or problematic orders.",
+      "question_zh": "退款需要多长时间？",
+      "answer_zh": "对于取消或有问题的订单，退款通常会在 48 小时内进行。"
+    }
+  },
+  "22": {
+    "22": {
+      "question_ru": "Можно ли вернуть деньги на балансе на карту?",
+      "answer_ru": "На данный момент его можно использовать только для других заказов через баланс.",
+      "question_en": "Can the money on the balance be returned to the card?",
+      "answer_en": "For now, it can only be used for other orders via balance.",
+      "question_zh": "余额里的钱可以退回卡里吗？",
+      "answer_zh": "目前只能通过余额用于其他订单。"
+    }
+  },
+  "23": {
+    "23": {
+      "question_ru": "Как работает отдел B2B (оптовая торговля)?",
+      "answer_ru": "При B2B цена будет на 20% дешевле с учетом стоимости перевозки за кг. Возможен заказ, даже если это штучно. Паспортных данных достаточно.",
+      "question_en": "How does the B2B (wholesale) department work?",
+      "answer_en": "By B2B, the price will be 20% cheaper with freight charge per kg. It is possible to order even if it is a piece. Passport information is sufficient.",
+      "question_zh": "B2B（批发）部门如何运作？",
+      "answer_zh": "通过B2B，价格将便宜20%，每公斤收取运费。即使是一件也可以订购。护照信息就足够了。"
+    }
+  },
+  "24": {
+    "24": {
+      "question_ru": "Есть ли бесплатная доставка до 7 кг в B2B?",
+      "answer_ru": "Нет, в B2B взимается отдельная плата за кг.",
+      "question_en": "Is there free delivery up to 7kg on B2B too?",
+      "answer_en": "No, B2B has a separate charge per kg.",
+      "question_zh": "B2B 也有 7 公斤以下免费送货吗？",
+      "answer_zh": "不可以，B2B 按公斤单独收费。"
+    }
+  },
+  "25": {
+    "25": {
+      "question_ru": "Приложение не платит.",
+      "answer_ru": "Попробуйте обновить приложение до последней версии. Если проблема не исчезнет, ​​пришлите скриншот.",
+      "question_en": "The app is not paying.",
+      "answer_en": "Try updating the app to the latest version. If the problem persists, send a screenshot.",
+      "question_zh": "该应用程序不付款。",
+      "answer_zh": "尝试将应用程序更新到最新版本。如果问题仍然存在，请发送屏幕截图。"
+    }
+  },
+  "26": {
+    "26": {
+      "question_ru": "Могу ли я изменить свой номер телефона?",
+      "answer_ru": "Изменить его можно в разделе личной информации приложения. Попросите помощи, если у вас возникла проблема.",
+      "question_en": "Can I change my phone number?",
+      "answer_en": "You can change it in the personal information section of the application. Ask for help if you have a problem.",
+      "question_zh": "我可以更改我的电话号码吗？",
+      "answer_zh": "您可以在应用程序的个人信息部分进行更改。如果您有问题，请寻求帮助。"
+    }
+  },
+  "27": {
+    "27": {
+      "question_ru": "Возвращаете ли вы деньги, если вас не устраивает качество товара?",
+      "answer_ru": "Если товар поврежден или имеет брак – да. В случае простого «не нравится» возврат ограничен.",
+      "question_en": "Do you refund money if you are not satisfied with the quality of the product?",
+      "answer_en": "If the goods are damaged or defective - yes. In the case of a simple \"do not like\", the return is limited.",
+      "question_zh": "如果您对产品质量不满意，您会退款吗？",
+      "answer_zh": "如果货物损坏或有缺陷 - 是的。在简单的“不喜欢”的情况下，退货是有限的。"
+    }
+  },
+  "28": {
+    "28": {
+      "question_ru": "Когда позвонит курьер?",
+      "answer_ru": "Текст или звонок будет отправлен за 30-60 минут до доставки.",
+      "question_en": "When will the courier call?",
+      "answer_en": "A text or call will be sent 30-60 minutes before delivery.",
+      "question_zh": "快递员什么时候会打电话来？",
+      "answer_zh": "交货前 30-60 分钟将发送短信或电话。"
+    }
+  },
+  "29": {
+    "29": {
+      "question_ru": "Товар прибыл поврежденным или неправильным, что мне делать?",
+      "answer_ru": "Напишите оператору с фото/видео в течение 24 часов - заменим или вернем деньги.",
+      "question_en": "The product arrived damaged or wrong, what should I do?",
+      "answer_en": "Write to the operator with a photo/video within 24 hours - we will replace or refund the money.",
+      "question_zh": "产品到达时已损坏或错误，我该怎么办？",
+      "answer_zh": "24 小时内写信给运营商并附上照片/视频 - 我们将更换或退款。"
+    }
+  },
+  "30": {
+    "30": {
+      "question_ru": "Кажется, заказ утерян.",
+      "answer_ru": "Отправьте номер заказа и наши специалисты постараются его найти.",
+      "question_en": "The order seems to have been lost.",
+      "answer_en": "Send the order number and our experts will try to find it.",
+      "question_zh": "订单似乎丢失了。",
+      "answer_zh": "发送订单号，我们的专家将尽力找到它。"
+    }
+  },
+  "31": {
+    "31": {
+      "question_ru": "Сколько времени занимает доставка по Ташкенту?",
+      "answer_ru": "Обычно доставка осуществляется в течение 1-3 рабочих дней.",
+      "question_en": "How long does it take to deliver within Tashkent?",
+      "answer_en": "Usually delivered within 1-3 business days.",
+      "question_zh": "塔什干内送货需要多长时间？",
+      "answer_zh": "通常在 1-3 个工作日内送达。"
+    }
+  },
+  "32": {
+    "32": {
+      "question_ru": "Какие сроки доставки в регионы?",
+      "answer_ru": "3-7 рабочих дней почтой после прибытия в Ташкент.",
+      "question_en": "What is the delivery time to the regions?",
+      "answer_en": "3-7 working days by mail after arrival in Tashkent.",
+      "question_zh": "到这些地区的交货时间是多少？",
+      "answer_zh": "到达塔什干后 3-7 个工作日邮寄。"
+    }
+  },
+  "33": {
+    "33": {
+      "question_ru": "Как отследить заказ?",
+      "answer_ru": "В приложении в разделе «Мои заказы» или через номер отслеживания.",
+      "question_en": "How to track the order?",
+      "answer_en": "In the application in the section \"My orders\" or through the tracking number.",
+      "question_zh": "如何追踪订单？",
+      "answer_zh": "在应用程序中的“我的订单”部分或通过跟踪号码。"
+    }
+  },
+  "34": {
+    "34": {
+      "question_ru": "Какие способы оплаты доступны?",
+      "answer_ru": "Банковской картой, Click, Payme и баланс.",
+      "question_en": "What payment methods are available?",
+      "answer_en": "By bank card, Click, Payme and balance.",
+      "question_zh": "有哪些付款方式？",
+      "answer_zh": "通过银行卡、Click、Payme 和余额。"
+    }
+  },
+  "35": {
+    "35": {
+      "question_ru": "Каков период возврата?",
+      "answer_ru": "В случае поломки его можно вернуть в течение 14 дней.",
+      "question_en": "What is the return period?",
+      "answer_en": "In case of breakage, it can be returned within 14 days.",
+      "question_zh": "回报期是多少？",
+      "answer_zh": "如有破损，可在 14 天内退货。"
+    }
+  },
+  "36": {
+    "36": {
+      "question_ru": "Не было доставлено несколько товаров в одном заказе.",
+      "answer_ru": "Напишите номера товаров, которые не пришли, мы их заменим.",
+      "question_en": "Multiple items in the same order did not arrive.",
+      "answer_en": "Write the product numbers that have not arrived, we will replace them.",
+      "question_zh": "同一订单中的多件商品未到达。",
+      "answer_zh": "写下尚未到达的产品编号，我们将更换它们。"
+    }
+  },
+  "37": {
+    "37": {
+      "question_ru": "Что мне нужно для регистрации в B2B?",
+      "answer_ru": "Паспортных данных достаточно, дополнительных документов не требуется.",
+      "question_en": "What do I need to register for B2B?",
+      "answer_en": "Passport information is sufficient, no additional document is required.",
+      "question_zh": "注册 B2B 需要什么？",
+      "answer_zh": "护照信息就足够了，不需要额外的文件。"
+    }
+  },
+  "38": {
+    "38": {
+      "question_ru": "Денег на балансе не видно.",
+      "answer_ru": "Попробуйте обновить приложение и очистить кеш.",
+      "question_en": "The money in the balance is not visible.",
+      "answer_en": "Try updating the app and clearing the cache.",
+      "question_zh": "余额中的钱是不可见的。",
+      "answer_zh": "尝试更新应用程序并清除缓存。"
+    }
+  },
+  "39": {
+    "39": {
+      "question_ru": "Куда мне обратиться, если у меня возникнут дополнительные вопросы?",
+      "answer_ru": "Писать можно через этот чат.",
+      "question_en": "Where do I turn if I have further questions?",
+      "answer_en": "You can write through this chat.",
+      "question_zh": "如果我还有其他问题，我该向哪里求助？",
+      "answer_zh": "你可以通过这个聊天来写。"
+    }
+  },
+  "40": {
+    "40": {
+      "question_ru": "Как узнать адрес точки?",
+      "answer_ru": "Точный адрес мы сообщим вам при заказе или написав нам.",
+      "question_en": "How do I know the address of the point?",
+      "answer_en": "We will give you the exact address when ordering or writing to us.",
+      "question_zh": "我如何知道该点的地址？",
+      "answer_zh": "当您订购或写信给我们时，我们会向您提供准确的地址。"
+    }
+  },
+  "41": {
+    "41": {
+      "question_ru": "Есть ли разница в доставке?",
+      "answer_ru": "Быстрее по Ташкенту, почтой в регионы.",
+      "question_en": "Is there a difference in shipping?",
+      "answer_en": "Faster in Tashkent, by post in the regions.",
+      "question_zh": "运费有区别吗？",
+      "answer_zh": "在塔什干，通过邮寄在各地区更快。"
+    }
+  },
+  "42": {
+    "42": {
+      "question_ru": "Статус заказа показывает «Неизвестно».",
+      "answer_ru": "Отправьте номер и мы проверим.",
+      "question_en": "The order status is showing \"Unknown\".",
+      "answer_en": "Send the number and we will check.",
+      "question_zh": "订单状态显示“未知”。",
+      "answer_zh": "发送号码，我们会检查。"
+    }
+  },
+  "43": {
+    "43": {
+      "question_ru": "Баланс не обновляется после оплаты.",
+      "answer_ru": "Подождите несколько минут и проверьте еще раз.",
+      "question_en": "Balance not updating after payment.",
+      "answer_en": "Wait a few minutes and check again.",
+      "question_zh": "付款后余额未更新。",
+      "answer_zh": "等待几分钟并再次检查。"
+    }
+  },
+  "44": {
+    "44": {
+      "question_ru": "Товар пришел не того цвета.",
+      "answer_ru": "Отправьте номер DG с фотографиями.",
+      "question_en": "The product arrived in the wrong color.",
+      "answer_en": "Send DG number with pictures.",
+      "question_zh": "产品到达时颜色错误。",
+      "answer_zh": "发送带有图片的 DG 编号。"
+    }
+  },
+  "45": {
+    "45": {
+      "question_ru": "Когда придет возврат средств?",
+      "answer_ru": "Баланс в течение 48 часов.",
+      "question_en": "When will the refund arrive?",
+      "answer_en": "Balance within 48 hours.",
+      "question_zh": "退款什么时候到账？",
+      "answer_zh": "48小时内余额。"
+    }
+  },
+  "46": {
+    "46": {
+      "question_ru": "Есть ли минимальный объем заказа в B2B?",
+      "answer_ru": "Нет, можно заказать любое количество.",
+      "question_en": "Is there a minimum order quantity in B2B?",
+      "answer_en": "No, any quantity can be ordered.",
+      "question_zh": "B2B 有最低订购量吗？",
+      "answer_zh": "不，可以订购任何数量。"
+    }
+  },
+  "47": {
+    "47": {
+      "question_ru": "Приложение выдает ошибку.",
+      "answer_ru": "Обновите приложение или очистите кеш.",
+      "question_en": "The application is giving an error.",
+      "answer_en": "Update the app or clear the cache.",
+      "question_zh": "应用程序出现错误。",
+      "answer_zh": "更新应用程序或清除缓存。"
+    }
+  },
+  "48": {
+    "48": {
+      "question_ru": "Я хочу поговорить с оператором.",
+      "answer_ru": "Напишите через этот чат, с вами свяжется специалист.",
+      "question_en": "I want to talk to the operator.",
+      "answer_en": "Write through this chat, a specialist will contact you.",
+      "question_zh": "我想和接线员谈谈。",
+      "answer_zh": "通过此聊天记录，专家将与您联系。"
+    }
+  },
+  "49": {
+    "49": {
+      "question_ru": "Сколько стоят почтовые расходы?",
+      "answer_ru": "Оплата производится при получении по почте.",
+      "question_en": "How much does postage cost?",
+      "answer_en": "Payment is made when you receive it in the mail.",
+      "question_zh": "邮费是多少？",
+      "answer_zh": "当您收到邮件时即进行付款。"
+    }
+  },
+  "50": {
+    "50": {
+      "question_ru": "Я не вижу своих старых заказов.",
+      "answer_ru": "Попробуйте обновить приложение.",
+      "question_en": "I can't see my old orders.",
+      "answer_en": "Try updating the app.",
+      "question_zh": "我看不到我的旧订单。",
+      "answer_zh": "尝试更新应用程序。"
+    }
+  },
+  "51": {
+    "51": {
+      "question_ru": "Когда заказ прибудет в Фергану?",
+      "answer_ru": "В течение 3-5 дней после прибытия в Ташкент.",
+      "question_en": "When will the order arrive in Fergana?",
+      "answer_en": "Within 3-5 days after arriving in Tashkent.",
+      "question_zh": "订单什么时候到达费尔干纳？",
+      "answer_zh": "抵达塔什干后3-5天内。"
+    }
+  },
+  "52": {
+    "52": {
+      "question_ru": "Качество товара оказалось низким.",
+      "answer_ru": "Отправьте фотографии и номер DG.",
+      "question_en": "The quality of the product turned out to be low.",
+      "answer_en": "Send pictures and DG number.",
+      "question_zh": "结果发现产品质量很低。",
+      "answer_zh": "发送图片和 DG 编号。"
+    }
+  },
+  "53": {
+    "53": {
+      "question_ru": "Оплата картой не удалась.",
+      "answer_ru": "Попробуйте другую карту или используйте баланс.",
+      "question_en": "Card payment failed.",
+      "answer_en": "Try another card or use the balance.",
+      "question_zh": "刷卡支付失败。",
+      "answer_zh": "尝试另一张卡或使用余额。"
+    }
+  },
+  "54": {
+    "54": {
+      "question_ru": "Заказ отменили, почему?",
+      "answer_ru": "Может быть аннулировано продавцом.",
+      "question_en": "The order was canceled, why?",
+      "answer_en": "May be canceled by the seller.",
+      "question_zh": "订单被取消了，为什么？",
+      "answer_zh": "可能会被卖家取消。"
+    }
+  },
+  "55": {
+    "55": {
+      "question_ru": "Как вернуть сломанную вещь?",
+      "answer_ru": "Напишите с фотографией и номером ГД.",
+      "question_en": "How do I return a broken item?",
+      "answer_en": "Write with photo and DG number.",
+      "question_zh": "如何退回损坏的物品？",
+      "answer_zh": "写上照片和 DG 编号。"
+    }
+  },
+  "56": {
+    "56": {
+      "question_ru": "Насколько дешевы тарифы B2B?",
+      "answer_ru": "Обычно скидки до 20%.",
+      "question_en": "How cheap are B2B rates?",
+      "answer_en": "Usually up to 20% off.",
+      "question_zh": "B2B 价格有多便宜？",
+      "answer_zh": "通常最多可享受 20% 的折扣。"
+    }
+  },
+  "57": {
+    "57": {
+      "question_ru": "Номер телефона, чтобы связаться с Сахи?",
+      "answer_ru": "Написать через этот чат – самый быстрый способ.",
+      "question_en": "Phone number to contact Sahi?",
+      "answer_en": "Writing through this chat is the fastest way.",
+      "question_zh": "联系 Sahi 的电话号码？",
+      "answer_zh": "通过这个聊天来写作是最快的方法。"
+    }
+  },
+  "58": {
+    "58": {
+      "question_ru": "Доставка бесплатна?",
+      "answer_ru": "По существу - да.",
+      "question_en": "Is shipping free?",
+      "answer_en": "To the point - yes.",
+      "question_zh": "免运费吗？",
+      "answer_zh": "说到点子上——是的。"
+    }
+  },
+  "59": {
+    "59": {
+      "question_ru": "Можно ли отправить заказ повторно?",
+      "answer_ru": "Да, после того, как проблема будет решена.",
+      "question_en": "Is it possible to resend the order?",
+      "answer_en": "Yes, after the problem is solved.",
+      "question_zh": "可以重新发送订单吗？",
+      "answer_zh": "是的，问题解决后。"
+    }
+  },
+  "60": {
+    "60": {
+      "question_ru": "СМС не приходят.",
+      "answer_ru": "Проверьте правильность номера.",
+      "question_en": "SMS not coming.",
+      "answer_en": "Check that the number is correct.",
+      "question_zh": "短信没有来。",
+      "answer_zh": "检查号码是否正确。"
+    }
+  },
+  "61": {
+    "61": {
+      "question_ru": "Сколько времени занимает доставка в Андижан?",
+      "answer_ru": "4-7 дней после Ташкента.",
+      "question_en": "How long does it take to deliver to Andijan?",
+      "answer_en": "4-7 days after Tashkent.",
+      "question_zh": "送货到安集延需要多长时间？",
+      "answer_zh": "塔什干后4-7天。"
+    }
+  },
+  "62": {
+    "62": {
+      "question_ru": "Товар не является оригинальным.",
+      "answer_ru": "Подать заявку с картинками.",
+      "question_en": "The product is not original.",
+      "answer_en": "Apply with pictures.",
+      "question_zh": "该产品不是原装的。",
+      "answer_zh": "配合图片申请。"
+    }
+  },
+  "63": {
+    "63": {
+      "question_ru": "Денег на балансе нет.",
+      "answer_ru": "Отправьте скриншот платежа.",
+      "question_en": "There is no money in the balance.",
+      "answer_en": "Submit payment screenshot.",
+      "question_zh": "余额中没有钱。",
+      "answer_zh": "提交付款截图。"
+    }
+  },
+  "64": {
+    "64": {
+      "question_ru": "Статус заказа не меняется.",
+      "answer_ru": "Отправьте номер.",
+      "question_en": "Order status is not changing.",
+      "answer_en": "Send a number.",
+      "question_zh": "订单状态没有变化。",
+      "answer_zh": "发送一个号码。"
+    }
+  },
+  "65": {
+    "65": {
+      "question_ru": "Можно ли вернуть товар старше 14 дней?",
+      "answer_ru": "Если есть брак, то это возможно.",
+      "question_en": "Is it possible to return goods that are older than 14 days?",
+      "answer_en": "If there is a marriage, it is possible.",
+      "question_zh": "超过 14 天的商品可以退货吗？",
+      "answer_zh": "如果有婚姻，那也是有可能的。"
+    }
+  },
+  "66": {
+    "66": {
+      "question_ru": "Нужен документ в B2B?",
+      "answer_ru": "Нет, паспорта достаточно.",
+      "question_en": "Need a document in B2B?",
+      "answer_en": "No, a passport is enough.",
+      "question_zh": "需要 B2B 文档吗？",
+      "answer_zh": "不用，有护照就够了。"
+    }
+  },
+  "67": {
+    "67": {
+      "question_ru": "Оператор не отвечает.",
+      "answer_ru": "Напишите сюда, мы поможем вам в кратчайшие сроки.",
+      "question_en": "The operator is not answering.",
+      "answer_en": "Write here, we will help you as soon as possible.",
+      "question_zh": "接线员没有接听。",
+      "answer_zh": "写在这里，我们将尽快为您提供帮助。"
+    }
+  },
+  "68": {
+    "68": {
+      "question_ru": "Когда он дойдет до Самарканда?",
+      "answer_ru": "3-6 дней почтой.",
+      "question_en": "When will it reach Samarkand?",
+      "answer_en": "3-6 days by mail.",
+      "question_zh": "什么时候到达撒马尔罕？",
+      "answer_zh": "邮寄 3-6 天。"
+    }
+  },
+  "69": {
+    "69": {
+      "question_ru": "Размер не совпал.",
+      "answer_ru": "Напишите с фото.",
+      "question_en": "The size did not match.",
+      "answer_en": "Write with a photo.",
+      "question_zh": "尺寸不匹配。",
+      "answer_zh": "写一张照片。"
+    }
+  },
+  "70": {
+    "70": {
+      "question_ru": "Сколько времени занимает процесс возврата?",
+      "answer_ru": "От 48 часов до 3 дней.",
+      "question_en": "How long does the refund process take?",
+      "answer_en": "48 hours to 3 days.",
+      "question_zh": "退款流程需要多长时间？",
+      "answer_zh": "48小时到3天。"
+    }
+  },
+  "71": {
+    "71": {
+      "question_ru": "Заказ прибыл на точку, но сообщения нет.",
+      "answer_ru": "Отправьте номер.",
+      "question_en": "The order arrived at the point, but there is no message.",
+      "answer_en": "Send a number.",
+      "question_zh": "订单到了，却没有任何消息。",
+      "answer_zh": "发送一个号码。"
+    }
+  },
+  "72": {
+    "72": {
+      "question_ru": "Сколько времени занимает доставка?",
+      "answer_ru": "Обычно он прибывает в течение 12-15 дней после размещения заказа. В регионах он может быть продлен до 20 дней.",
+      "question_en": "How long does it take to deliver?",
+      "answer_en": "It usually arrives within 12-15 days after you place your order. In regions, it can be extended up to 20 days.",
+      "question_zh": "需要多长时间才能交货？",
+      "answer_zh": "通常在您下订单后 12-15 天内到达。在某些地区，最长可以延长 20 天。"
+    }
+  },
+  "73": {
+    "73": {
+      "question_ru": "Как мне отменить заказ?",
+      "answer_ru": "Отменить заказ можно через профиль или связавшись с оператором до его отправки.",
+      "question_en": "How do I cancel my order?",
+      "answer_en": "You can cancel the order through the profile or by contacting the operator before it is shipped.",
+      "question_zh": "我如何取消订单？",
+      "answer_zh": "您可以通过个人资料或在发货前联系运营商取消订单。"
+    }
+  },
+  "74": {
+    "74": {
+      "question_ru": "Какие способы оплаты доступны?",
+      "answer_ru": "Вы можете оплатить наличными, банковской картой и Click/Payme.",
+      "question_en": "What payment methods are available?",
+      "answer_en": "You can pay by cash, bank card and Click/Payme.",
+      "question_zh": "有哪些付款方式？",
+      "answer_zh": "您可以通过现金、银行卡和Click/Payme支付。"
+    }
+  },
+  "75": {
+    "75": {
+      "question_ru": "Можно ли вернуть товар?",
+      "answer_ru": "Да, возврат возможен в течение 14 дней в хорошем состоянии. Необходим чек и упаковка.",
+      "question_en": "Can the product be returned?",
+      "answer_en": "Yes, returns are possible within 14 days in good condition. Receipt and packaging required.",
+      "question_zh": "产品可以退货吗？",
+      "answer_zh": "是的，如果状况良好，可以在 14 天内退货。需要收据和包装。"
+    }
+  },
+  "76": {
+    "76": {
+      "question_ru": "Товар прибыл поврежденным или неправильным, что мне делать?",
+      "answer_ru": "Напишите оператору с фото/видео в течение 24 часов - заменим или вернем деньги.",
+      "question_en": "The product arrived damaged or wrong, what should I do?",
+      "answer_en": "Write to the operator with a photo/video within 24 hours - we will replace or refund the money.",
+      "question_zh": "产品到达时已损坏或错误，我该怎么办？",
+      "answer_zh": "24 小时内写信给运营商并附上照片/视频 - 我们将更换或退款。"
+    }
+  },
+  "77": {
+    "77": {
+      "question_ru": "Когда позвонит курьер?",
+      "answer_ru": "Текст или звонок будет отправлен за 30-60 минут до доставки.",
+      "question_en": "When will the courier call?",
+      "answer_en": "A text or call will be sent 30-60 minutes before delivery.",
+      "question_zh": "快递员什么时候会打电话来？",
+      "answer_zh": "交货前 30-60 分钟将发送短信或电话。"
+    }
+  },
+  "78": {
+    "78": {
+      "question_ru": "Где находится справочный центр?",
+      "answer_ru": "Подайте заявку через этот чат.",
+      "question_en": "Where is the help center?",
+      "answer_en": "Apply via this chat.",
+      "question_zh": "帮助中心在哪里？",
+      "answer_zh": "通过此聊天申请。"
+    }
+  },
+  "79": {
+    "79": {
+      "question_ru": "Как посмотреть историю старых заказов?",
+      "answer_ru": "В разделе приложения «Мои заказы».",
+      "question_en": "How do I see the history of old orders?",
+      "answer_en": "In the \"My Orders\" section of the application.",
+      "question_zh": "如何查看旧订单的历史记录？",
+      "answer_zh": "在应用程序的“我的订单”部分。"
+    }
+  },
+  "80": {
+    "80": {
+      "question_ru": "Товар прибыл похожий на товар другого покупателя.",
+      "answer_ru": "Отправьте номер DG и фотографии.",
+      "question_en": "Item arrived similar to another customer's.",
+      "answer_en": "Send DG number and pictures.",
+      "question_zh": "物品到达时与另一位顾客的物品相似。",
+      "answer_zh": "发送 DG 编号和图片。"
+    }
+  },
+  "81": {
+    "81": {
+      "question_ru": "Проблема с оплатой по клику.",
+      "answer_ru": "Попробуйте другой метод.",
+      "question_en": "Problem with click payment.",
+      "answer_en": "Try another method.",
+      "question_zh": "点击支付的问题。",
+      "answer_zh": "尝试另一种方法。"
+    }
+  },
+  "82": {
+    "82": {
+      "question_ru": "Где я могу посмотреть оптовые цены?",
+      "answer_ru": "Зайдите в раздел B2B.",
+      "question_en": "Where can I see wholesale prices?",
+      "answer_en": "Go to the B2B section.",
+      "question_zh": "在哪里可以看到批发价格？",
+      "answer_zh": "转到 B2B 部分。"
+    }
+  },
+  "83": {
+    "83": {
+      "question_ru": "Срок доставки в Наманган?",
+      "answer_ru": "3-6 рабочих дней.",
+      "question_en": "Namangan delivery time?",
+      "answer_en": "3-6 working days.",
+      "question_zh": "纳曼干交货时间？",
+      "answer_zh": "3-6个工作日。"
+    }
+  },
+  "84": {
+    "84": {
+      "question_ru": "Что мне делать после возврата денег?",
+      "answer_ru": "Сделайте новый заказ с баланса.",
+      "question_en": "What do I do after the refund?",
+      "answer_en": "Make a new order from the balance.",
+      "question_zh": "退款后我该怎么办？",
+      "answer_zh": "从余额中发出新订单。"
+    }
+  },
+  "85": {
+    "85": {
+      "question_ru": "Приложение работает медленно.",
+      "answer_ru": "Очистите кэш и обновите.",
+      "question_en": "The application is running slowly.",
+      "answer_en": "Clear cache and refresh.",
+      "question_zh": "应用程序运行缓慢。",
+      "answer_zh": "清除缓存并刷新。"
+    }
+  },
+  "86": {
+    "86": {
+      "question_ru": "Спасибо за помощь!",
+      "answer_ru": "Мы рады, что вы обратились к нам!",
+      "question_en": "Thank you for your help!",
+      "answer_en": "We are glad you contacted us!",
+      "question_zh": "感谢您的帮助！",
+      "answer_zh": "我们很高兴您与我们联系！"
+    }
+  },
+  "87": {
+    "87": {
+      "question_ru": "Можно ли увидеть из скольких товаров состоит заказ?",
+      "answer_ru": "Подробно в приложении.",
+      "question_en": "Is it possible to see how many products the order consists of?",
+      "answer_en": "Detailed in the appendix.",
+      "question_zh": "是否可以查看订单包含多少种产品？",
+      "answer_zh": "详细见附录。"
+    }
+  },
+  "88": {
+    "88": {
+      "question_ru": "Как проверить подлинность товара?",
+      "answer_ru": "Через китайскую наклейку.",
+      "question_en": "How do I check if the product is genuine?",
+      "answer_en": "Through the Chinese sticker.",
+      "question_zh": "如何检查产品是否为正品？",
+      "answer_zh": "通过中文贴纸。"
+    }
+  },
+  "89": {
+    "89": {
+      "question_ru": "Я могу сам перейти к делу.",
+      "answer_ru": "Отправьте нам адрес и мы разберемся.",
+      "question_en": "I can go to the point myself.",
+      "answer_en": "Send us the address and we'll figure it out.",
+      "question_zh": "我自己就可以进入正题了。",
+      "answer_zh": "把地址发给我们，我们会帮您解决的。"
+    }
+  },
+  "90": {
+    "90": {
+      "question_ru": "На балансе недостаточно денег.",
+      "answer_ru": "Остальное оплатите с другой карты.",
+      "question_en": "There is not enough money in the balance.",
+      "answer_en": "Pay the rest from another card.",
+      "question_zh": "余额不足。",
+      "answer_zh": "用另一张卡支付剩余费用。"
+    }
+  },
+  "91": {
+    "91": {
+      "question_ru": "Могу ли я повторно активировать свой заказ?",
+      "answer_ru": "Мы проверим у специалиста.",
+      "question_en": "Can I reactivate my order?",
+      "answer_en": "We will check with a specialist.",
+      "question_zh": "我可以重新激活我的订单吗？",
+      "answer_zh": "我们将咨询专家。"
+    }
+  },
+  "92": {
+    "92": {
+      "question_ru": "Я недоволен качеством обслуживания.",
+      "answer_ru": "Напишите проблему подробно.",
+      "question_en": "I am dissatisfied with the quality of service.",
+      "answer_en": "Write the problem in detail.",
+      "question_zh": "我对服务质量不满意。",
+      "answer_zh": "详细写下问题。"
+    }
+  },
+  "93": {
+    "93": {
+      "question_ru": "Заказ застрял за границей.",
+      "answer_ru": "Отправьте номер.",
+      "question_en": "The order is stuck abroad.",
+      "answer_en": "Send a number.",
+      "question_zh": "订单滞留在国外。",
+      "answer_zh": "发送一个号码。"
+    }
+  },
+  "94": {
+    "94": {
+      "question_ru": "Какая скидка в B2B?",
+      "answer_ru": "Обычно 15-25%.",
+      "question_en": "What is the discount in B2B?",
+      "answer_en": "Usually 15-25%.",
+      "question_zh": "B2B有什么折扣？",
+      "answer_zh": "通常为15-25%。"
+    }
+  },
+  "95": {
+    "95": {
+      "question_ru": "Я забыл свой пароль.",
+      "answer_ru": "Воспользуйтесь функцией «Сбросить пароль» в приложении.",
+      "question_en": "I forgot my password.",
+      "answer_en": "Use the \"Reset password\" function in the application.",
+      "question_zh": "我忘记了密码。",
+      "answer_zh": "使用应用程序中的“重置密码”功能。"
+    }
+  },
+  "96": {
+    "96": {
+      "question_ru": "Спасибо за мои вопросы!",
+      "answer_ru": "Мы всегда готовы помочь.",
+      "question_en": "Thanks for my questions!",
+      "answer_en": "We are always ready to help.",
+      "question_zh": "感谢我的提问！",
+      "answer_zh": "我们随时准备提供帮助。"
+    }
+  },
+  "97": {
+    "97": {
+      "question_ru": "Статус заказа «Отправлен».",
+      "answer_ru": "Оно скоро прибудет.",
+      "question_en": "Order status \"Shipped\".",
+      "answer_en": "It will arrive soon.",
+      "question_zh": "订单状态“已发货”。",
+      "answer_zh": "很快就会到达。"
+    }
+  },
+  "98": {
+    "98": {
+      "question_ru": "Продукт отличается от ожидаемого.",
+      "answer_ru": "Подать заявку с картинками.",
+      "question_en": "The product is different than expected.",
+      "answer_en": "Apply with pictures.",
+      "question_zh": "产品与预期不同。",
+      "answer_zh": "配合图片申请。"
+    }
+  },
+  "99": {
+    "99": {
+      "question_ru": "Какой самый быстрый способ доставки?",
+      "answer_ru": "Курьерская служба по Ташкенту.",
+      "question_en": "What is the fastest shipping method?",
+      "answer_en": "Courier service for Tashkent.",
+      "question_zh": "什么是最快的运输方式？",
+      "answer_zh": "塔什干的快递服务。"
+    }
+  },
+  "100": {
+    "100": {
+      "question_ru": "Куда мне написать, если у меня возникнут дополнительные вопросы?",
+      "answer_ru": "Не стесняйтесь писать через этот чат. Наши специалисты всегда готовы помочь!",
+      "question_en": "Where can I write if I have any further questions?",
+      "answer_en": "Feel free to write via this chat. Our specialists are always ready to help!",
+      "question_zh": "如果我还有其他问题，可以写信到哪里？",
+      "answer_zh": "请随意通过此聊天来写信。我们的专家随时准备为您提供帮助！"
+    }
+  },
+  "101": {
+    "101": {
+      "question_ru": "Как думаете, через какое время прибудет заказ?",
+      "answer_ru": "Обычно он прибывает в течение 15-25 дней после подтверждения оплаты. Пожалуйста, пришлите номер заказа для уточнения.",
+      "question_en": "How long do you think the order will arrive?",
+      "answer_en": "It usually arrives within 15-25 days after payment confirmation. Please send order number for clarification.",
+      "question_zh": "您认为订单需要多长时间到达？",
+      "answer_zh": "通常在付款确认后 15-25 天内到达。请发送订单号以供澄清。"
+    }
+  },
+  "102": {
+    "102": {
+      "question_ru": "Заказим еще не ушел, когда он уйдет?",
+      "answer_ru": "Доставка от продавца до склада занимает 3-7 дней. Затем доставка из Китая занимает 12-20 дней.",
+      "question_en": "Zakazim hasn't left yet, when will he leave?",
+      "answer_en": "Delivery from the seller to the warehouse takes 3-7 days. Then it takes 12-20 days to arrive from China.",
+      "question_zh": "扎卡济姆还没走，他什么时候走？",
+      "answer_zh": "从卖家发货到仓库需要 3-7 天。然后从中国需要 12-20 天才能到达。"
+    }
+  },
+  "103": {
+    "103": {
+      "question_ru": "Когда мой заказ прибудет в Ташкент?",
+      "answer_ru": "Обычно он прибывает в Ташкент через 12-18 дней после отправки из Китая.",
+      "question_en": "When will my order arrive in Tashkent?",
+      "answer_en": "It usually arrives in Tashkent in 12-18 days after shipping from China.",
+      "question_zh": "我的订单什么时候能到达塔什干？",
+      "answer_zh": "通常从中国发货后 12-18 天到达塔什干。"
+    }
+  },
+  "104": {
+    "104": {
+      "question_ru": "Сколько времени идет заказ в регион?",
+      "answer_ru": "Он будет доставлен почтой в течение 3-7 рабочих дней после прибытия в Ташкент.",
+      "question_en": "How long does the order take to the region?",
+      "answer_en": "It will be delivered by mail within 3-7 working days after arrival in Tashkent.",
+      "question_zh": "订单到达该地区需要多长时间？",
+      "answer_zh": "抵达塔什干后3-7个工作日内邮寄送达。"
+    }
+  },
+  "105": {
+    "105": {
+      "question_ru": "Мой заказ задерживается, в чем может быть причина?",
+      "answer_ru": "Это часто бывает вызвано китайскими праздниками, погрузкой на границе или задержкой продавца. Отправьте номер.",
+      "question_en": "My order is delayed, what could be the reason?",
+      "answer_en": "It is often caused by Chinese holidays, border loading or seller delay. Send the number.",
+      "question_zh": "我的订单延迟了，可能是什么原因？",
+      "answer_zh": "这通常是由于中国假期、边境装货或卖家延误造成的。发送号码。"
+    }
+  },
+  "106": {
+    "106": {
+      "question_ru": "Где сейчас мой заказ?",
+      "answer_ru": "Отправьте заказ DG или номер отслеживания, я немедленно проверю статус.",
+      "question_en": "Where is my order now?",
+      "answer_en": "Send the order DG or tracking number, I will check the status immediately.",
+      "question_zh": "我的订单现在在哪里？",
+      "answer_zh": "发送订单 DG 或追踪号码，我会立即检查状态。"
+    }
+  },
+  "107": {
+    "107": {
+      "question_ru": "Статус моего заказа не меняется, что мне делать?",
+      "answer_ru": "Это может быть временным явлением. Напишите номер, мы проверим.",
+      "question_en": "My order status does not change, what should I do?",
+      "answer_en": "This may be temporary. Write the number, we will check.",
+      "question_zh": "我的订单状态没有改变，我该怎么办？",
+      "answer_zh": "这可能是暂时的。写下号码，我们会检查。"
+    }
+  },
+  "108": {
+    "108": {
+      "question_ru": "В заказе отображается «Статус неизвестен», это нормально?",
+      "answer_ru": "Иногда это происходит по техническим причинам. Если дадите номер ГД, мы уточним.",
+      "question_en": "The order is showing \"Status Unknown\", is this normal?",
+      "answer_en": "Sometimes it happens for technical reasons. If you give the DG number, we will clarify.",
+      "question_zh": "订单显示“状态未知”，这正常吗？",
+      "answer_zh": "有时它是由于技术原因而发生的。如果您提供 DG 编号，我们会予以澄清。"
+    }
+  },
+  "109": {
+    "109": {
+      "question_ru": "Заказал месяц назад, до сих пор не пришел.",
+      "answer_ru": "Приносим свои извинения. Отправьте нам номера своих заказов, и мы проверим статус и найдем решение.",
+      "question_en": "I ordered a month ago, it still hasn't arrived",
+      "answer_en": "We apologize. Send us your order numbers and we'll check the status and find a solution.",
+      "question_zh": "我一个月前下单了，还没到",
+      "answer_zh": "我们道歉。将您的订单号发送给我们，我们将检查状态并找到解决方案。"
+    }
+  },
+  "110": {
+    "110": {
+      "question_ru": "Кажется, мой закят потерян, как мне его найти?",
+      "answer_ru": "Пришлите номер ДГ, наши специалисты постараются его найти.",
+      "question_en": "My Zakat seems to be lost, how can I find it?",
+      "answer_en": "Send the DG number, our experts will try to find it.",
+      "question_zh": "我的天课似乎丢失了，我怎样才能找到它？",
+      "answer_zh": "发送 DG 号码，我们的专家将尽力查找。"
+    }
+  },
+  "111": {
+    "111": {
+      "question_ru": "Деньги выведены, но заказ не создан.",
+      "answer_ru": "Возможно, деньги были добавлены на ваш баланс. Проверьте баланс.",
+      "question_en": "The money was withdrawn but the order was not created",
+      "answer_en": "The money may have been added to your balance. Check the balance.",
+      "question_zh": "资金已提取但订单未创建",
+      "answer_zh": "这笔钱可能已添加到您的余额中。检查余额。"
+    }
+  },
+  "112": {
+    "112": {
+      "question_ru": "Мне дважды предъявили обвинение, что мне делать?",
+      "answer_ru": "Мы вернем лишнюю сумму на баланс. Отправьте номер вашего заказа.",
+      "question_en": "I was charged twice, what should I do?",
+      "answer_en": "We will return the excess amount to the balance. Submit your order number.",
+      "question_zh": "我被扣了两次钱，我该怎么办？",
+      "answer_zh": "我们会将多余的金额退还至余额中。提交您的订单号。"
+    }
+  },
+  "113": {
+    "113": {
+      "question_ru": "Я заплатил, но еще не подтвердил",
+      "answer_ru": "Иногда это занимает 1-2 часа. Попробуйте обновить баланс.",
+      "question_en": "I paid but not confirmed yet",
+      "answer_en": "Sometimes it takes 1-2 hours. Try updating your balance.",
+      "question_zh": "我已付款但尚未确认",
+      "answer_zh": "有时需要1-2小时。尝试更新您的余额。"
+    }
+  },
+  "114": {
+    "114": {
+      "question_ru": "Оплата картой не проходит",
+      "answer_ru": "Попробуйте другую карту или используйте баланс.",
+      "question_en": "Payment by card is not going through",
+      "answer_en": "Try another card or use the balance.",
+      "question_zh": "刷卡付款未成功",
+      "answer_zh": "尝试另一张卡或使用余额。"
+    }
+  },
+  "115": {
+    "115": {
+      "question_ru": "Деньги вернулись на мой баланс, что мне теперь делать?",
+      "answer_ru": "Деньги на балансе используются автоматически при размещении нового заказа.",
+      "question_en": "The money has returned to my balance, what do I do now?",
+      "answer_en": "The money in the balance is used automatically when you place a new order.",
+      "question_zh": "钱已经回到我的余额了，我现在该怎么办？",
+      "answer_zh": "当您下新订单时，余额中的资金会自动使用。"
+    }
+  },
+  "116": {
+    "116": {
+      "question_ru": "Доставленный товар не соответствует моему заказу",
+      "answer_ru": "Приносим свои извинения. Отправьте номер DG, китайскую наклейку и фото.",
+      "question_en": "The delivered product does not match my order",
+      "answer_en": "We apologize. Send DG number, Chinese sticker and photo.",
+      "question_zh": "交付的产品与我的订单不符",
+      "answer_zh": "我们道歉。发送DG号码、中文贴纸和照片。"
+    }
+  },
+  "117": {
+    "117": {
+      "question_ru": "Товар неисправен, можно ли его заменить?",
+      "answer_ru": "Да, пришлите номер DG с фото и видео, мы быстро решим проблему.",
+      "question_en": "The product is defective, can it be replaced?",
+      "answer_en": "Yes, send DG number with photo and video, we will solve it quickly.",
+      "question_zh": "产品有缺陷，可以更换吗？",
+      "answer_zh": "是的，请发送带有照片和视频的 DG 号码，我们会尽快解决。"
+    }
+  },
+  "118": {
+    "118": {
+      "question_ru": "Цвет другой, что делать?",
+      "answer_ru": "Свяжитесь с нами с фотографиями, и мы рассмотрим замену или возврат средств.",
+      "question_en": "The color is different, what can I do?",
+      "answer_en": "Contact us with pictures and we will consider a replacement or refund.",
+      "question_zh": "颜色不一样，怎么办？",
+      "answer_zh": "请提供图片联系我们，我们将考虑更换或退款。"
+    }
+  },
+  "119": {
+    "119": {
+      "question_ru": "Размер пришел маленький",
+      "answer_ru": "Пришлите номер ДГ с фото, найдем решение.",
+      "question_en": "The size came small",
+      "answer_en": "Send the DG number with a photo, we will find a solution.",
+      "question_zh": "尺寸变小了",
+      "answer_zh": "发送 DG 号码并附上照片，我们会找到解决方案。"
+    }
+  },
+  "120": {
+    "120": {
+      "question_ru": "Качество товара очень низкое",
+      "answer_ru": "Подробно напишите проблему и прикрепите фотографии.",
+      "question_en": "The quality of the product is very low",
+      "answer_en": "Write the problem in detail and attach pictures.",
+      "question_zh": "产品质量很低",
+      "answer_zh": "详细写出问题并附上图片。"
+    }
+  },
+  "121": {
+    "121": {
+      "question_ru": "Можно ли вернуть товар и получить деньги обратно?",
+      "answer_ru": "В случае бракованного или неправильного товара – да. Нужны фотографии и номер ГД.",
+      "question_en": "Can you return the item and get a refund?",
+      "answer_en": "In case of defective or incorrect goods - yes. Need pictures and DG number.",
+      "question_zh": "您可以退回商品并获得退款吗？",
+      "answer_zh": "如果货物有缺陷或不正确 - 是的。需要图片和 DG 编号。"
+    }
+  },
+  "122": {
+    "122": {
+      "question_ru": "Сколько времени нужно, чтобы вернуться?",
+      "answer_ru": "Обычно рекомендуется подать заявку в течение 14 дней с момента родов.",
+      "question_en": "How long does it take to return?",
+      "answer_en": "It is generally recommended to apply within 14 days of delivery.",
+      "question_zh": "需要多长时间才能返回？",
+      "answer_zh": "一般建议在交货后14天内申请。"
+    }
+  },
+  "123": {
+    "123": {
+      "question_ru": "Сколько времени занимает возврат средств?",
+      "answer_ru": "Изображения обычно зачисляются в течение 48 часов после подтверждения.",
+      "question_en": "How long does it take for a refund?",
+      "answer_en": "Images are usually credited within 48 hours after confirmation.",
+      "question_zh": "退款需要多长时间？",
+      "answer_zh": "图片通常会在确认后 48 小时内存入。"
+    }
+  },
+  "124": {
+    "124": {
+      "question_ru": "Будет ли цена дешевле, если я куплю оптом?",
+      "answer_ru": "Да, в отделе B2B цены обычно на 20% дешевле.",
+      "question_en": "Will the price be cheaper if I buy wholesale?",
+      "answer_en": "Yes, prices are usually up to 20% cheaper in the B2B department.",
+      "question_zh": "如果批发的话价格会便宜一些吗？",
+      "answer_zh": "是的，B2B 部门的价格通常会便宜 20%。"
+    }
+  },
+  "125": {
+    "125": {
+      "question_ru": "Нужен ли документ в B2B?",
+      "answer_ru": "Нет, паспортных данных достаточно.",
+      "question_en": "Is a document required in B2B?",
+      "answer_en": "No, passport information is sufficient.",
+      "question_zh": "B2B 需要文件吗？",
+      "answer_zh": "不，护照信息就足够了。"
+    }
+  },
+  "126": {
+    "126": {
+      "question_ru": "Есть ли бесплатная доставка до 7 кг при B2B?",
+      "answer_ru": "Нет, в B2B стоимость доставки указана за кг.",
+      "question_en": "Is there free delivery up to 7kg on B2B?",
+      "answer_en": "No, B2B has a shipping charge per kg.",
+      "question_zh": "B2B 7 公斤以内可以免费送货吗？",
+      "answer_zh": "不可以，B2B 按公斤收取运费。"
+    }
+  },
+  "127": {
+    "127": {
+      "question_ru": "Что делать, если приложение не работает?",
+      "answer_ru": "Обновите приложение, очистите кеш. Если проблема не исчезнет, ​​пришлите скриншот.",
+      "question_en": "What should I do if the application fails?",
+      "answer_en": "Update the app, clear the cache. If the problem persists, send a screenshot.",
+      "question_zh": "如果申请失败怎么办？",
+      "answer_zh": "更新应用程序，清除缓存。如果问题仍然存在，请发送屏幕截图。"
+    }
+  },
+  "128": {
+    "128": {
+      "question_ru": "СМС не приходит, как узнать статус заказа?",
+      "answer_ru": "Отправьте свой номер DG через этот чат, и мы проверим.",
+      "question_en": "SMS is not coming, how do I know the order status?",
+      "answer_en": "Send your DG number through this chat and we will check.",
+      "question_zh": "短信没有来，如何知道订单状态？",
+      "answer_zh": "通过此聊天发送您的 DG 号码，我们将进行检查。"
+    }
+  },
+  "129": {
+    "129": {
+      "question_ru": "Денег на балансе не видно",
+      "answer_ru": "Перезапустите или обновите приложение.",
+      "question_en": "The money in the balance is not visible",
+      "answer_en": "Restart or update the app.",
+      "question_zh": "余额里的钱不可见",
+      "answer_zh": "重新启动或更新应用程序。"
+    }
+  },
+  "130": {
+    "130": {
+      "question_ru": "Оператор не отвечает, можете помочь?",
+      "answer_ru": "Пишите сюда, помогу или вызову специалиста.",
+      "question_en": "The operator is not answering, can you help?",
+      "answer_en": "Write here, I will help or call a specialist.",
+      "question_zh": "接线员没有接听，您能帮忙吗？",
+      "answer_zh": "写在这里，我会提供帮助或致电专家。"
+    }
+  },
+  "131": {
+    "131": {
+      "question_ru": "Требуется информация о доставке",
+      "answer_ru": "Какой у вас вопрос? Напишите подробно.",
+      "question_en": "Delivery details required",
+      "answer_en": "What question do you have? Write in detail.",
+      "question_zh": "需要交付详细信息",
+      "answer_zh": "你有什么问题？写详细一点。"
+    }
+  },
+  "132": {
+    "132": {
+      "question_ru": "Можете ли вы проконсультировать по товару?",
+      "answer_ru": "Какая консультация по продукту вам нужна? Помогу, если пришлете фото.",
+      "question_en": "Can you advise on the product?",
+      "answer_en": "What product advice do you need? I will help if you send a picture.",
+      "question_zh": "您能为产品提供建议吗？",
+      "answer_zh": "您需要什么产品建议？如果您发送图片我会帮忙。"
+    }
+  },
+  "133": {
+    "133": {
+      "question_ru": "Где у вас больше всего проблем с благотворительностью?",
+      "answer_ru": "Часто возникают претензии к срокам доставки и качеству некоторых товаров.",
+      "question_en": "Where do you have the most trouble in charity?",
+      "answer_en": "Often there are complaints about delivery times and the quality of some goods.",
+      "question_zh": "您在慈善事业上遇到的最大困难在哪里？",
+      "answer_zh": "经常有人抱怨交货时间和某些商品的质量。"
+    }
+  },
+  "134": {
+    "134": {
+      "question_ru": "У меня есть предложение, куда мне написать?",
+      "answer_ru": "Пишите сюда, доставим руководству.",
+      "question_en": "I have an offer, where should I write?",
+      "answer_en": "Write here, we will deliver to the management.",
+      "question_zh": "我有一份offer，我应该写在哪里？",
+      "answer_zh": "写在这里，我们将交付给管理层。"
+    }
+  },
+  "135": {
+    "135": {
+      "question_ru": "Заказ прибыл на точку, но я не могу его получить.",
+      "answer_ru": "Отправьте адрес точки и номер телефона, мы поможем.",
+      "question_en": "The order arrived at the point, but I can't get it",
+      "answer_en": "Send the point address and phone number, we will help.",
+      "question_zh": "订单已到，但我拿不到",
+      "answer_zh": "发送点地址和电话号码，我们会提供帮助。"
+    }
+  },
+  "136": {
+    "136": {
+      "question_ru": "Могу ли я изменить свой заказ на другой адрес?",
+      "answer_ru": "Можно изменить, если еще не отправлено, пришлите номер.",
+      "question_en": "Can I change my order to another address?",
+      "answer_en": "Can be changed if not sent yet, send the number.",
+      "question_zh": "我可以将订单更改为其他地址吗？",
+      "answer_zh": "如果还没有发送可以更改，请发送号码。"
+    }
+  },
+  "137": {
+    "137": {
+      "question_ru": "Заказал 2 одинаковых, один пришел, другой нет.",
+      "answer_ru": "Введите недостающий номер заказа.",
+      "question_en": "I ordered 2 of the same, one arrived and one didn't",
+      "answer_en": "Enter the missing order number.",
+      "question_zh": "我订了 2 个一样的，一个到了，一个没到",
+      "answer_zh": "输入缺少的订单号。"
+    }
+  },
+  "138": {
+    "138": {
+      "question_ru": "Где я могу найти квитанцию ​​об оплате?",
+      "answer_ru": "Сохраняется внутри заказа в приложении или в истории платежей.",
+      "question_en": "Where can I find a payment receipt?",
+      "answer_en": "Stored within the order in the application or in the payment history.",
+      "question_zh": "我在哪里可以找到付款收据？",
+      "answer_zh": "存储在应用程序中的订单或付款历史记录中。"
+    }
+  },
+  "139": {
+    "139": {
+      "question_ru": "Что сделать, чтобы обменять товар?",
+      "answer_ru": "Выберите новый продукт и запишите старый номер DG.",
+      "question_en": "What to do to exchange the goods?",
+      "answer_en": "Select a new product and write down the old DG number.",
+      "question_zh": "需要办理什么手续才能换货？",
+      "answer_zh": "选择新产品并记下旧的 DG 编号。"
+    }
+  },
+  "140": {
+    "140": {
+      "question_ru": "Как долго мой заказ находится в пути, но статус не меняется?",
+      "answer_ru": "Отправьте номер заказа DG, наши специалисты проверят у продавца.",
+      "question_en": "How long has my order been on the way but the status is not changing?",
+      "answer_en": "Send the order DG number, our specialists will check with the seller.",
+      "question_zh": "我的订单已经运送了多长时间但状态没有改变？",
+      "answer_zh": "发送订单 DG 编号，我们的专家将与卖家核实。"
+    }
+  },
+  "141": {
+    "141": {
+      "question_ru": "Что за компания Сахи?",
+      "answer_ru": "Sahiy — платформа для онлайн-заказа миллионов товаров из Китая. Обычно он прибывает в течение 12-15 дней после размещения заказа; в регионах его можно продлить до 20 дней.",
+      "question_en": "What kind of company is Sahi?",
+      "answer_en": "Sahiy is a platform for online ordering of millions of goods from China. It usually arrives within 12-15 days after you place your order; in the regions it can be extended up to 20 days.",
+      "question_zh": "萨希是一家什么样的公司？",
+      "answer_zh": "Sahiy是一个在线订购数百万中国商品的平台。通常在您下订单后 12-15 天内到达；在这些地区，最长可延长 20 天。"
+    }
+  },
+  "189": {
+    "189": {
+      "question_ru": "Что такое щедрый?",
+      "answer_ru": "Sahiy — платформа для онлайн-заказа миллионов товаров из Китая. Обычно он прибывает в течение 12-15 дней после размещения заказа; в регионах его можно продлить до 20 дней.",
+      "question_en": "What is generous?",
+      "answer_en": "Sahiy is a platform for online ordering of millions of goods from China. It usually arrives within 12-15 days after you place your order; in the regions it can be extended up to 20 days.",
+      "question_zh": "什么是慷慨？",
+      "answer_zh": "Sahiy是一个在线订购数百万中国商品的平台。通常在您下订单后 12-15 天内到达；在这些地区，最长可延长 20 天。"
+    }
+  },
+  "142": {
+    "142": {
+      "question_ru": "Можно ли вернуть заказ, если он пришел сломанный?",
+      "answer_ru": "Да. Если товар придет сломанный или бракованный, пришлите фото - обменяем или вернем деньги. Возможен возврат в исходное состояние в течение 14 дней.",
+      "question_en": "Can you return an order if it arrives broken?",
+      "answer_en": "Yes. If the product arrives broken or defective, send a photo - we will exchange or refund. Can be returned in original condition within 14 days.",
+      "question_zh": "如果订单到达时破损，您可以退货吗？",
+      "answer_zh": "是的。如果产品到达时破损或有缺陷，请发送照片 - 我们将换货或退款。可在 14 天内按原状退回。"
+    }
+  },
+  "143": {
+    "143": {
+      "question_ru": "Привет!",
+      "answer_ru": "Привет!",
+      "question_en": "Greetings!",
+      "answer_en": "Greetings!",
+      "question_zh": "问候！",
+      "answer_zh": "问候！"
+    }
+  },
+  "144": {
+    "144": {
+      "question_ru": "Китайский продавец",
+      "answer_ru": "Написали китайским специалистам, в ближайшее время дадут положительное решение, отправят в течение 2 дней.",
+      "question_en": "Chinese seller",
+      "answer_en": "We wrote to the Chinese experts, they will give a positive solution soon, and they will send it within 2 days.",
+      "question_zh": "中国卖家",
+      "answer_zh": "我们写信给中国专家，他们很快就会给出肯定的解决方案，并且会在2天内发送。"
+    }
+  },
+  "145": {
+    "145": {
+      "question_ru": "Заказ принят!",
+      "answer_ru": "Заказ принят на доставку курьером!",
+      "question_en": "Order taken!",
+      "answer_en": "The order was taken for delivery by courier!",
+      "question_zh": "已下单！",
+      "answer_zh": "订单已通过快递取货！"
+    }
+  },
+  "146": {
+    "146": {
+      "question_ru": "помощь",
+      "answer_ru": "Уважаемый покупатель, чем я могу Вам помочь, напишите мне подробную информацию, если возможно, напишите номер заказа.",
+      "question_en": "help",
+      "answer_en": "Dear customer, how can I help you, write me detailed information, if possible, write the order number",
+      "question_zh": "帮助",
+      "answer_zh": "亲爱的顾客，我能为您做些什么，请写详细信息，如果可以的话，请写订单号"
+    }
+  },
+  "147": {
+    "147": {
+      "question_ru": "Мы проверим",
+      "answer_ru": "Хорошо, давайте проверим. Введите номер вашего заказа.",
+      "question_en": "We will check",
+      "answer_en": "Okay, let's check. Enter your order number.",
+      "question_zh": "我们会检查",
+      "answer_zh": "好的，我们检查一下。输入您的订单号。"
+    }
+  },
+  "148": {
+    "148": {
+      "question_ru": "Нужна помощь?",
+      "answer_ru": "Какая помощь вам нужна? Напишите проблему подробно.",
+      "question_en": "Need help?",
+      "answer_en": "What kind of help do you need? Write the problem in detail.",
+      "question_zh": "需要帮助吗？",
+      "answer_zh": "您需要什么样的帮助？详细写下问题。"
+    }
+  },
+  "149": {
+    "149": {
+      "question_ru": "Заказ отменен",
+      "answer_ru": "Ваш заказ был отменен, поскольку у продавца нет в наличии. Возврат будет произведен в течение 48 часов.",
+      "question_en": "Order cancelled",
+      "answer_en": "Your order has been canceled because the seller is out of stock. Refund will be made within 48 hours.",
+      "question_zh": "订单已取消",
+      "answer_zh": "由于卖家缺货，您的订单已被取消。退款将在 48 小时内进行。"
+    }
+  },
+  "150": {
+    "150": {
+      "question_ru": "Официальный сайт",
+      "answer_ru": "Да, мы официальный сайт и имеем филиалы по всему Узбекистану.",
+      "question_en": "Official site",
+      "answer_en": "Yes, we are an official site and have branches all over Uzbekistan.",
+      "question_zh": "官方网站",
+      "answer_zh": "是的，我们是官方网站，在乌兹别克斯坦各地设有分支机构。"
+    }
+  },
+  "151": {
+    "151": {
+      "question_ru": "Оптовый покупатель",
+      "answer_ru": "Зарегистрируйтесь в программе Sahiy → Профиль → Стать оптовиком.",
+      "question_en": "Wholesale buyer",
+      "answer_en": "Sign up from Sahiy Program → Profile → Become a Wholesaler.",
+      "question_zh": "批发买家",
+      "answer_zh": "从 Sahiy 计划 → 个人资料 → 成为批发商注册。"
+    }
+  },
+  "152": {
+    "152": {
+      "question_ru": "Изменить язык",
+      "answer_ru": "Перейдите в Sahii → Профиль → Измените язык в разделе «Язык/Валюта».",
+      "question_en": "Change the language",
+      "answer_en": "Go to Sahii → Profile → Change the language from the Language/Currency section.",
+      "question_zh": "更改语言",
+      "answer_zh": "转至 Sahii → 配置文件 → 从语言/货币部分更改语言。"
+    }
+  },
+  "153": {
+    "153": {
+      "question_ru": "Срок поставки",
+      "answer_ru": "Товар прибудет в течение 12-15 дней после отправки.",
+      "question_en": "Delivery time",
+      "answer_en": "The product will arrive within 12-15 days after shipping.",
+      "question_zh": "交货时间",
+      "answer_zh": "产品将在发货后 12-15 天内到达。"
+    }
+  },
+  "154": {
+    "154": {
+      "question_ru": "Бесплатная доставка",
+      "answer_ru": "Доставка бесплатна при заказе через обновленное приложение Sahiy.",
+      "question_en": "Free delivery",
+      "answer_en": "Delivery is free when you order from the updated Sahiy app.",
+      "question_zh": "免费送货",
+      "answer_zh": "当您通过更新后的 Sahiy 应用程序订购时，送货是免费的。"
+    }
+  },
+  "155": {
+    "155": {
+      "question_ru": "Мы собираем информацию",
+      "answer_ru": "Мы ответим вам, как только соберем информацию. Оставьте номер вашего заказа.",
+      "question_en": "We collect information",
+      "answer_en": "We will write back to you as soon as we collect the information. Leave your order number.",
+      "question_zh": "我们收集信息",
+      "answer_zh": "我们收集信息后会立即给您回信。留下您的订单号。"
+    }
+  },
+  "156": {
+    "156": {
+      "question_ru": "Товар прибыл",
+      "answer_ru": "Товар прибыл по нашему адресу. Вы можете забрать сами или заказать доставку.",
+      "question_en": "The product has arrived",
+      "answer_en": "The product arrived at our address. You can pick up yourself or order delivery.",
+      "question_zh": "产品已到货",
+      "answer_zh": "产品到达我们的地址。您可以自行取货或订购送货服务。"
+    }
+  },
+  "157": {
+    "157": {
+      "question_ru": "Операторы на связи",
+      "answer_ru": "Наши операторы свяжутся с вами в ближайшее время.",
+      "question_en": "Operators are connected",
+      "answer_en": "Our operators will contact you shortly.",
+      "question_zh": "运营商已连接",
+      "answer_zh": "我们的接线员将很快与您联系。"
+    }
+  },
+  "158": {
+    "158": {
+      "question_ru": "Деньги будут возвращены",
+      "answer_ru": "Оплаченные деньги вернутся на ваш счет в течение 48 часов.",
+      "question_en": "Money will be refunded",
+      "answer_en": "The paid money will be returned to your account within 48 hours.",
+      "question_zh": "钱将被退还",
+      "answer_zh": "支付的款项将在48小时内退回到您的账户。"
+    }
+  },
+  "159": {
+    "159": {
+      "question_ru": "Нет покупки без оплаты",
+      "answer_ru": "К сожалению, бесплатные покупки в настоящее время недоступны.",
+      "question_en": "No purchase without payment",
+      "answer_en": "Unfortunately, free shopping is not available at this time.",
+      "question_zh": "没有付款就不能购买",
+      "answer_zh": "不幸的是，目前不提供免费购物。"
+    }
+  },
+  "160": {
+    "160": {
+      "question_ru": "Оплата с баланса",
+      "answer_ru": "Остальные заказы вы можете оплатить со своего баланса.",
+      "question_en": "Payment from the balance",
+      "answer_en": "You can pay for other orders from your balance.",
+      "question_zh": "从余额中付款",
+      "answer_zh": "您可以用您的余额支付其他订单。"
+    }
+  },
+  "161": {
+    "161": {
+      "question_ru": "Размещение продукта",
+      "answer_ru": "Здравствуйте, чтобы разместить товар в нашем приложении Sahiy Seller, загрузите это приложение из Play Market и App Store или зарегистрируйтесь, используя опцию нашего компьютера, выполнив поиск по запросу «продавец Sahiy Uz». \nдля регистрации вы вводите номер телефона и пароль, которые вы легко запомните, а после регистрации нажимаете кнопку создания магазина через раздел магазина сверху \nЗдесь вы можете ввести название вашего магазина, загрузить фото и написать описание магазина (качественные, дешевые, лучшие, ужасные и грубые описания не включены), а также вы можете дать описание на русском языке внизу. \nпосле этого вам будет предложено добавить фотографию для магазина, вам нужно будет загрузить фотографию из галереи или с помощью камеры на название вашего магазина, специфичное для имеющихся в нем товаров (запрещено загружать другие логотипы, неуместные фотографии, запрещенные типы фотографий, некачественные фотографии на фото магазина) \nпосле этого вам будет предложено указать адрес магазина, вам нужно будет указать местоположение с помощью карт \nи подтвердив, что ваш магазин будет успешно создан",
+      "question_en": "Product placement",
+      "answer_en": "Hello, in order to place a product in our Sahiy Seller application, download this application from the Play Market and App Store or register using our computer option by searching for 'seller Sahiy Uz'. \nto register, you enter a phone number and a password that you can easily remember, and after registration, click the button to create a store through the store section from above \nIn that place, you can enter a name for your store, upload a photo, and write a description about the store (quality, cheap, best, terrible, and rude descriptions are not included), and you can also give a description in Russian at the bottom. \nafter that, you will be asked to add a photo for the store, you will need to upload a photo from the gallery or using the camera to the name of your store, which is specific to the products available in it (it is forbidden to upload other logos, inappropriate photos, prohibited types of photos, low-quality photos in the store photo) \nafter that you will be asked to specify the address of the store, you will need to specify the location using maps \nand by confirming your store will be created successfully",
+      "question_zh": "植入式广告",
+      "answer_zh": "您好，要将产品放入我们的 Sahiy Seller 应用程序中，请从 Play Market 和 App Store 下载此应用程序，或通过搜索“卖家 Sahiy Uz”使用我们的计算机选项进行注册。 \n注册时，您输入一个容易记住的电话号码和密码，注册后，通过上面的商店部分单击按钮创建商店 \n在那里，您可以输入商店名称，上传照片，并编写有关商店的描述（不包括质量、便宜、最好、糟糕和粗鲁的描述），您还可以在底部用俄语提供描述。 \n之后，您将被要求添加商店照片，您需要从图库或使用相机上传一张照片到您商店的名称，该照片特定于商店中提供的产品（商店照片中禁止上传其他标志、不适当的照片、禁止类型的照片、低质量的照片） \n之后您将被要求指定商店的地址，您将需要使用地图指定位置 \n并确认您的商店将成功创建"
+    }
+  },
+  "162": {
+    "162": {
+      "question_ru": "Статус заказа",
+      "answer_ru": "Отслеживайте свои заказы в Профиле → Мои заказы.",
+      "question_en": "Order status",
+      "answer_en": "Track your orders from Profile → My Orders.",
+      "question_zh": "订单状态",
+      "answer_zh": "从“个人资料”→“我的订单”跟踪您的订单。"
+    }
+  },
+  "163": {
+    "163": {
+      "question_ru": "как мне открыть",
+      "answer_ru": "для этого вы можете скачать приложение Sahiy Seller с Play Market или магазина приложений или найти его на своем компьютере и использовать на своем компьютере. После открытия приложения вы можете изменить язык через раздел настроек после открытия приложения, после чего вы легко сможете приступить к созданию магазина. Если хотите, мы попросим вас сфотографировать название магазина и попросим вас исправить тарифы при открытии магазина. То есть вы можете записывать товары в магазине от руки, не нажимая на искусственный интеллект. ты можешь написать",
+      "question_en": "how do i open",
+      "answer_en": "for this, you can download Sahiy Seller application from play market or app store or search for it on your computer and use it on your computer. After opening the application, you can change the language through the settings section after opening the application, then you can easily start creating a store. If you want, we will ask you to make a picture of the shop name, and we would like to ask you to correct the tariffs when opening the shop. That is, you can write down the products in the shop by hand without pressing the artificial intelligence. you can write",
+      "question_zh": "我怎么打开",
+      "answer_zh": "为此，您可以从游戏市场或应用商店下载 Sahiy Seller 应用程序，或在计算机上搜索并在计算机上使用它。打开应用程序后，您可以通过打开应用程序后的设置部分更改语言，然后您就可以轻松开始创建商店。如果您愿意，我们会要求您制作店名的图片，并请您在开店时更正关税。也就是你可以用手写下店里的商品，而不用按人工智能。你可以写"
+    }
+  },
+  "164": {
+    "164": {
+      "question_ru": "привет",
+      "answer_ru": "Здравствуйте, уважаемый клиент, ваша проблема решена?",
+      "question_en": "hello",
+      "answer_en": "Hello, dear customer, has your problem been solved?",
+      "question_zh": "你好",
+      "answer_zh": "您好，尊敬的客户，您的问题解决了吗？"
+    }
+  },
+  "165": {
+    "165": {
+      "question_ru": "Для справки",
+      "answer_ru": "500441360",
+      "question_en": "For reference",
+      "answer_en": "500441360",
+      "question_zh": "供参考",
+      "answer_zh": "500441360"
+    }
+  },
+  "166": {
+    "166": {
+      "question_ru": "Когда оно придет?",
+      "answer_ru": "Товар прибудет в течение 13-15 дней с момента вашего заказа, а когда он прибудет, вы получите смс-уведомление на свой номер телефона.",
+      "question_en": "When will it come?",
+      "answer_en": "The products will arrive within 13-15 days from the date of your order, and when it arrives, you will receive an SMS notification to your phone number.",
+      "question_zh": "什么时候会来？",
+      "answer_zh": "产品将在您订购之日起 13-15 天内到达，到达后，您的手机号码将收到一条短信通知。"
+    }
+  },
+  "167": {
+    "167": {
+      "question_ru": "Общая информация",
+      "answer_ru": "Товары прибудут в течение 13-15 дней с момента вашего заказа, а когда они прибудут, вы получите СМС-уведомление на свой номер телефона. 773229501, 773229501 для справки. Кроме того, если ваш товар сломан или находится в плохом состоянии по прибытии, пришлите нам фотографию и китайскую наклейку. Если ваши продукты не прибудут, по этой причине, если вы оставите тот же номер DG или длинный порядковый номер того же продукта, мы рассмотрим тот же продукт! Если вы получите SMS-сообщение о том, что оно получено, это означает, что ваш товар будет доставлен всем клиентам в городе Ташкенте в течение 2 дней с момента доставки. если он в регионе, то надо будет забрать его с точки. Для заказа вам нужно будет выбрать в приложении незапрещенные товары и внести предоплату.",
+      "question_en": "General information",
+      "answer_en": "The products will arrive within 13-15 days from the date of your order, and when they arrive, you will receive an SMS notification to your phone number. 773229501, 773229501 for reference. Also, if your product is broken or in poor condition when it arrives, please send us a picture and a Chinese sticker. if your products do not arrive, for this reason, if you leave the same product's DG number or long sequence number, we will look at the same product! If you receive an SMS message saying that it has been received, it means that your product will be delivered to all customers in Tashkent city within 2 days of delivery. if it is in the region, it will be necessary to pick it up from the point. For the order, you will need to select non-prohibited products from the application and pay in advance",
+      "question_zh": "一般信息",
+      "answer_zh": "产品将在您订购之日起 13-15 天内到达，当产品到达时，您的电话号码将收到一条短信通知。 773229501、773229501供参考。另外，如果您的产品在到达时损坏或状况不佳，请向我们发送图片和中文贴纸。如果您的产品没有到达，因此，如果您留下相同产品的DG号码或长序列号，我们将查看相同的产品！如果您收到短信说已收到，则表示您的产品将在发货后2天内送达塔什干市内所有客户手中。如果在该地区，则需要从该点取货。对于订单，您需要从应用程序中选择非禁用产品并提前付款"
+    }
+  },
+  "168": {
+    "168": {
+      "question_ru": "Общая информация о продавце",
+      "answer_ru": "Sahiy Seller — это платформа для продавцов, где вы можете зарегистрировать свой магазин и продавать свою продукцию в локальном разделе приложения Sahiy Market. \n\nЧерез Sahiy Market пользователи смогут заказывать товары из Китая по низким ценам, а продавцы смогут продавать эту продукцию оптом и продавать ее на местном рынке. Когда платформа заработает в полную силу, у вас появится возможность стать одним из первых продавцов на местном рынке Сахи. \n\nВ настоящее время платформа находится в тестовом режиме, за это время вы можете ознакомиться с приложением и изучить все его возможности.",
+      "question_en": "Seller general information",
+      "answer_en": "Sahiy Seller is a platform for sellers where you can register your store and sell your products in the local section of the Sahiy Market app. \n\nThrough Sahiy Market, users can order products from China at low prices, and sellers will be able to wholesale these products and sell them in the local market. When the platform is fully operational, you will have the opportunity to be one of the first sellers in the Sahi local market. \n\nCurrently, the platform is in test mode, during which time you can familiarize yourself with the application and explore all its possibilities.",
+      "question_zh": "卖家一般信息",
+      "answer_zh": "Sahiy Seller 是一个供卖家使用的平台，您可以在其中注册您的商店并在 Sahiy Market 应用程序的本地部分销售您的产品。 \n\n通过Sahiy Market，用户可以低价从中国订购产品，卖家将能够批发这些产品并在当地市场销售。当平台全面运营后，您将有机会成为萨希当地市场的首批卖家之一。 \n\n目前，该平台处于测试模式，在此期间您可以熟悉该应用程序并探索其所有可能性。"
+    }
+  },
+  "169": {
+    "169": {
+      "question_ru": "Отправлено специалисту",
+      "answer_ru": "Я отправил его специалисту. Чтобы узнать статус вашего заказа, дождитесь ответа наших операторов.",
+      "question_en": "Sent to a specialist",
+      "answer_en": "I have sent it to a specialist. To find out the status of your order, wait for a response from our operators",
+      "question_zh": "发送给专家",
+      "answer_zh": "我已将其发送给专家。要了解您的订单状态，请等待我们运营商的回复"
+    }
+  },
+  "170": {
+    "170": {
+      "question_ru": "время прибытия заказа",
+      "answer_ru": "Привет. Уважаемый покупатель, заказы будут доставлены в течение 15 дней с момента отправки.",
+      "question_en": "order arrival time",
+      "answer_en": "Hello. Dear customer, orders will arrive in 15 days from the time of dispatch",
+      "question_zh": "订单到达时间",
+      "answer_zh": "你好。亲爱的顾客，订单将于发货后15天内到达"
+    }
+  },
+  "171": {
+    "171": {
+      "question_ru": "Приносим извинения за неудобства",
+      "answer_ru": "Привет. Уважаемый клиент, приносим извинения за неудобства и задержку. Ответственный сотрудник был уведомлен о проблеме с вашим заказом. Даст Бог, ваша проблема скоро решится.",
+      "question_en": "Sorry for the inconvenience",
+      "answer_en": "Hello. Dear customer, we apologize for the inconvenience and delay. A responsible employee has been notified of the problem with your order. God willing, your problem will be solved soon",
+      "question_zh": "带来不便敬请谅解",
+      "answer_zh": "你好。尊敬的顾客，对于给您带来的不便和延误，我们深表歉意。已将您订单的问题通知负责的员工。上帝保佑，你的问题很快就会得到解决"
+    }
+  },
+  "172": {
+    "172": {
+      "question_ru": "давайте проверим 2",
+      "answer_ru": "Привет. Мы проверяем статус вашего заказа. Мы уточним и сообщим вам в ближайшее время. Извините за задержки.",
+      "question_en": "let's check 2",
+      "answer_en": "Hello. We are checking the status of your order. We will clarify and inform you soon. Sorry for the delays.",
+      "question_zh": "我们来检查一下 2",
+      "answer_zh": "你好。我们正在检查您的订单状态。我们会尽快澄清并通知您。抱歉造成延误。"
+    }
+  },
+  "173": {
+    "173": {
+      "question_ru": "О оптовой продаже2",
+      "answer_ru": "Оптовая торговля ориентирована в основном на бизнесменов. В этом случае вы купите продукцию в Китае по оригинальной цене, без наценки с нашей стороны. но каждый продукт будет иметь службу доставки. ДЛЯ ПРИМЕРА ПРЕДСТАВЬТЕ, СЕЙЧАС я могу продать семичку из Ташкента за 5000 сум. Я отвезу его в долину и продам. К цене семички от себя добавлю еще две тысячи сумов + еще тысячу сумов добавлю в качестве платы за дорогу за привоз из Ташкента в долину = цена семички составит 8 тысяч. Это сделка B2C. А в В2В я к семичке добавляю только тысячу сумов.",
+      "question_en": "About Wholesale2",
+      "answer_en": "Wholesale trade is mainly for businessmen. In this case, you will buy the products at the original price in China, with no extra charge from us. but each product will have a shipping service. FOR EXAMPLE, IMAGINE NOW I can sell semichka from Tashkent for 5,000 soums. I will take it to the valley and sell it. I will add another two thousand soums to the price of the semichka from me + I will add another thousand soums as the road fee for bringing it from Tashkent to the valley = the price of the semichka will be 8 thousand. This is a B2C trade. And in B2B, I only add a thousand soums to the semichka.",
+      "question_zh": "关于批发2",
+      "answer_zh": "批发贸易主要针对商人。在这种情况下，您将在中国以原价购买产品，我们不会收取额外费用。但每个产品都会有送货服务。例如，想象一下现在我可以以 5,000 苏姆的价格出售塔什干的 semichka。我会把它带到山谷里去卖掉。我将在我的 Semichka 价格上再添加 2000 苏姆 + 我将再添加 1000 苏姆作为将其从塔什干运至山谷的路费 = Semichka 的价格将为 8000。这是B2C贸易。在 B2B 中，我只在 semichka 上添加 1000 个苏姆。"
+    }
+  },
+  "174": {
+    "174": {
+      "question_ru": "запрос номера",
+      "answer_ru": "Привет. Уважаемый покупатель, наши курьеры не смогли связаться с Вами по телефону для доставки заказа. Номер, который вы оставили в заявке в качестве контактного, не получен. Пожалуйста, запишите номер, который в данный момент активен, чтобы мы могли связаться с вами.",
+      "question_en": "number request",
+      "answer_en": "Hello. Dear customer, our couriers could not contact you by phone to deliver your order. The number you left in the application as a contact number was not received. Please write down a number that is currently active so that we can contact you.",
+      "question_zh": "号码请求",
+      "answer_zh": "你好。尊敬的顾客，我们的快递员无法通过电话联系您来交付您的订单。未收到您在申请表中留下的作为联系电话的号码。请写下当前有效的号码，以便我们与您联系。"
+    }
+  },
+  "175": {
+    "175": {
+      "question_ru": "Как я могу зарегистрироваться?",
+      "answer_ru": "Для регистрации нажмите кнопку «Войти/Зарегистрироваться» на главной странице. Введите свой номер телефона и введите код подтверждения, полученный по SMS. Затем заполните свою личную информацию.",
+      "question_en": "How can I register?",
+      "answer_en": "To register, click the \"Login/Register\" button on the main page. Enter your phone number and enter the verification code received via SMS. Then fill in your personal information.",
+      "question_zh": "我怎样才能注册？",
+      "answer_zh": "要注册，请单击主页上的“登录/注册”按钮。输入您的电话号码并输入通过短信收到的验证码。然后填写您的个​​人信息。"
+    }
+  },
+  "176": {
+    "176": {
+      "question_ru": "Как я могу заказать товар?",
+      "answer_ru": "Найдите нужный товар, нажмите кнопку «В корзину». Перейдите в корзину и начните оформление заказа. Выберите адрес доставки и способ оплаты, затем подтвердите заказ.",
+      "question_en": "How can I order the product?",
+      "answer_en": "Find the desired product, click the \"Add to cart\" button. Go to cart and start checkout. Select the shipping address and payment method, then confirm the order.",
+      "question_zh": "我如何订购产品？",
+      "answer_zh": "找到所需的产品，点击“添加到购物车”按钮。转到购物车并开始结账。选择送货地址和付款方式，然后确认订单。"
+    }
+  },
+  "177": {
+    "177": {
+      "question_ru": "Какие способы оплаты доступны?",
+      "answer_ru": "Мы поддерживаем следующие способы оплаты: банковские карты (UzCard, Humo), платежные системы Click, Payme и Paynet.",
+      "question_en": "What payment methods are available?",
+      "answer_en": "We support the following payment methods: bank cards (UzCard, Humo), Click, Payme and Paynet payment systems.",
+      "question_zh": "有哪些付款方式？",
+      "answer_zh": "我们支持以下支付方式：银行卡（UzCard、Humo）、Click、Payme 和 Paynet 支付系统。"
+    }
+  },
+  "178": {
+    "178": {
+      "question_ru": "Сколько времени занимает доставка?",
+      "answer_ru": "Стандартная доставка по Узбекистану производится в течение 2-5 дней. 1-2 дня по городу Ташкенту. 15-25 дней для товаров, заказанных из Китая. Также доступна услуга экспресс-доставки.",
+      "question_en": "How long does it take to deliver?",
+      "answer_en": "Standard delivery across Uzbekistan is made within 2-5 days. 1-2 days according to the city of Tashkent. 15-25 days for products ordered from China. Express delivery service is also available.",
+      "question_zh": "需要多长时间才能交货？",
+      "answer_zh": "乌兹别克斯坦境内的标准配送在 2-5 天内完成。根据塔什干市1-2天。从中国订购的产品需要 15-25 天。还提供快递服务。"
+    }
+  },
+  "179": {
+    "179": {
+      "question_ru": "Как я могу отслеживать свой заказ?",
+      "answer_ru": "Для отслеживания вашего заказа перейдите в раздел «Мои заказы». Для каждого заказа будет отображаться номер отслеживания и текущий статус. Вы также будете получать уведомления о статусе по SMS.",
+      "question_en": "How can I track my order?",
+      "answer_en": "To track your order, go to \"My Orders\". A tracking number and current status will be displayed for each order. You will also receive status notifications via SMS.",
+      "question_zh": "我如何追踪我的订单？",
+      "answer_zh": "要跟踪您的订单，请转到“我的订单”。每个订单都会显示跟踪号码和当前状态。您还将通过短信收到状态通知。"
+    }
+  },
+  "180": {
+    "180": {
+      "question_ru": "Что такое ЩЕДРЫЙ ПРОДАВЕЦ?",
+      "answer_ru": "GENEROUS SELLER — профессиональная платформа для местных продавцов. Вы можете продавать свою продукцию на платформе и охватить широкую аудиторию. Для получения дополнительной информации перейдите в раздел «ЩЕДРОДНЫЙ ПРОДАВЕЦ».",
+      "question_en": "What is a GENEROUS SELLER?",
+      "answer_en": "GENEROUS SELLER is a professional platform for local sellers. You can sell your products on the platform and reach a wide audience. Go to the GENEROUS SELLER section for more information.",
+      "question_zh": "什么是慷慨的卖家？",
+      "answer_zh": "GENEROUS SELLER是一个针对本地卖家的专业平台。您可以在平台上销售您的产品并接触到广泛的受众。请前往“慷慨的卖家”部分了解更多信息。"
+    }
+  },
+  "181": {
+    "181": {
+      "question_ru": "Почему меняется цена на товар?",
+      "answer_ru": "Цены на продукцию могут меняться в зависимости от обменных курсов, скидок, рекламных акций и смены поставщиков. Актуальная цена отображается в корзине.",
+      "question_en": "Why does the product price change?",
+      "answer_en": "Product prices are subject to change due to exchange rates, discounts, promotions and supplier changes. The current price is displayed in the shopping cart.",
+      "question_zh": "产品价格为何变化？",
+      "answer_zh": "产品价格可能会因汇率、折扣、促销和供应商变更而发生变化。当前价格显示在购物车中。"
+    }
+  },
+  "182": {
+    "182": {
+      "question_ru": "Как я могу найти товар?",
+      "answer_ru": "Для поиска товара используйте поле поиска на главной странице. Вы можете искать по ключевым словам, категориям или изображениям. Уточнить результаты можно с помощью фильтров.",
+      "question_en": "How can I search for a product?",
+      "answer_en": "Use the search field on the main page to search for a product. You can search by keywords, categories or images. You can refine the results using filters.",
+      "question_zh": "我如何搜索产品？",
+      "answer_zh": "使用主页上的搜索字段来搜索产品。您可以按关键字、类别或图像进行搜索。您可以使用过滤器细化结果。"
+    }
+  },
+  "183": {
+    "183": {
+      "question_ru": "Как защищен мой аккаунт?",
+      "answer_ru": "Мы используем двухфакторную аутентификацию, зашифрованное хранение данных и безопасные платежные системы. Никому не сообщайте свой пароль и немедленно сообщайте о подозрительной активности.",
+      "question_en": "How is my account secured?",
+      "answer_en": "We use two-factor authentication, encrypted data storage and secure payment systems. Do not share your password with anyone and report suspicious activity immediately.",
+      "question_zh": "我的帐户如何受到保护？",
+      "answer_zh": "我们使用双因素身份验证、加密数据存储和安全支付系统。不要与任何人分享您的密码并立即报告可疑活动。"
+    }
+  },
+  "184": {
+    "184": {
+      "question_ru": "Как я могу связаться со службой поддержки?",
+      "answer_ru": "Обратитесь в службу поддержки из раздела «Справочный центр».",
+      "question_en": "How can I contact support?",
+      "answer_en": "Contact support from the \"Help Center\" section.",
+      "question_zh": "我如何联系支持人员？",
+      "answer_zh": "请从“帮助中心”部分联系支持人员。"
+    }
+  },
+  "185": {
+    "185": {
+      "question_ru": "Есть ли гарантия на продукцию?",
+      "answer_ru": "Да, на многие товары предоставляется гарантия производителя. Гарантийный срок зависит от типа изделия. Более подробную информацию можно найти на странице продукта.",
+      "question_en": "Is there a product warranty?",
+      "answer_en": "Yes, many products have a manufacturer's warranty. The warranty period depends on the type of product. Find more information on the product page.",
+      "question_zh": "产品有保修吗？",
+      "answer_zh": "是的，许多产品都有制造商保修。保修期取决于产品类型。在产品页面上查找更多信息。"
+    }
+  },
+  "186": {
+    "186": {
+      "question_ru": "Как я могу изменить свой адрес?",
+      "answer_ru": "Чтобы изменить адрес, перейдите на страницу «Мои адреса» в раздел «Личная информация». Вы можете добавить новый адрес или отредактировать существующий адрес.",
+      "question_en": "How can I change my address?",
+      "answer_en": "To change your address, go to the \"My Addresses\" page in the \"Personal Information\" section. You can add a new address or edit an existing address.",
+      "question_zh": "我如何更改我的地址？",
+      "answer_zh": "要更改您的地址，请转到“个人信息”部分中的“我的地址”页面。您可以添加新地址或编辑现有地址。"
+    }
+  },
+  "187": {
+    "187": {
+      "question_ru": "Как узнать о скидках и акциях?",
+      "answer_ru": "О скидках и акциях мы сообщаем вам посредством push-уведомлений.",
+      "question_en": "How do I find out about discounts and promotions?",
+      "answer_en": "We inform you about discounts and promotions through push notifications.",
+      "question_zh": "我如何了解折扣和促销活动？",
+      "answer_zh": "我们通过推送通知向您通报折扣和促销信息。"
+    }
+  },
+  "188": {
+    "188": {
+      "question_ru": "Как я могу проверить подлинность продукта?",
+      "answer_ru": "Вся продукция поставляется от проверенных поставщиков. Большинство товаров имеют сертификаты подлинности и QR-коды. Если есть сомнения, обратитесь в службу поддержки.",
+      "question_en": "How can I check product authenticity?",
+      "answer_en": "All products come from trusted suppliers. Most products have certificates of authenticity and QR codes. If in doubt, contact support.",
+      "question_zh": "如何查询产品真伪？",
+      "answer_zh": "所有产品均来自值得信赖的供应商。大多数产品都有真品证书和二维码。如有疑问，请联系支持人员。"
+    }
+  }
+}

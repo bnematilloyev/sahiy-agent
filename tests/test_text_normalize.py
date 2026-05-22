@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from app.domain.keywords import classify_by_keywords
+from app.domain.order_list_menu import needs_order_list_menu
 from app.domain.order_refs import is_order_list_question, is_order_lookup_request
 from app.domain.text_normalize import normalize_text, transliterate_cyrillic_to_latin
 
@@ -30,6 +31,12 @@ def test_russian_zakaz_gde():
     assert "gde" in norm
     assert "zakaz" in norm
     assert is_order_lookup_request(raw) or classify_by_keywords(raw) == "api"
+
+
+def test_russian_gde_moi_tovary():
+    raw = "Где мои товары?"
+    assert is_order_lookup_request(raw)
+    assert needs_order_list_menu(raw)
 
 
 def test_russian_kogda():

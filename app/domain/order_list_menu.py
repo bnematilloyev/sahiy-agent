@@ -61,6 +61,10 @@ def _is_vague_show_request(text: str) -> bool:
         "buyurtmalarni ko'rsat",
         "royxat",
         "ro'yxat",
+        "moi tovar",
+        "moi tovary",
+        "gde moi",
+        "gde tovar",
     )
     return any(h in lowered for h in hints)
 

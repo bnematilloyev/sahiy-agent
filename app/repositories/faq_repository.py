@@ -109,11 +109,25 @@ class FAQRepository(BaseRepository):
         if not tokens:
             return []
 
+        text_columns = (
+            FAQEmbeddingModel.question,
+            FAQEmbeddingModel.answer,
+            FAQEmbeddingModel.question_uz,
+            FAQEmbeddingModel.answer_uz,
+            FAQEmbeddingModel.question_cyr,
+            FAQEmbeddingModel.answer_cyr,
+            FAQEmbeddingModel.question_ru,
+            FAQEmbeddingModel.answer_ru,
+            FAQEmbeddingModel.question_en,
+            FAQEmbeddingModel.answer_en,
+            FAQEmbeddingModel.question_zh,
+            FAQEmbeddingModel.answer_zh,
+        )
         clauses = []
         for token in tokens[:8]:
             pattern = f"%{token}%"
-            clauses.append(FAQEmbeddingModel.question.ilike(pattern))
-            clauses.append(FAQEmbeddingModel.answer.ilike(pattern))
+            for col in text_columns:
+                clauses.append(col.ilike(pattern))
 
         stmt = select(FAQEmbeddingModel).where(or_(*clauses)).limit(max(limit * 10, 30))
         result = await self._session.execute(stmt)
@@ -121,10 +135,34 @@ class FAQRepository(BaseRepository):
 
         scored: list[tuple[int, int, FAQEmbeddingModel]] = []
         for row in rows:
-            question_lower = row.question.lower()
-            answer_lower = row.answer.lower()
-            q_hits = sum(2 for token in tokens if token in question_lower)
-            a_hits = sum(1 for token in tokens if token in answer_lower)
+            question_blob = " ".join(
+                filter(
+                    None,
+                    (
+                        row.question,
+                        row.question_uz,
+                        row.question_cyr,
+                        row.question_ru,
+                        row.question_en,
+                        row.question_zh,
+                    ),
+                )
+            ).lower()
+            answer_blob = " ".join(
+                filter(
+                    None,
+                    (
+                        row.answer,
+                        row.answer_uz,
+                        row.answer_cyr,
+                        row.answer_ru,
+                        row.answer_en,
+                        row.answer_zh,
+                    ),
+                )
+            ).lower()
+            q_hits = sum(2 for token in tokens if token in question_blob)
+            a_hits = sum(1 for token in tokens if token in answer_blob)
             total = q_hits + a_hits
             if q_hits >= 2 or total >= 3:
                 scored.append((q_hits, total, row))

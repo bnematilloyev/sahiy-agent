@@ -223,6 +223,9 @@ _ORDER_LOOKUP_STATUS_WORDS = (
     "kogda",
     "pridet",
     "priydet",
+    "gde",
+    "gde moi",
+    "where",
     *_DELIVERY_DELAY_WORDS,
 )
 
@@ -237,7 +240,13 @@ _ORDER_LOOKUP_CONTEXT_WORDS = (
     "tovar",
     "tovarim",
     "tovarlar",
+    "tovary",
+    "tovari",
+    "tovaram",
     "moy zakaz",
+    "moi tovar",
+    "moi tovary",
+    "moi zakaz",
 )
 
 
@@ -277,6 +286,11 @@ def is_order_list_question(text: str) -> bool:
         "olganman",
         "nima tovar",
         "moy zakaz",
+        "moi tovar",
+        "moi tovary",
+        "gde moi",
+        "gde tovar",
+        "tovary",
     )
     if any(h in lowered for h in list_hints):
         return True

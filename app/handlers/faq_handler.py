@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from app.core.prompts import BROKEN_GOODS_POLICY_ANSWER, NO_FAQ_FALLBACK
+from app.core.prompts import BROKEN_GOODS_POLICY_ANSWER
+from app.domain.reply_language import UZ_LAT, localize
 from app.domain.classification import is_broken_goods_policy_question, is_company_question
 from app.domain.dto import ChatContext, ChatReply
 from app.domain.enums import QuestionCategory, ResponseType
@@ -16,6 +17,8 @@ class FaqHandler:
         self._support = support
 
     async def reply(self, context: ChatContext) -> ChatReply:
+        lang = str(context.metadata.get("reply_language") or UZ_LAT)
+
         if is_broken_goods_policy_question(context.text):
             return ChatReply(
                 response_type=ResponseType.AUTO,
@@ -34,7 +37,10 @@ class FaqHandler:
 
         matches = await self._faq.find_matches(context.text)
         if not matches:
-            text = self._faq.static_answer_for_question(context.text) or NO_FAQ_FALLBACK
+            text = (
+                self._faq.static_answer_for_question(context.text)
+                or localize("no_faq_fallback", lang)
+            )
             return ChatReply(
                 response_type=ResponseType.AUTO,
                 text=text,
@@ -45,6 +51,7 @@ class FaqHandler:
             question=context.text,
             matches=matches,
             history=context.recent_messages,
+            reply_language=lang,
         )
         return ChatReply(
             response_type=ResponseType.AUTO,

@@ -23,6 +23,7 @@ from app.bootstrap.embedder import resolve_embedder
 from app.infrastructure.embeddings.factory import create_embedder
 from app.core.database import dispose_engine, get_session_factory
 from app.db.models import FAQEmbeddingModel
+from app.domain.faq_locale import apply_i18n_to_model, faq_embed_text, normalize_faq_seed_item
 from app.repositories.faq_repository import FAQRepository
 from scripts.data.faq_100 import FAQ_ENTRIES
 from scripts.data.faq_quick_replies import QUICK_REPLY_FAQ_ENTRIES
@@ -33,12 +34,14 @@ FAQ_ENTRIES_ALL = FAQ_ENTRIES + QUICK_REPLY_FAQ_ENTRIES
 def _assert_unique_faq_ids() -> None:
     seen: dict[int, str] = {}
     for item in FAQ_ENTRIES_ALL:
-        faq_id = int(item["id"])
+        row = normalize_faq_seed_item(item)
+        faq_id = int(row["id"])
+        label = row["question_uz"]
         if faq_id in seen:
             raise ValueError(
-                f"Duplicate FAQ id={faq_id}: {seen[faq_id]!r} and {item['question']!r}"
+                f"Duplicate FAQ id={faq_id}: {seen[faq_id]!r} and {label!r}"
             )
-        seen[faq_id] = str(item["question"])
+        seen[faq_id] = label
 
 
 async def _reset_id_sequence(session) -> None:
@@ -50,6 +53,12 @@ async def _reset_id_sequence(session) -> None:
             ")"
         )
     )
+
+
+def _new_model(faq_id: int, item: dict, vector: list[float]) -> FAQEmbeddingModel:
+    model = FAQEmbeddingModel(id=faq_id, embedding=vector)
+    apply_i18n_to_model(model, item)
+    return model
 
 
 async def seed(*, clear: bool, embed_only: bool) -> None:
@@ -70,27 +79,18 @@ async def seed(*, clear: bool, embed_only: bool) -> None:
             await session.commit()
             print(f"Cleared {removed} existing row(s).")
 
-        for index, item in enumerate(FAQ_ENTRIES_ALL, start=1):
+        for index, raw in enumerate(FAQ_ENTRIES_ALL, start=1):
+            item = normalize_faq_seed_item(raw)
             faq_id = item["id"]
-            vector = embedder.embed(item["question"])
+            vector = embedder.embed(faq_embed_text(item))
 
             if not clear and not embed_only:
                 existing = await session.get(FAQEmbeddingModel, faq_id)
                 if existing:
-                    existing.question = item["question"]
-                    existing.answer = item["answer"]
-                    existing.category = item["category"]
+                    apply_i18n_to_model(existing, item)
                     existing.embedding = vector
                 else:
-                    session.add(
-                        FAQEmbeddingModel(
-                            id=faq_id,
-                            question=item["question"],
-                            answer=item["answer"],
-                            category=item["category"],
-                            embedding=vector,
-                        )
-                    )
+                    session.add(_new_model(faq_id, item, vector))
             elif embed_only:
                 existing = await session.get(FAQEmbeddingModel, faq_id)
                 if existing:
@@ -99,15 +99,7 @@ async def seed(*, clear: bool, embed_only: bool) -> None:
                     print(f"  skip id={faq_id} (not in DB)")
                     continue
             else:
-                session.add(
-                    FAQEmbeddingModel(
-                        id=faq_id,
-                        question=item["question"],
-                        answer=item["answer"],
-                        category=item["category"],
-                        embedding=vector,
-                    )
-                )
+                session.add(_new_model(faq_id, item, vector))
 
             if index % 20 == 0 or index == len(FAQ_ENTRIES_ALL):
                 print(f"  {index}/{len(FAQ_ENTRIES_ALL)} processed")

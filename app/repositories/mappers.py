@@ -34,6 +34,16 @@ def to_faq_entry(model: FAQEmbeddingModel, similarity: float = 0.0) -> FAQEntry:
         answer=model.answer,
         category=model.category,
         similarity=similarity,
+        question_uz=model.question_uz,
+        answer_uz=model.answer_uz,
+        question_cyr=model.question_cyr,
+        answer_cyr=model.answer_cyr,
+        question_ru=model.question_ru,
+        answer_ru=model.answer_ru,
+        question_en=model.question_en,
+        answer_en=model.answer_en,
+        question_zh=model.question_zh,
+        answer_zh=model.answer_zh,
     )
 
 

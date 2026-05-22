@@ -5,6 +5,7 @@ import json
 from app.core.config import get_settings
 from app.core.exceptions import LLMError, LLMTimeoutError
 from app.core.prompts import API_ORDER_USER_TEMPLATE, API_RESPONSE_SYSTEM
+from app.domain.reply_language import UZ_LAT, system_prompt_with_language
 from app.domain.dto import ChatContext, ChatReply
 from app.domain.enums import QuestionCategory, ResponseType
 from app.domain.order_present import format_orders_message, summarize_orders_for_prompt
@@ -36,24 +37,27 @@ class OrderHandler:
         track = extract_track(query)
         if track and isinstance(data, dict):
             data["requested_track"] = track
-        text = await self._format_reply(data, query)
+        lang = str(context.metadata.get("reply_language") or UZ_LAT)
+        text = await self._format_reply(data, query, reply_language=lang)
         return ChatReply(
             response_type=ResponseType.API,
             text=text,
             category=self.category,
         )
 
-    async def _format_reply(self, data: dict, query: str) -> str:
+    async def _format_reply(
+        self, data: dict, query: str, *, reply_language: str = UZ_LAT
+    ) -> str:
         summary = summarize_orders_for_prompt(data)
         if data.get("error") or data.get("ownership_mismatch"):
-            return format_orders_message(data)
+            return format_orders_message(data, reply_language=reply_language)
 
         # Ro'yxat javoblarini barqaror formatda berish (LLM qisqartirmasin / Jiyun demasin)
         if summary.get("bolimlar"):
-            return format_orders_message(data)
+            return format_orders_message(data, reply_language=reply_language)
 
         if not self._ai.is_available:
-            return format_orders_message(data)
+            return format_orders_message(data, reply_language=reply_language)
 
         prompt = API_ORDER_USER_TEMPLATE.format(
             query=query,
@@ -61,9 +65,9 @@ class OrderHandler:
         )
         try:
             return await self._ai.complete(
-                API_RESPONSE_SYSTEM,
+                system_prompt_with_language(API_RESPONSE_SYSTEM, reply_language),
                 prompt,
                 max_tokens=get_settings().ai_order_max_tokens,
             )
         except (LLMTimeoutError, LLMError):
-            return format_orders_message(data)
+            return format_orders_message(data, reply_language=reply_language)

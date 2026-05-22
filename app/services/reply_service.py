@@ -5,7 +5,6 @@ from typing import Any, Dict, Optional
 from uuid import UUID
 
 from app.core.exceptions import LLMError, LLMTimeoutError
-from app.core.prompts import BUSY_MESSAGE, CHITCHAT_REPLY
 from app.domain.dto import ChatContext, ChatReply
 from app.domain.enums import MessageRole, QuestionCategory, ResponseType
 from app.domain.keywords import is_chitchat
@@ -18,11 +17,8 @@ from app.domain.customer_identity import (
     requires_customer_identity,
 )
 from app.domain.pickup_keywords import is_identity_registration_text
-from app.domain.order_list_menu import (
-    ORDER_MENU_PROMPT,
-    build_order_list_menu_extra,
-    needs_order_list_menu,
-)
+from app.domain.reply_language import localize, resolve_reply_language
+from app.domain.order_list_menu import build_order_list_menu_extra, needs_order_list_menu
 from app.domain.order_refs import is_order_lookup_request
 from app.domain.pickup_keywords import (
     is_pickup_conversation_turn,
@@ -70,6 +66,9 @@ class ReplyService:
 
         recent = await self._messages.get_recent(session_id, limit=10)
 
+        reply_lang = resolve_reply_language(text, meta, recent)
+        meta["reply_language"] = reply_lang
+
         await self._messages.create(
             session_id=session_id,
             role=MessageRole.USER.value,
@@ -109,11 +108,11 @@ class ReplyService:
             )
 
         if is_identity_registration_text(text):
-            result = self._identity.verified_user_id_reply()
+            result = self._identity.verified_user_id_reply(reply_lang)
         elif needs_order_list_menu(text):
             result = ChatReply(
                 response_type=ResponseType.AUTO,
-                text=ORDER_MENU_PROMPT,
+                text=localize("order_menu_prompt", reply_lang),
                 category=QuestionCategory.API,
                 channel_extra=build_order_list_menu_extra(),
             )
@@ -127,7 +126,7 @@ class ReplyService:
         elif is_chitchat(text):
             result = ChatReply(
                 response_type=ResponseType.AUTO,
-                text=CHITCHAT_REPLY,
+                text=localize("chitchat", reply_lang),
                 category=QuestionCategory.FAQ,
             )
         else:
@@ -136,7 +135,7 @@ class ReplyService:
         if not result.text.strip():
             result = ChatReply(
                 response_type=ResponseType.ERROR,
-                text=BUSY_MESSAGE,
+                text=localize("busy", reply_lang),
                 category=result.category,
                 ticket_id=result.ticket_id,
             )
@@ -169,7 +168,8 @@ class ReplyService:
                 return err
             meta["sahiy_user_id"] = sahiy_uid
             if is_identity_only_message(text):
-                return self._identity.verified_user_id_reply()
+                lang = meta.get("reply_language", "uz_lat")
+                return self._identity.verified_user_id_reply(lang)
             return None
 
         phone_in_text = extract_registration_phone(text)
@@ -182,9 +182,11 @@ class ReplyService:
             meta["verified_phone"] = phone_in_text
             meta["sahiy_user_id"] = sahiy_uid
             if is_identity_only_message(text):
-                return self._identity.verified_reply()
+                lang = meta.get("reply_language", "uz_lat")
+                return self._identity.verified_reply(lang)
             return None
 
+        lang = resolve_reply_language(text, meta, None)
         return ChatReply(
             response_type=ResponseType.AUTO,
             text=IDENTITY_REQUIRED_TEXT,
@@ -214,7 +216,7 @@ class ReplyService:
                 logger.exception("FAQ fallback failed")
                 result = ChatReply(
                     response_type=ResponseType.ERROR,
-                    text=BUSY_MESSAGE,
+                    text=localize("busy", reply_lang),
                     category=QuestionCategory.FAQ,
                 )
         return result

@@ -22,6 +22,8 @@ from app.core.prompts import (
 from app.domain.entities import FAQEntry, Message
 from app.domain.enums import MessageRole
 from app.domain.classification import is_company_question
+from app.domain.faq_locale import faq_entry_for_language
+from app.domain.reply_language import UZ_LAT, localize, system_prompt_with_language
 from app.domain.text_normalize import normalize_text
 
 logger = logging.getLogger(__name__)
@@ -80,6 +82,8 @@ class FaqService:
             question: str,
             matches: List[FAQEntry],
             history: List[Message],
+            *,
+            reply_language: str = UZ_LAT,
     ) -> str:
         # 1. So'kinishni tekshirish
         if any(word in question.lower() for word in PROFANITY_KEYWORDS):
@@ -90,28 +94,32 @@ class FaqService:
             static = self.static_answer_for_question(question)
             if static:
                 return static
-            return NO_FAQ_FALLBACK
+            return localize("no_faq_fallback", reply_language)
 
         # 3. Salomlashish qo'shish
-        greeting = "Assalomu alaykum, hurmatli mijoz! " if self._should_greet(history) else ""
+        greeting = (
+            localize("rag_greeting", reply_language) if self._should_greet(history) else ""
+        )
 
         # 4. AI mavjud bo'lmasa yoki rules mode
         if not self._ai.is_available:
-            return greeting + self._compose_local_answer(matches, max_chars=3500)
+            return greeting + self._compose_local_answer(
+                matches, max_chars=3500, reply_language=reply_language
+            )
 
         # 5. LLM orqali javob
         settings = get_settings()
         context_limit = max(1, settings.rag_top_k)
         context_matches = matches[:context_limit]
         prompt = RAG_USER_TEMPLATE.format(
-            context=self._format_matches(context_matches),
+            context=self._format_matches(context_matches, reply_language),
             history=self._format_history(history) or "(yo'q)",
             wrapped_question=wrap_user_message(question),
         )
 
         try:
             ai_reply = await self._ai.complete(
-                RAG_SYSTEM,
+                system_prompt_with_language(RAG_SYSTEM, reply_language),
                 prompt,
                 max_tokens=settings.rag_max_tokens,
             )
@@ -119,7 +127,7 @@ class FaqService:
         except Exception as e:
             logger.error(f"RAG LLM failed: {e}")
             return greeting + self._compose_local_answer(
-                matches, max_chars=3500
+                matches, max_chars=3500, reply_language=reply_language
             )
 
     @staticmethod
@@ -127,11 +135,13 @@ class FaqService:
         matches: List[FAQEntry],
         *,
         max_chars: int = 3500,
+        reply_language: str = UZ_LAT,
     ) -> str:
         """AI yo'q bo'lsa — FAQ javoblarini to'liq (qisqartirmasdan) berish."""
         parts: List[str] = []
         for entry in matches:
-            block = entry.answer.strip()
+            localized = faq_entry_for_language(entry, reply_language)
+            block = localized.answer.strip()
             if block and block not in parts:
                 parts.append(block)
         text = "\n\n".join(parts).strip()
@@ -143,9 +153,10 @@ class FaqService:
         return trimmed
 
     @staticmethod
-    def _format_matches(entries: List[FAQEntry]) -> str:
+    def _format_matches(entries: List[FAQEntry], reply_language: str) -> str:
         return "\n\n".join(
-            f"Q: {e.question}\nA: {e.answer}"
+            f"Q: {faq_entry_for_language(e, reply_language).question}\n"
+            f"A: {faq_entry_for_language(e, reply_language).answer}"
             for e in entries
         )
 

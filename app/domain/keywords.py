@@ -30,6 +30,10 @@ API_KEYWORDS = (
     "kogda",
     "pridet",
     "gde zakaz",
+    "gde moi",
+    "moi tovar",
+    "moi tovary",
+    "tovary",
 )
 
 TICKET_KEYWORDS = (

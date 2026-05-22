@@ -133,9 +133,17 @@ class IdentityService:
         )
 
     @staticmethod
-    def verified_reply() -> ChatReply:
-        return IdentityService._reply(PHONE_VERIFIED_TEXT)
+    def verified_reply(reply_language: str = "uz_lat") -> ChatReply:
+        from app.domain.reply_language import localize
+
+        return IdentityService._reply(
+            localize("identity_verified_phone", reply_language) or PHONE_VERIFIED_TEXT
+        )
 
     @staticmethod
-    def verified_user_id_reply() -> ChatReply:
-        return IdentityService._reply(SAHIY_USER_ID_VERIFIED_TEXT)
+    def verified_user_id_reply(reply_language: str = "uz_lat") -> ChatReply:
+        from app.domain.reply_language import localize
+
+        return IdentityService._reply(
+            localize("identity_verified_uid", reply_language) or SAHIY_USER_ID_VERIFIED_TEXT
+        )

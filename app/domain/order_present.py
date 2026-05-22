@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from app.domain.order_match import find_order_in_data
+from app.domain.reply_language import UZ_LAT, localize
 from app.infrastructure.sahiy_api.status_maps import (
     daigou_label,
     dashboard_label,
@@ -235,7 +236,12 @@ def _format_requested_track_fallback(data: Dict[str, Any], track: str) -> str:
     )
 
 
-def format_orders_message(data: Dict[str, Any], *, max_per_section: int = _DEFAULT_MAX) -> str:
+def format_orders_message(
+    data: Dict[str, Any],
+    *,
+    max_per_section: int = _DEFAULT_MAX,
+    reply_language: str = UZ_LAT,
+) -> str:
     if data.get("error"):
         return data.get("message", "Ma'lumot topilmadi.")
     if data.get("ownership_mismatch"):
@@ -250,17 +256,13 @@ def format_orders_message(data: Dict[str, Any], *, max_per_section: int = _DEFAU
         return _format_requested_track_fallback(data, str(requested))
 
     scope = data.get("list_scope")
-    lines: List[str] = [
-        f"📋 {scope}" if scope else "📋 Buyurtmalaringiz holati",
-    ]
+    header = localize("orders_header", reply_language)
+    lines: List[str] = [f"📋 {scope}" if scope else header]
 
     summary = summarize_orders_for_prompt(data, max_per_section=max_per_section)
     sections = summary.get("bolimlar") or {}
     if not sections and not focus:
-        return (
-            "📭 Aktiv buyurtma topilmadi.\n_______\n"
-            "Yaqinda buyurtma qilgan bo'lsangiz, birozdan keyin yozing."
-        )
+        return localize("orders_empty", reply_language)
 
     shown_focus_sn = ""
     order_focus = data.get("order_focus")
@@ -286,7 +288,7 @@ def format_orders_message(data: Dict[str, Any], *, max_per_section: int = _DEFAU
             lines.append(_format_line(item))
 
     lines.append("_______")
-    lines.append("Batafsil: track raqam (DG... yoki TRACK...) yuboring.")
+    lines.append(localize("orders_track_hint", reply_language))
     return "\n".join(lines).strip()
 
 

@@ -31,6 +31,16 @@ class FAQEntry:
     answer: str
     category: str
     similarity: float = field(default=0.0)
+    question_uz: str | None = None
+    answer_uz: str | None = None
+    question_cyr: str | None = None
+    answer_cyr: str | None = None
+    question_ru: str | None = None
+    answer_ru: str | None = None
+    question_en: str | None = None
+    answer_en: str | None = None
+    question_zh: str | None = None
+    answer_zh: str | None = None
 
 
 @dataclass(frozen=True)

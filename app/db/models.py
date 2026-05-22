@@ -62,6 +62,16 @@ class FAQEmbeddingModel(Base):
     question: Mapped[str] = mapped_column(Text, nullable=False)
     answer: Mapped[str] = mapped_column(Text, nullable=False)
     category: Mapped[str] = mapped_column(String(100), nullable=False, default="general")
+    question_uz: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    answer_uz: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    question_cyr: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    answer_cyr: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    question_ru: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    answer_ru: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    question_en: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    answer_en: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    question_zh: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    answer_zh: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     embedding: Mapped[Optional[List[float]]] = mapped_column(Vector(_EMBEDDING_DIM), nullable=True)
 
 

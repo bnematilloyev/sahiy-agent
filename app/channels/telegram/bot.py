@@ -22,6 +22,7 @@ from app.channels.telegram.keyboards import (
 )
 from app.core.config import get_settings
 from app.domain.order_list_menu import parse_order_menu_callback
+from app.domain.reply_language import resolve_reply_language
 from app.domain.pickup_present import parse_callback
 from app.handlers.pickup_handler import PickupHandler
 from app.infrastructure.sahiy_api.factory import get_sahiy_api_client
@@ -262,6 +263,9 @@ class TelegramBot(BotChannel):
         sahiy_user_id = context.user_data.get("sahiy_user_id")
         if sahiy_user_id is not None:
             meta["sahiy_user_id"] = sahiy_user_id
+        reply_language = context.user_data.get("reply_language")
+        if reply_language:
+            meta["reply_language"] = reply_language
         return meta
 
     async def _on_order_menu_callback(
@@ -295,6 +299,7 @@ class TelegramBot(BotChannel):
         query: Any,
     ) -> None:
         metadata = self._build_metadata(update, context)
+        metadata["reply_language"] = resolve_reply_language(text, metadata, None)
         chat_id = query.message.chat_id if query.message else None
         typing_task = None
         if chat_id is not None:
@@ -313,6 +318,7 @@ class TelegramBot(BotChannel):
             )
             reply_text = result.text
             reply_markup = inline_keyboard_from_extra(getattr(result, "channel_extra", None))
+            context.user_data["reply_language"] = metadata.get("reply_language")
         except Exception:
             logger.exception("order menu callback failed user_id=%s", user_id)
         finally:
@@ -384,6 +390,7 @@ class TelegramBot(BotChannel):
         metadata = self._build_metadata(update, context)
         if extra_metadata:
             metadata.update(extra_metadata)
+        metadata["reply_language"] = resolve_reply_language(text, metadata, None)
 
         chat_id = update.effective_chat.id
         typing_task = asyncio.create_task(self._typing_loop(context, chat_id))
@@ -399,6 +406,7 @@ class TelegramBot(BotChannel):
             )
             reply_text = result.text
             reply_markup = inline_keyboard_from_extra(getattr(result, "channel_extra", None))
+            context.user_data["reply_language"] = metadata.get("reply_language")
         except Exception:
             logger.exception("ChatService.reply failed for user_id=%s", user_id)
             reply_markup = None
