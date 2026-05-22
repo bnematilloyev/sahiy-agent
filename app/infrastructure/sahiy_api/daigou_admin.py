@@ -59,38 +59,48 @@ class DaigouOrderDetail:
     skus: List[SkuInfo] = field(default_factory=list)
 
 
+def _money(value: Any) -> float:
+    """API price fields are in fen — divide by 100 for display."""
+    try:
+        raw = float(value or 0)
+    except (TypeError, ValueError):
+        return 0.0
+    if raw == 0:
+        return 0.0
+    # Already decimal (e.g. 22.50) vs integer fen (2250)
+    if abs(raw) >= 100 and raw == int(raw):
+        return raw / 100.0
+    return raw
+
+
 def _parse_sku(raw: Dict[str, Any]) -> SkuInfo:
-    sku_info = raw.get("sku_info") or {}
+    sku_info = raw.get("sku_info") if isinstance(raw.get("sku_info"), dict) else {}
     imgs: List[str] = []
-    raw_imgs = sku_info.get("imgs") or []
+    raw_imgs = sku_info.get("imgs") or raw.get("imgs") or []
     if isinstance(raw_imgs, list):
         imgs = [str(u) for u in raw_imgs if u]
-    sku_img = sku_info.get("sku_img")
+    sku_img = sku_info.get("sku_img") or raw.get("sku_img") or raw.get("image") or raw.get("thumb")
     if sku_img and sku_img not in imgs:
         imgs.insert(0, str(sku_img))
 
     specs: List[Dict[str, str]] = []
-    raw_specs = sku_info.get("specs") or []
+    raw_specs = sku_info.get("specs") or raw.get("specs") or []
     if isinstance(raw_specs, list):
         for s in raw_specs:
             if isinstance(s, dict):
                 specs.append({"label": str(s.get("label", "")), "value": str(s.get("value", ""))})
 
-    def _f(key: str) -> float:
-        try:
-            return float(raw.get(key) or 0)
-        except (TypeError, ValueError):
-            return 0.0
+    name = str(raw.get("name") or sku_info.get("name") or "").strip()
 
     return SkuInfo(
-        name=str(raw.get("name") or "").strip(),
+        name=name,
         platform=str(raw.get("platform") or ""),
         platform_url=str(raw.get("platform_url") or ""),
         platform_sku=str(raw.get("platform_sku") or ""),
         quantity=int(raw.get("quantity") or 1),
-        price=_f("price"),
-        actual_price=_f("actual_price"),
-        amount=_f("amount"),
+        price=_money(raw.get("price")),
+        actual_price=_money(raw.get("actual_price")),
+        amount=_money(raw.get("amount")),
         specs=specs,
         images=imgs,
     )
@@ -104,10 +114,7 @@ def _parse_order(raw: Dict[str, Any]) -> Optional[DaigouOrderDetail]:
     skus = [_parse_sku(s) for s in skus_raw if isinstance(s, dict)]
 
     def _f(key: str) -> float:
-        try:
-            return float(raw.get(key) or 0)
-        except (TypeError, ValueError):
-            return 0.0
+        return _money(raw.get(key))
 
     return DaigouOrderDetail(
         order_id=int(order_id),
@@ -120,11 +127,22 @@ def _parse_order(raw: Dict[str, Any]) -> Optional[DaigouOrderDetail]:
     )
 
 
+def parse_detail_from_row(row: Dict[str, Any]) -> Optional[DaigouOrderDetail]:
+    """Parse SKU from order row already fetched (analytics/custom API fallback)."""
+    if not row.get("id") and not row.get("order_sn"):
+        return None
+    skus_raw = row.get("skus") or []
+    if not skus_raw:
+        return None
+    return _parse_order(row)
+
+
 async def _admin_get(path: str, *, params: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
     settings = get_settings()
     base = settings.sahiy_api_base_url.rstrip("/")
     token = await get_admin_token()
     if not token:
+        logger.debug("Admin GET %s skipped — no token", path)
         return None
 
     url = f"{base}{path}"

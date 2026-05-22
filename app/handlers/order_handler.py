@@ -73,8 +73,6 @@ class OrderHandler:
     ) -> tuple[str, List[str]]:
         """Fetch SKU detail for focused single daigou order. Returns (sku_text, photo_urls)."""
         settings = get_settings()
-        if not settings.has_admin_api:
-            return "", []
 
         # Only fetch SKUs when a single order is focused
         order_focus = data.get("order_focus")
@@ -98,42 +96,57 @@ class OrderHandler:
         if not order_sn or order_sn == "—":
             return "", []
 
-        try:
-            from app.infrastructure.sahiy_api.daigou_admin import (
-                DaigouOrderDetail,
-                fetch_daigou_order_detail,
-                find_daigou_detail_by_sn,
-            )
+        from app.infrastructure.sahiy_api.daigou_admin import (
+            DaigouOrderDetail,
+            fetch_daigou_order_detail,
+            find_daigou_detail_by_sn,
+            parse_detail_from_row,
+        )
 
-            detail: Optional[DaigouOrderDetail] = None
+        detail: Optional[DaigouOrderDetail] = None
+        admin_tried = False
 
-            # Try by numeric order id first (fastest)
-            order_id = row.get("id")
-            if order_id:
-                try:
-                    detail = await fetch_daigou_order_detail(int(order_id))
-                except Exception:
-                    pass
+        if settings.has_admin_api:
+            admin_tried = True
+            try:
+                order_id = row.get("id")
+                if order_id:
+                    try:
+                        detail = await fetch_daigou_order_detail(int(order_id))
+                    except Exception:
+                        pass
 
-            # Fallback: search by SN
-            if not detail:
-                user_id = data.get("user_id") or row.get("user_id")
-                if user_id:
-                    detail = await find_daigou_detail_by_sn(int(user_id), order_sn)
+                if not detail:
+                    user_id = data.get("user_id") or row.get("user_id")
+                    if user_id:
+                        detail = await find_daigou_detail_by_sn(int(user_id), order_sn)
+            except Exception as exc:
+                logger.warning("SKU admin fetch failed for %s: %s", order_sn, exc)
 
-            if not detail or not detail.skus:
-                return "", []
+        if not detail or not detail.skus:
+            detail = parse_detail_from_row(row)
+            if detail and detail.skus:
+                logger.info(
+                    "SKU parsed from order row for %s (%d items, no admin API)",
+                    order_sn,
+                    len(detail.skus),
+                )
 
-            sku_text = format_sku_text(detail, lang)
-            photo_urls: List[str] = []
-            if settings.sahiy_sku_photos_enabled:
-                photo_urls = collect_sku_images(detail, max_photos=5)
-
-            return sku_text, photo_urls
-
-        except Exception as exc:
-            logger.warning("SKU fetch failed for %s: %s", order_sn, exc)
+        if not detail or not detail.skus:
+            if admin_tried:
+                logger.warning(
+                    "No SKU for %s — set SAHIY_ADMIN_ACCESS_TOKEN in .env "
+                    "(panel JWT) or valid admin_api credentials",
+                    order_sn,
+                )
             return "", []
+
+        sku_text = format_sku_text(detail, lang)
+        photo_urls: List[str] = []
+        if settings.sahiy_sku_photos_enabled:
+            photo_urls = collect_sku_images(detail, max_photos=5)
+
+        return sku_text, photo_urls
 
     async def _format_reply(
         self, data: dict, query: str, *, reply_language: str = UZ_LAT

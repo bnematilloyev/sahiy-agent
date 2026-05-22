@@ -73,12 +73,20 @@ class Settings(BaseSettings):
     # Sahiy admin API (panel login — SKU + rasm olish uchun)
     sahiy_admin_username: str = ""
     sahiy_admin_password: str = ""
+    sahiy_admin_access_token: str = ""  # Panel JWT — captcha kerak emas (qo'lda .env ga)
     sahiy_admin_token_ttl_seconds: int = 3000   # 50 min (expires_in=3600)
+    sahiy_admin_captcha_max_attempts: int = 3    # panel login: captcha OCR qayta urinish
     sahiy_sku_photos_enabled: bool = True        # False = rasmsiz, tez rejim
 
     @property
     def has_admin_api(self) -> bool:
-        return bool(self.sahiy_admin_username.strip() and self.sahiy_admin_password.strip())
+        return bool(
+            self.sahiy_admin_access_token.strip()
+            or (
+                self.sahiy_admin_username.strip()
+                and self.sahiy_admin_password.strip()
+            )
+        )
 
     @property
     def has_service_user(self) -> bool:
