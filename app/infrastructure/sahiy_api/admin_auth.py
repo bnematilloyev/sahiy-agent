@@ -13,7 +13,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from typing import Optional
+from typing import Any, Optional
 
 import httpx
 
@@ -38,7 +38,12 @@ async def get_admin_token() -> Optional[str]:
         if _token and time.monotonic() < _token_expires_at:
             return _token
 
-        token = await _fetch_token(settings)
+        try:
+            token = await _fetch_token(settings)
+        except Exception as exc:
+            logger.warning("Admin token fetch error: %s", exc)
+            token = None
+
         if token:
             _token = token
             _token_expires_at = time.monotonic() + settings.sahiy_admin_token_ttl_seconds
@@ -70,6 +75,23 @@ async def _fetch_token(settings) -> Optional[str]:
     return token
 
 
+def _extract_token(body: Any) -> Optional[str]:
+    """Try multiple response shapes to find access_token."""
+    if not isinstance(body, dict):
+        return None
+    # Shape 1: {"data": {"access_token": "..."}}
+    data = body.get("data")
+    if isinstance(data, dict):
+        t = data.get("access_token")
+        if t:
+            return str(t)
+    # Shape 2: {"access_token": "..."}
+    t = body.get("access_token")
+    if t:
+        return str(t)
+    return None
+
+
 async def _open_api_token(base: str, username: str, password: str, timeout: int) -> Optional[str]:
     url = f"{base}/api/admin/v1/token"
     try:
@@ -80,16 +102,12 @@ async def _open_api_token(base: str, username: str, password: str, timeout: int)
                 headers={"Content-Type": "application/json"},
             )
             if resp.status_code == 200:
-                body = resp.json()
-                token = (
-                    body.get("data", {}).get("access_token")
-                    or body.get("access_token")
-                )
+                token = _extract_token(resp.json())
                 if token:
                     logger.debug("Admin token via open-api (no captcha)")
-                    return str(token)
+                    return token
             logger.debug("Open API token failed status=%s", resp.status_code)
-    except httpx.HTTPError as exc:
+    except Exception as exc:
         logger.debug("Open API token error: %s", exc)
     return None
 
@@ -103,11 +121,13 @@ async def _panel_login_token(base: str, username: str, password: str, timeout: i
             if cap_resp.status_code != 200:
                 logger.warning("Admin captcha fetch failed: %s", cap_resp.status_code)
                 return None
-            cap_data = cap_resp.json().get("data", {}).get("captcha", {})
-            cap_key = cap_data.get("key", "")
-            # Captcha is an image — for API-type accounts "1234" is accepted
-            # Real captcha bypass is not supported; admin_api account is preferred
-            cap_code = "1234"
+
+            cap_body = cap_resp.json()
+            cap_section = (cap_body.get("data") or {})
+            if isinstance(cap_section, dict):
+                cap_section = cap_section.get("captcha") or {}
+            cap_key = cap_section.get("key", "") if isinstance(cap_section, dict) else ""
+            cap_code = "1234"  # API-type accounts bypass captcha; real captcha not supported
 
             # Step 2: login
             login_resp = await client.post(
@@ -121,12 +141,15 @@ async def _panel_login_token(base: str, username: str, password: str, timeout: i
                 headers={"Content-Type": "application/json"},
             )
             if login_resp.status_code == 200:
-                body = login_resp.json()
-                token = body.get("data", {}).get("access_token")
+                token = _extract_token(login_resp.json())
                 if token:
                     logger.debug("Admin token via panel login")
-                    return str(token)
-            logger.warning("Admin panel login failed: %s %s", login_resp.status_code, login_resp.text[:200])
-    except httpx.HTTPError as exc:
+                    return token
+            logger.warning(
+                "Admin panel login failed: %s %s",
+                login_resp.status_code,
+                login_resp.text[:200],
+            )
+    except Exception as exc:
         logger.warning("Admin panel login error: %s", exc)
     return None

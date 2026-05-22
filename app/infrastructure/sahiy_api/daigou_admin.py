@@ -145,13 +145,55 @@ async def _admin_get(path: str, *, params: Optional[Dict[str, Any]] = None) -> O
         return None
 
 
+def _extract_items(body: Any) -> List[Dict[str, Any]]:
+    """Extract list of order dicts from any admin API response shape."""
+    if isinstance(body, list):
+        return [x for x in body if isinstance(x, dict)]
+    if not isinstance(body, dict):
+        return []
+    data = body.get("data")
+    if isinstance(data, list):
+        return [x for x in data if isinstance(x, dict)]
+    if isinstance(data, dict):
+        inner = data.get("data")
+        if isinstance(inner, list):
+            return [x for x in inner if isinstance(x, dict)]
+        # Single object wrapped in data
+        return [data]
+    # Try common keys
+    for key in ("orders", "items", "result"):
+        val = body.get(key)
+        if isinstance(val, list):
+            return [x for x in val if isinstance(x, dict)]
+    return []
+
+
+def _extract_single(body: Any) -> Optional[Dict[str, Any]]:
+    """Extract a single order dict from admin API detail response."""
+    if isinstance(body, list):
+        items = [x for x in body if isinstance(x, dict)]
+        return items[0] if items else None
+    if not isinstance(body, dict):
+        return None
+    data = body.get("data")
+    if isinstance(data, dict):
+        return data
+    if isinstance(data, list):
+        items = [x for x in data if isinstance(x, dict)]
+        return items[0] if items else None
+    # Response itself might be the order (no wrapper)
+    if body.get("id") or body.get("order_sn"):
+        return body
+    return None
+
+
 async def fetch_daigou_order_detail(order_id: int) -> Optional[DaigouOrderDetail]:
     """GET /api/admin/daigou-orders/{id} — to'liq SKU bilan."""
     body = await _admin_get(f"/api/admin/daigou-orders/{order_id}")
-    if not body:
+    if body is None:
         return None
-    raw = body.get("data")
-    if not isinstance(raw, dict):
+    raw = _extract_single(body)
+    if not raw:
         return None
     return _parse_order(raw)
 
@@ -160,31 +202,26 @@ async def find_daigou_detail_by_sn(
     user_id: int,
     order_sn: str,
 ) -> Optional[DaigouOrderDetail]:
-    """Search by order_sn (prefix match), return first hit with matching SN."""
+    """Search by order_sn, return first hit with matching SN."""
     body = await _admin_get(
         "/api/admin/daigou-orders/",
         params={"user_id": user_id, "order_sn": order_sn, "size": 5},
     )
-    if not body:
+    if body is None:
         return None
 
-    items: List[Dict[str, Any]] = []
-    data = body.get("data")
-    if isinstance(data, list):
-        items = data
-    elif isinstance(data, dict):
-        inner = data.get("data")
-        if isinstance(inner, list):
-            items = inner
-
+    items = _extract_items(body)
     target = order_sn.upper().strip()
     for item in items:
-        if not isinstance(item, dict):
-            continue
         if str(item.get("order_sn", "")).upper().strip() == target:
             parsed = _parse_order(item)
             if parsed:
-                # Get full detail with SKU images via /id endpoint
-                detail = await fetch_daigou_order_detail(parsed.order_id)
-                return detail or parsed
+                # Try to get richer detail (with images) via ID endpoint
+                try:
+                    detail = await fetch_daigou_order_detail(parsed.order_id)
+                    if detail:
+                        return detail
+                except Exception:
+                    pass
+                return parsed
     return None
