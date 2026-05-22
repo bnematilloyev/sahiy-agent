@@ -46,6 +46,7 @@ def test_pending_arrival_excludes_completed_and_cancelled():
     daigou = [
         {"order_sn": "DG1", "status": 10},
         {"order_sn": "DG2", "status": 6},
+        {"order_sn": "DG3", "status": 5},
     ]
     jiyun = [
         {"order_sn": "J1", "status": 5},
@@ -53,6 +54,7 @@ def test_pending_arrival_excludes_completed_and_cancelled():
     ]
     assert len(filter_order_rows(delivery, "delivery", "pending_arrival")) == 2
     assert len(filter_order_rows(daigou, "daigou", "pending_arrival")) == 1
+    assert filter_order_rows(daigou, "daigou", "pending_arrival")[0]["order_sn"] == "DG3"
     assert len(filter_order_rows(jiyun, "jiyun", "pending_arrival")) == 1
 
 
@@ -65,16 +67,17 @@ def test_apply_pending_arrival_filters_payload():
         "daigou_orders": [
             {"order_sn": "DG1", "status": 10},
             {"order_sn": "DG2", "status": 6},
+            {"order_sn": "DG3", "status": 3},
         ],
         "jiyun_orders": [{"order_sn": "435", "status": 4}],
-        "daigou_total": 2,
+        "daigou_total": 3,
     }
     intent = parse_order_list_intent("tovarim qachon keladi")
     filtered = apply_list_intent_to_payload(data, intent)
     assert len(filtered["delivery_orders"]) == 1
     assert filtered["delivery_orders"][0]["order_sn"] == "kz"
     assert len(filtered["daigou_orders"]) == 1
-    assert filtered["daigou_orders"][0]["order_sn"] == "DG2"
+    assert filtered["daigou_orders"][0]["order_sn"] == "DG3"
     assert filtered["list_scope"] == "Kutilayotgan buyurtmalar"
 
 

@@ -16,13 +16,16 @@ CUSTOM_DAIGOU_PATH = "/api/custom-daigou-orders/"
 
 # Intent → daigou status kodi(lar)
 # docs: 0=To'lov kutilmoqda, 1=To'langan, 2=Sotib olinmoqda, 3=Sotib olindi,
-#       4=Sklatga kutilmoqda, 5=Sklatda, 6=Yo'lda/Yakunlangan,
+#       4=Sklatga kutilmoqda, 5=Sklatda, 6=Yo'lda (jiyun/delivery ga o'tgan),
 #       10=Bekor qilingan, 11=O'chirilgan, 12=Xatolik
+# Status 6 daigou ro'yxatida ko'rsatilmaydi — shu buyurtma jiyun/delivery da bor.
+DAIGOU_HANDOFF_STATUS = 6
 _INTENT_STATUS_MAP: Dict[str, List[int]] = {
-    "active":    [1, 2, 3, 4, 5, 6],          # to'langan + jarayondagi barcha
+    "active": [1, 2, 3, 4, 5],
+    "pending_arrival": [1, 2, 3, 4, 5],
     "cancelled": [10, 11],
     "completed": [6],
-    "in_china":  [0, 1, 2, 3, 4, 5, 6],       # Xitoyda bo'lganlar
+    "in_china": [0, 1, 2, 3, 4, 5],
 }
 
 

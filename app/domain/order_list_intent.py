@@ -318,7 +318,10 @@ def _row_matches_filter(row: Dict[str, Any], source: str, row_filter: str) -> bo
 
     if row_filter in ("active", "pending_arrival"):
         if source == "daigou":
-            return code not in (10, 11) if code is not None else True
+            # 6 = Yo'lda — jiyun/delivery da allaqachon ko'rinadi
+            if code is None:
+                return True
+            return code not in (6, 10, 11)
         if source == "delivery":
             return code != 7 if code is not None else True
         if source == "unpicked":
@@ -342,7 +345,7 @@ def _row_matches_filter(row: Dict[str, Any], source: str, row_filter: str) -> bo
         if source == "delivery":
             return code in (1, 2)
         if source == "daigou":
-            return code in (0, 1, 2, 3, 4, 5, 6) if code is not None else True
+            return code in (0, 1, 2, 3, 4, 5) if code is not None else True
         return False
 
     return True
