@@ -92,15 +92,24 @@ def _parse_sku(raw: Dict[str, Any]) -> SkuInfo:
 
     name = str(raw.get("name") or sku_info.get("name") or "").strip()
 
+    quantity = int(raw.get("quantity") or 1)
+    price = _money(raw.get("price"))
+    actual_price = _money(raw.get("actual_price"))
+    if actual_price <= 0:
+        actual_price = price
+    amount = _money(raw.get("amount"))
+    if amount <= 0 and actual_price > 0:
+        amount = actual_price * quantity
+
     return SkuInfo(
         name=name,
         platform=str(raw.get("platform") or ""),
         platform_url=str(raw.get("platform_url") or ""),
         platform_sku=str(raw.get("platform_sku") or ""),
-        quantity=int(raw.get("quantity") or 1),
-        price=_money(raw.get("price")),
-        actual_price=_money(raw.get("actual_price")),
-        amount=_money(raw.get("amount")),
+        quantity=quantity,
+        price=price,
+        actual_price=actual_price,
+        amount=amount,
         specs=specs,
         images=imgs,
     )

@@ -85,6 +85,10 @@ class Settings(BaseSettings):
     sahiy_exchange_cache_ttl_seconds: int = 3600
     sahiy_exchange_cny_uzs_fallback: float = 1750.0
 
+    # custom-daigou-orders (service_user — SKU + express_num qidiruv)
+    sahiy_custom_daigou_timeout_seconds: int = 45
+    sahiy_custom_daigou_max_pages: int = 5
+
     @property
     def sahiy_admin_captcha_model_resolved(self) -> str:
         return self.sahiy_admin_captcha_model.strip() or self.anthropic_model

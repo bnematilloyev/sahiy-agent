@@ -27,10 +27,11 @@ class SahiyApiClient:
         params_list: Optional[list[tuple[str, Any]]] = None,
         json: Optional[dict[str, Any]] = None,
         retry_on_401: bool = True,
+        timeout: Optional[float] = None,
     ) -> httpx.Response:
         token = await self._auth.get_access_token()
         response = await self._send(
-            method, path, token, params=params, params_list=params_list, json=json
+            method, path, token, params=params, params_list=params_list, json=json, timeout=timeout
         )
 
         if response.status_code == 401 and retry_on_401:
@@ -38,7 +39,13 @@ class SahiyApiClient:
             await self._auth.invalidate()
             token = await self._auth.get_access_token(force_refresh=True)
             response = await self._send(
-                method, path, token, params=params, params_list=params_list, json=json
+                method,
+                path,
+                token,
+                params=params,
+                params_list=params_list,
+                json=json,
+                timeout=timeout,
             )
 
         return response
@@ -49,8 +56,11 @@ class SahiyApiClient:
         *,
         params: Optional[dict[str, Any]] = None,
         params_list: Optional[list[tuple[str, Any]]] = None,
+        timeout: Optional[float] = None,
     ) -> Any:
-        response = await self.request("GET", path, params=params, params_list=params_list)
+        response = await self.request(
+            "GET", path, params=params, params_list=params_list, timeout=timeout
+        )
         if response.status_code >= 400:
             logger.warning(
                 "Sahiy API %s %s -> %s: %s",
@@ -75,11 +85,13 @@ class SahiyApiClient:
         params: Optional[dict[str, Any]] = None,
         params_list: Optional[list[tuple[str, Any]]] = None,
         json: Optional[dict[str, Any]] = None,
+        timeout: Optional[float] = None,
     ) -> httpx.Response:
         url = path if path.startswith("http") else f"{self._base_url}{path}"
         headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
         query: Any = params_list if params_list is not None else params
-        async with httpx.AsyncClient(timeout=self._timeout) as client:
+        req_timeout = timeout if timeout is not None else self._timeout
+        async with httpx.AsyncClient(timeout=req_timeout) as client:
             return await client.request(
                 method,
                 url,

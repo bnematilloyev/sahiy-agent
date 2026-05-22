@@ -454,6 +454,13 @@ _SPEC_KEYS: Dict[str, Dict[str, str]] = {
     "颜色分类": {"uz_lat": "Rang", "uz_cyrl": "Ранг", "ru": "Цвет", "en": "Color", "zh": "颜色分类"},
     "颜色": {"uz_lat": "Rang", "uz_cyrl": "Ранг", "ru": "Цвет", "en": "Color", "zh": "颜色"},
     "规格": {"uz_lat": "Variant", "uz_cyrl": "Variant", "ru": "Вариант", "en": "Variant", "zh": "规格"},
+    "spetsifikatsiyalar": {
+        "uz_lat": "Spetsifikatsiya",
+        "uz_cyrl": "Spetsifikatsiya",
+        "ru": "Спецификация",
+        "en": "Specification",
+        "zh": "规格",
+    },
     "型号": {"uz_lat": "Model", "uz_cyrl": "Модел", "ru": "Модель", "en": "Model", "zh": "型号"},
     "款式": {"uz_lat": "Model", "uz_cyrl": "Модел", "ru": "Модель", "en": "Style", "zh": "款式"},
     "容量": {"uz_lat": "Hajm", "uz_cyrl": "Ҳajm", "ru": "Объём", "en": "Capacity", "zh": "容量"},

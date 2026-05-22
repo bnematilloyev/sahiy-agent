@@ -71,10 +71,9 @@ class OrderHandler:
     async def _maybe_fetch_skus(
         self, data: dict, lang: str
     ) -> tuple[str, List[str]]:
-        """Fetch SKU detail for focused single daigou order. Returns (sku_text, photo_urls)."""
+        """Fetch SKU detail for focused single order (daigou or express track). Returns (sku_text, photo_urls)."""
         settings = get_settings()
 
-        # Only fetch SKUs when a single order is focused
         order_focus = data.get("order_focus")
         daigou_focus = data.get("daigou_focus")
 
@@ -89,24 +88,32 @@ class OrderHandler:
             row = daigou_focus
             source = "daigou"
 
-        if not row or source != "daigou":
+        if not row:
             return "", []
 
-        order_sn = order_sn_from_row(row)
-        if not order_sn or order_sn == "—":
-            return "", []
-
+        from app.domain.order_refs import is_daigou_sn
         from app.infrastructure.sahiy_api.daigou_admin import (
             DaigouOrderDetail,
             fetch_daigou_order_detail,
             find_daigou_detail_by_sn,
             parse_detail_from_row,
         )
+        from app.infrastructure.sahiy_api.custom_daigou import resolve_daigou_detail
+        from app.infrastructure.sahiy_api.factory import get_sahiy_api_client
+
+        track = str(data.get("requested_track") or "").strip()
+        order_sn = order_sn_from_row(row)
+        if (not order_sn or order_sn == "—") and track and is_daigou_sn(track):
+            order_sn = track.upper()
+
+        user_id = data.get("user_id") or row.get("user_id")
+        if not track and (not order_sn or order_sn == "—"):
+            return "", []
 
         detail: Optional[DaigouOrderDetail] = None
         admin_tried = False
 
-        if settings.has_admin_api:
+        if source == "daigou" and order_sn and settings.has_admin_api:
             admin_tried = True
             try:
                 order_id = row.get("id")
@@ -116,29 +123,48 @@ class OrderHandler:
                     except Exception:
                         pass
 
-                if not detail:
-                    user_id = data.get("user_id") or row.get("user_id")
-                    if user_id:
-                        detail = await find_daigou_detail_by_sn(int(user_id), order_sn)
+                if not detail and user_id:
+                    detail = await find_daigou_detail_by_sn(int(user_id), order_sn)
             except Exception as exc:
                 logger.warning("SKU admin fetch failed for %s: %s", order_sn, exc)
 
-        if not detail or not detail.skus:
-            detail = parse_detail_from_row(row)
-            if detail and detail.skus:
+        if source == "daigou" and (not detail or not detail.skus):
+            parsed = parse_detail_from_row(row)
+            if parsed and parsed.skus:
+                detail = parsed
                 logger.info(
-                    "SKU parsed from order row for %s (%d items, no admin API)",
-                    order_sn,
-                    len(detail.skus),
+                    "SKU parsed from order row for %s (%d items)",
+                    order_sn or track,
+                    len(parsed.skus),
                 )
+
+        if (not detail or not detail.skus) and user_id and settings.has_service_user:
+            client = get_sahiy_api_client()
+            if client:
+                try:
+                    custom_detail = await resolve_daigou_detail(
+                        client,
+                        int(user_id),
+                        track=track or None,
+                        order_sn=order_sn if order_sn and order_sn != "—" else None,
+                    )
+                    if custom_detail and custom_detail.skus:
+                        detail = custom_detail
+                        logger.info(
+                            "SKU from custom-daigou API for %s (%d items)",
+                            track or order_sn,
+                            len(custom_detail.skus),
+                        )
+                except Exception as exc:
+                    logger.warning(
+                        "SKU custom-daigou fetch failed for %s: %s",
+                        track or order_sn,
+                        exc,
+                    )
 
         if not detail or not detail.skus:
             if admin_tried:
-                logger.warning(
-                    "No SKU for %s — set SAHIY_ADMIN_ACCESS_TOKEN in .env "
-                    "(panel JWT) or valid admin_api credentials",
-                    order_sn,
-                )
+                logger.warning("No SKU for %s", track or order_sn)
             return "", []
 
         sku_text = format_sku_text(
