@@ -71,6 +71,10 @@ class OrderHandler:
         else:
             text = await self._format_reply(data, query, reply_language=lang)
 
+        from app.domain.order_eta import append_eta_to_reply
+
+        text = append_eta_to_reply(text, data, query, lang)
+
         if isinstance(data, dict) and not data.get("error"):
             sku_text, photo_urls = await self._maybe_fetch_skus(data, lang)
             if sku_text:
