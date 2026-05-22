@@ -49,9 +49,11 @@ _ACTIVE_KW = (
     "aktivny", "aktivnye", "tekushchie", "otkryt",
 )
 _COMPLETED_KW = (
-    "yakunlangan", "tugagan", "yetkazilgan", "olib ketilgan", "qabul qilingan",
+    "yakunlangan", "tugagan", "yetkazilgan", "olib ketilgan",
+    "qabul qilingan", "qabul qilgan", "qabul qilib olgan", "qabul qilib",
+    "received order", "received orders", "completed order", "completed orders",
     # RU
-    "zavershyon", "zavershenye", "poluchennye", "poluchil", "zakryt",
+    "zavershyon", "zavershenye", "poluchennye", "poluchil", "zakryt", "poluchen",
 )
 _DELAYED_KW = (
     "kelmayapti", "kelmay", "kelmagan", "kemayapti", "kemay", "kemagan",
@@ -246,6 +248,16 @@ def _is_where_orders_question(lowered: str) -> bool:
     )
 
 
+def _is_completed_orders_question(lowered: str) -> bool:
+    if any(k in lowered for k in _COMPLETED_KW):
+        return True
+    if "qabul qil" in lowered and any(
+        w in lowered for w in ("order", "buyurtma", "zakaz", "tovar", "posylk", "posilka")
+    ):
+        return True
+    return False
+
+
 def _is_pending_arrival_question(lowered: str) -> bool:
     if any(k in lowered for k in _ARRIVAL_KW):
         return True
@@ -282,7 +294,7 @@ def parse_order_list_intent(text: str) -> OrderListIntent:
     elif any(k in lowered for k in _IN_CHINA_KW):
         row_filter = "in_china"
         include_completed = False
-    elif any(k in lowered for k in _COMPLETED_KW):
+    elif _is_completed_orders_question(lowered):
         row_filter = "completed"
         include_completed = True
 
@@ -322,6 +334,8 @@ def parse_order_list_intent(text: str) -> OrderListIntent:
         sources = {"daigou", "delivery"}
     elif row_filter in ("pending_arrival", "active"):
         sources = {"daigou", "jiyun"}
+    elif row_filter == "completed":
+        sources = {"jiyun", "delivery", "daigou"}
 
     return OrderListIntent(
         sources=frozenset(sources),

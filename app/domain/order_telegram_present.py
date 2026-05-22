@@ -25,6 +25,13 @@ _SECTION_META: Dict[str, Dict[str, Dict[str, str]]] = {
         "en": {"icon": "🚚", "title": "In transit"},
         "zh": {"icon": "🚚", "title": "运输中"},
     },
+    "completed": {
+        "uz_lat": {"icon": "✅", "title": "Qabul qilingan"},
+        "uz_cyrl": {"icon": "✅", "title": "Qabul qilingan"},
+        "ru": {"icon": "✅", "title": "Полученные"},
+        "en": {"icon": "✅", "title": "Received"},
+        "zh": {"icon": "✅", "title": "已签收"},
+    },
 }
 
 _HINT: Dict[str, str] = {
@@ -33,6 +40,13 @@ _HINT: Dict[str, str] = {
     "ru": "💡 Подробнее: отправьте track (DG… или номер).",
     "en": "💡 Details: send a track number (DG… or numeric track).",
     "zh": "💡 详情：请发送tracking号码。",
+}
+_COMPLETED_HINT: Dict[str, str] = {
+    "uz_lat": "💡 Mahsulot va rasm: track raqam (DG… yoki raqam) yuboring.",
+    "uz_cyrl": "💡 Mahsulot va rasm: track raqam (DG… yoki raqam) yuboring.",
+    "ru": "💡 Товар и фото: отправьте track (DG… или номер).",
+    "en": "💡 Product details and photos: send a track number (DG… or numeric track).",
+    "zh": "💡 商品详情和图片：请发送tracking号码。",
 }
 
 
@@ -132,5 +146,8 @@ def build_order_telegram_messages(
     if len(messages) == 1:
         return [localize("orders_empty", lang)]
 
-    messages.append(_pick(_HINT, lang))
+    has_completed = any(
+        isinstance(s, dict) and s.get("key") == "completed" for s in chain
+    )
+    messages.append(_pick(_COMPLETED_HINT if has_completed else _HINT, lang))
     return messages

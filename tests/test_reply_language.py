@@ -24,6 +24,13 @@ def test_detect_uzbek_latin():
     assert detect_reply_language("zakazlarim qayerda") == UZ_LAT
 
 
+def test_detect_uzbek_not_english_orderlarim():
+    assert (
+        detect_reply_language("qabul qilgan orderlarim va ularning rasmlari infosi kerak")
+        == UZ_LAT
+    )
+
+
 def test_resolve_sticky_from_meta():
     assert (
         resolve_reply_language("ok", {"reply_language": RU}, None) == RU

@@ -124,3 +124,43 @@ def test_all_list_includes_completed_flag():
     intent = parse_order_list_intent("buyurtmalarim holati")
     assert intent.include_completed is True
     assert intent.row_filter is None
+
+
+def test_parse_qabul_qilgan_completed():
+    intent = parse_order_list_intent(
+        "qabul qilgan orderlarim va ularning rasmlari infosi kerak"
+    )
+    assert intent.row_filter == "completed"
+    assert intent.sources == frozenset({"jiyun", "delivery", "daigou"})
+
+
+def test_apply_completed_filters_in_transit_out():
+    data = _sample_payload_for_completed()
+    intent = parse_order_list_intent("qabul qilgan orderlarim")
+    filtered = apply_list_intent_to_payload(data, intent)
+    assert filtered.get("use_order_chain") is True
+    chain = filtered.get("order_chain") or []
+    assert len(chain) == 1
+    assert chain[0]["key"] == "completed"
+    tracks = [i["track"] for i in chain[0]["items"]]
+    assert "773402738804490" in tracks
+    assert "435147294520990" not in tracks
+    assert "P777180526409" not in tracks
+
+
+def _sample_payload_for_completed():
+    return {
+        "daigou_orders": [],
+        "daigou_total": 0,
+        "jiyun_orders": [
+            {"order_sn": "435147294520990", "status": 4, "updated_at": "2026-05-10"},
+            {"order_sn": "773402738804490", "status": 5, "updated_at": "2026-02-17"},
+        ],
+        "delivery_orders": [
+            {"express_num": "435147294520990", "status": 8},
+            {"express_num": "773402738804490", "status": 7},
+        ],
+        "unpicked_delivery": [
+            {"express_num": "P777180526409", "status": 4, "location_number": "may 2"},
+        ],
+    }

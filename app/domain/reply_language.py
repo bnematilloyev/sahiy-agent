@@ -53,6 +53,8 @@ _RU_LAT_STRONG = (
 _UZ_LAT_HINTS = (
     "qayerda",
     "buyurtma",
+    "buyurtmalarim",
+    "orderlarim",
     "zakazlar",
     "rahmat",
     "salom",
@@ -60,6 +62,11 @@ _UZ_LAT_HINTS = (
     "tovarim",
     "kelsa",
     "uchun",
+    "qabul",
+    "qilgan",
+    "kerak",
+    "rasmlari",
+    "infosi",
 )
 _EN_MARKERS = (
     "where",
@@ -102,12 +109,23 @@ def detect_reply_language(text: str) -> Optional[str]:
     norm = normalize_text(raw)
     if any(m in norm for m in _RU_LAT_STRONG):
         return RU
-    low = raw.lower()
-    if sum(1 for m in _EN_MARKERS if m in low) >= 1:
-        return EN
     if any(m in norm for m in _UZ_LAT_HINTS):
         return UZ_LAT
+    low = raw.lower()
+    if _has_en_markers(low):
+        return EN
     return None
+
+
+def _has_en_markers(text: str) -> bool:
+    """Ingliz markerlari — 'order' 'orderlarim' ichida substring bo'lmasin."""
+    for marker in _EN_MARKERS:
+        if " " in marker:
+            if marker in text:
+                return True
+        elif re.search(rf"(?<![a-z]){re.escape(marker)}(?![a-z])", text):
+            return True
+    return False
 
 
 def resolve_reply_language(

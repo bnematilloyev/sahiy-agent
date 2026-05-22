@@ -51,7 +51,7 @@ def should_use_order_chain(intent: Optional[OrderListIntent]) -> bool:
     """Ikki fazali dedup zanjir — tor filtr/intentlarda emas."""
     if intent is None:
         return True
-    if intent.row_filter in ("pending_arrival", "active"):
+    if intent.row_filter in ("pending_arrival", "active", "completed"):
         return True
     if intent.row_filter is None and intent.sources == _ALL_SOURCES:
         return True
@@ -243,6 +243,66 @@ def _build_transit_items(
     return items
 
 
+def _build_completed_items(
+    jiyun_rows: List[Dict[str, Any]],
+    delivery_idx: Dict[str, Dict[str, Any]],
+    unpicked_idx: Dict[str, Dict[str, Any]],
+    *,
+    lang: str,
+) -> List[OrderChainItem]:
+    """Faqat qabul qilingan: jiyun 5, delivery 7."""
+    items: List[OrderChainItem] = []
+    seen: Set[str] = set()
+
+    def _append(track: str, tkey: str, row: Dict[str, Any], status_source: str) -> None:
+        if tkey in seen:
+            return
+        code = _status_code(row)
+        if status_source == "jiyun" and code != 5:
+            return
+        if status_source == "delivery" and code != 7:
+            return
+        seen.add(tkey)
+        delivery = delivery_idx.get(tkey)
+        unpicked = unpicked_idx.get(tkey)
+        loc = _delivery_branch(unpicked or delivery or row) or _daigou_location(row)
+        extras = _merge_delivery_extras(row, delivery, unpicked, lang)
+        items.append(
+            OrderChainItem(
+                track=track,
+                phase="completed",
+                status=status_text(row, status_source, lang),
+                date=_format_date(
+                    row.get("updated_at") or row.get("shipped_at") or row.get("created_at")
+                ),
+                location=loc,
+                extras=extras,
+            )
+        )
+
+    for row in jiyun_rows:
+        if not isinstance(row, dict):
+            continue
+        if _status_code(row) != 5:
+            continue
+        track = order_sn_from_row(row)
+        if not track or track == "—":
+            continue
+        _append(track, normalize_track_key(track), row, "jiyun")
+
+    for tkey, row in delivery_idx.items():
+        if not isinstance(row, dict):
+            continue
+        if _status_code(row) != 7:
+            continue
+        track = order_sn_from_row(row)
+        if not track or track == "—":
+            continue
+        _append(track, tkey, row, "delivery")
+
+    return items
+
+
 def build_order_chain(
     payload: Dict[str, Any],
     intent: Optional[OrderListIntent],
@@ -260,6 +320,23 @@ def build_order_chain(
     unpicked_idx = _index_by_track(list(enrich.get("unpicked_delivery") or []))
 
     include_completed = bool(intent and intent.include_completed)
+
+    if intent and intent.row_filter == "completed":
+        completed_items = _build_completed_items(
+            list(payload.get("jiyun_orders") or []),
+            _index_by_track(list(enrich.get("delivery_orders") or [])),
+            _index_by_track(list(enrich.get("unpicked_delivery") or [])),
+            lang=lang,
+        )
+        if completed_items:
+            return [
+                OrderChainSection(
+                    key="completed",
+                    items=tuple(completed_items),
+                    total=len(completed_items),
+                )
+            ]
+        return []
 
     daigou_rows = _filter_daigou_purchase(
         list(payload.get("daigou_orders") or []),
