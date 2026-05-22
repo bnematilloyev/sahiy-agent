@@ -23,35 +23,35 @@ _IDENTITY_REQUIRED: dict[str, str] = {
     "uz_lat": (
         "📱 Davom etish uchun Sahiy hisobingiz kerak.\n\n"
         "Quyidagilardan birini yuboring:\n"
-        "🔹 Sahiy user ID — masalan: 111111 yoki id 111111\n"
+        "🔹 Hisob ID — masalan: 111111 yoki id 111111\n"
         "🔹 Telefon — 998901234567 yoki «Telefon raqamni yuborish» tugmasi\n\n"
         "Tasdiqlangach savolingizga javob beraman."
     ),
     "uz_cyrl": (
         "📱 Давом этиш учун Sahiy ҳисобингиз керак.\n\n"
         "Қуйидагилардан бирини юборинг:\n"
-        "🔹 Sahiy user ID — масалан: 111111 ёки id 111111\n"
+        "🔹 Ҳисоб ID — масалан: 111111 ёки id 111111\n"
         "🔹 Телефон — 998901234567 ёки «Телефон рақамни юбориш» тугмаси\n\n"
         "Тасдиқлангач саволингизга жавоб бераман."
     ),
     "ru": (
         "📱 Для продолжения необходим аккаунт Sahiy.\n\n"
         "Отправьте одно из следующего:\n"
-        "🔹 Sahiy user ID — например: 111111 или id 111111\n"
+        "🔹 ID аккаунта — например: 111111 или id 111111\n"
         "🔹 Телефон — 998901234567 или кнопка «Отправить номер телефона»\n\n"
         "После подтверждения отвечу на ваш вопрос."
     ),
     "en": (
         "📱 A Sahiy account is required to continue.\n\n"
         "Please send one of the following:\n"
-        "🔹 Sahiy user ID — e.g.: 111111 or id 111111\n"
+        "🔹 Account ID — e.g.: 111111 or id 111111\n"
         "🔹 Phone — 998901234567 or tap «Send phone number»\n\n"
         "I'll answer your question after verification."
     ),
     "zh": (
         "📱 继续操作需要Sahiy账户。\n\n"
         "请发送以下其中一项：\n"
-        "🔹 Sahiy用户ID — 例如：111111 或 id 111111\n"
+        "🔹 账户ID — 例如：111111 或 id 111111\n"
         "🔹 电话 — 998901234567 或点击«发送电话号码»\n\n"
         "验证后我将回答您的问题。"
     ),
@@ -116,7 +116,7 @@ def api_unavailable_text(lang: str = "uz_lat") -> str:
 
 # Backward-compatible constants (UZ default — avvalgi ishlatganlar uchun)
 IDENTITY_REQUIRED_TEXT = _t(_IDENTITY_REQUIRED, "uz_lat")
-SAHIY_USER_ID_VERIFIED_TEXT = "✅ Sahiy user ID qabul qilindi. Endi savolingizni yozing."
+SAHIY_USER_ID_VERIFIED_TEXT = "✅ Hisob ID qabul qilindi. Endi savolingizni yozing."
 INVALID_PHONE_FORMAT_TEXT = _t(_INVALID_PHONE_FORMAT, "uz_lat")
 PHONE_NOT_REGISTERED_TEXT = _t(_PHONE_NOT_REGISTERED, "uz_lat")
 PHONE_VERIFIED_TEXT = _t(_PHONE_VERIFIED, "uz_lat")

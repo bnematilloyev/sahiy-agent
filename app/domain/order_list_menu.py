@@ -31,7 +31,7 @@ _MENU_QUERY: Dict[str, str] = {
 _MENU_LABELS: Dict[str, Dict[str, str]] = {
     "all":       {"uz_lat": "📋 Hammasi",          "uz_cyrl": "📋 Ҳаммаси",           "ru": "📋 Все",              "en": "📋 All",          "zh": "📋 全部"},
     "active":    {"uz_lat": "✅ Aktiv",             "uz_cyrl": "✅ Актив",             "ru": "✅ Активные",         "en": "✅ Active",        "zh": "✅ 活跃"},
-    "daigou":    {"uz_lat": "🇨🇳 Xitoy (daigou)",  "uz_cyrl": "🇨🇳 Хитой (daigou)", "ru": "🇨🇳 Китай (daigou)", "en": "🇨🇳 China (daigou)","zh": "🇨🇳 中国(代购)"},
+    "daigou":    {"uz_lat": "🇨🇳 Xitoyda (xarid)",  "uz_cyrl": "🇨🇳 Хитойда (харид)", "ru": "🇨🇳 В Китае (закупка)", "en": "🇨🇳 In China (purchase)", "zh": "🇨🇳 中国（采购）"},
     "delivery":  {"uz_lat": "📦 Yetkazib berish",  "uz_cyrl": "📦 Етказиб бериш",    "ru": "📦 Доставка",         "en": "📦 Delivery",      "zh": "📦 配送"},
     "unpicked":  {"uz_lat": "⏳ Olib ketilmagan",  "uz_cyrl": "⏳ Олиб кетилмаган",  "ru": "⏳ Не получено",      "en": "⏳ Not picked up", "zh": "⏳ 待取货"},
     "cancelled": {"uz_lat": "❌ Bekor",             "uz_cyrl": "❌ Бекор",             "ru": "❌ Отменённые",       "en": "❌ Cancelled",     "zh": "❌ 已取消"},
@@ -67,6 +67,9 @@ def _is_vague_show_request(text: str) -> bool:
     hints = (
         "zakazlarimni",
         "buyurtmalarimni",
+        "buyurtmalarimni ko'rmoqchiman",
+        "buyurtmalarimni kormoqchiman",
+        "kormoqchiman",
         "zakazlarimni kor",
         "zakazlarimni ko'rsat",
         "buyurtmalarni kor",

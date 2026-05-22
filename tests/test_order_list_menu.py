@@ -9,6 +9,7 @@ from app.domain.order_list_menu import (
 
 def test_needs_menu_for_korsat():
     assert needs_order_list_menu("zakazlarimni ko'rsat")
+    assert needs_order_list_menu("buyurtmalarimni ko'rmoqchiman")
     assert needs_order_list_menu("buyurtmalarim qayerda")
 
 

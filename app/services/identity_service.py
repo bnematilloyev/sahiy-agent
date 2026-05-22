@@ -16,19 +16,19 @@ from app.domain.customer_identity import (
 )
 
 _SAHIY_USER_ID_INVALID: dict[str, str] = {
-    "uz_lat": "❌ Sahiy user ID noto'g'ri.\n\nMasalan: 111111 yoki id 191052 — ilovadagi hisob raqamingizni yozing.",
-    "uz_cyrl": "❌ Sahiy user ID нотўғри.\n\nМасалан: 111111 ёки id 191052 — иловадаги ҳисоб рақамингизни ёзинг.",
-    "ru": "❌ Неверный Sahiy user ID.\n\nНапример: 111111 или id 191052 — напишите номер вашего аккаунта в приложении.",
-    "en": "❌ Invalid Sahiy user ID.\n\nExample: 111111 or id 191052 — write your app account number.",
-    "zh": "❌ Sahiy用户ID无效。\n\n示例：111111 或 id 191052 — 请填写您的应用账户编号。",
+    "uz_lat": "❌ Hisob ID noto'g'ri.\n\nMasalan: 111111 yoki id 191052 — ilovadagi hisob raqamingizni yozing.",
+    "uz_cyrl": "❌ Ҳисоб ID нотўғри.\n\nМасалан: 111111 ёки id 191052 — иловадаги ҳисоб рақамингизни ёзинг.",
+    "ru": "❌ Неверный ID аккаунта.\n\nНапример: 111111 или id 191052 — напишите номер вашего аккаунта в приложении.",
+    "en": "❌ Invalid account ID.\n\nExample: 111111 or id 191052 — write your app account number.",
+    "zh": "❌ 账户ID无效。\n\n示例：111111 或 id 191052 — 请填写您的应用账户编号。",
 }
 
 _SAHIY_USER_ID_NOT_FOUND: dict[str, str] = {
-    "uz_lat": "❌ Bu user ID bo'yicha mijoz topilmadi.\n\nTelefon raqamini yuboring yoki boshqa ID ni tekshirib ko'ring.",
-    "uz_cyrl": "❌ Бу user ID бўйича мижоз топилмади.\n\nТелефон рақамини юборинг ёки бошқа ID ни текшириб кўринг.",
-    "ru": "❌ Клиент с таким user ID не найден.\n\nОтправьте номер телефона или проверьте другой ID.",
-    "en": "❌ No customer found with this user ID.\n\nSend your phone number or check another ID.",
-    "zh": "❌ 未找到该用户ID对应的客户。\n\n请发送电话号码或检查其他ID。",
+    "uz_lat": "❌ Bu hisob ID bo'yicha mijoz topilmadi.\n\nTelefon raqamini yuboring yoki boshqa ID ni tekshirib ko'ring.",
+    "uz_cyrl": "❌ Бу ҳисоб ID бўйича мижоз топилмади.\n\nТелефон рақамини юборинг ёки бошқа ID ни текшириб кўринг.",
+    "ru": "❌ Клиент с таким ID аккаунта не найден.\n\nОтправьте номер телефона или проверьте другой ID.",
+    "en": "❌ No customer found with this account ID.\n\nSend your phone number or check another ID.",
+    "zh": "❌ 未找到该账户ID对应的客户。\n\n请发送电话号码或检查其他ID。",
 }
 from app.domain.dto import ChatReply
 from app.domain.enums import MessageRole, QuestionCategory, ResponseType

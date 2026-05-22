@@ -48,74 +48,115 @@ logger = logging.getLogger(__name__)
 
 _WELCOME: dict[str, str] = {
     "uz_lat": (
-        "Assalomu alaykum! Men Sahiy yordamchi botman.\n\n"
-        "Davom etish uchun Sahiy user ID yoki telefon raqamingizni yuboring:\n"
-        "• user ID — masalan 111111\n"
-        "• telefon — tugma yoki 998901234567\n\n"
-        "Buyurtmalar: «zakazlarimni ko'rsat» — turini tugma bilan tanlaysiz.\n"
-        "Topshirish punktlari: «filial», «postomat» deb yozing.\n\n"
-        "Yangi suhbat: /new"
+        "Assalomu alaykum! Men Sahiy platformasining yordamchi botiman.\n"
+        "\n"
+        "Davom etish uchun hisobingiz ID raqamini yoki telefon raqamingizni yuboring:\n"
+        "• ID — masalan: 111111\n"
+        "• telefon — quyidagi tugma yoki 998901234567\n"
+        "\n"
+        "Buyurtmalar: «Buyurtmalarimni ko'rmoqchiman» deb yozing — turini tugmalar orqali tanlaysiz.\n"
+        "Topshirish punktlari: «Filial» yoki «Postomat» deb yozing.\n"
+        "\n"
+        "Yangi suhbat boshlash: /new"
     ),
     "uz_cyrl": (
-        "Ассалому алайкум! Мен Sahiy ёрдамчи ботман.\n\n"
-        "Давом этиш учун Sahiy user ID ёки телефон рақамингизни юборинг:\n"
-        "• user ID — масалан 111111\n"
-        "• телефон — тугма ёки 998901234567\n\n"
-        "Буюртмалар: «заказларимни кўрсат» — турини тугма билан танлайсиз.\n"
-        "Топшириш пунктлари: «филиал», «постомат» деб ёзинг.\n\n"
-        "Янги суҳбат: /new"
+        "Ассалому алайкум! Мен Sahiy платформасининг ёрдамчи ботман.\n"
+        "\n"
+        "Давом этиш учун ҳисобингиз ID рақамини ёки телефон рақамингизни юборинг:\n"
+        "• ID — масалан: 111111\n"
+        "• телефон — «Телефон рақамни юбориш» тугмаси ёки 998901234567\n"
+        "\n"
+        "Буюртмалар: «Буюртмаларимни кўрмоқчиман» деб ёзинг — турини тугмалар орқали танлайсиз.\n"
+        "Топшириш пунктлари: «Филиал» ёки «Постомат» деб ёзинг.\n"
+        "\n"
+        "Янги суҳбат бошлаш: /new"
     ),
     "ru": (
-        "Привет! Я бот-помощник Sahiy.\n\n"
-        "Для продолжения отправьте Sahiy user ID или номер телефона:\n"
-        "• user ID — например 111111\n"
-        "• телефон — кнопка или 998901234567\n\n"
-        "Заказы: напишите «мои заказы» — выберите тип кнопкой.\n"
-        "Пункты выдачи: напишите «филиал» или «постомат».\n\n"
-        "Новый диалог: /new"
+        "Здравствуйте! Я помощник платформы Sahiy.\n"
+        "\n"
+        "Для продолжения отправьте ID вашего аккаунта или номер телефона:\n"
+        "• ID — например: 111111\n"
+        "• телефон — кнопка ниже или 998901234567\n"
+        "\n"
+        "Заказы: напишите «Хочу посмотреть мои заказы» — тип выберите кнопкой.\n"
+        "Пункты выдачи: напишите «Филиал» или «Постомат».\n"
+        "\n"
+        "Начать новый диалог: /new"
     ),
     "en": (
-        "Hello! I'm Sahiy assistant bot.\n\n"
-        "To continue, send your Sahiy user ID or phone number:\n"
-        "• user ID — e.g. 111111\n"
-        "• phone — button or 998901234567\n\n"
-        "Orders: write «show my orders» — select type with a button.\n"
-        "Pickup points: write «branch» or «postamat».\n\n"
-        "New chat: /new"
+        "Hello! I'm the Sahiy assistant bot.\n"
+        "\n"
+        "To continue, send your account ID or phone number:\n"
+        "• ID — e.g. 111111\n"
+        "• phone — use the button below or 998901234567\n"
+        "\n"
+        "Orders: write «I want to see my orders» — then pick a type using the buttons.\n"
+        "Pickup points: write «Branch» or «Pickup locker».\n"
+        "\n"
+        "Start a new chat: /new"
     ),
     "zh": (
-        "您好！我是Sahiy助理机器人。\n\n"
-        "请发送Sahiy用户ID或电话号码以继续：\n"
-        "• 用户ID — 例如 111111\n"
-        "• 电话 — 按钮或 998901234567\n\n"
-        "订单：输入«显示我的订单» — 用按钮选择类型。\n"
-        "取货点：输入«分支机构»或«自取柜»。\n\n"
-        "新对话：/new"
+        "您好！我是Sahiy平台助理机器人。\n"
+        "\n"
+        "请发送您的账户ID或电话号码以继续：\n"
+        "• ID — 例如：111111\n"
+        "• 电话 — 点击下方按钮或发送 998901234567\n"
+        "\n"
+        "订单：输入「我想查看我的订单」— 然后通过按钮选择类型。\n"
+        "取货点：输入「分支机构」或「自取柜」。\n"
+        "\n"
+        "开始新对话：/new"
     ),
 }
 
 _PHONE_PROMPT: dict[str, str] = {
-    "uz_lat": "Sahiy user ID (masalan 111111) yoki telefon raqamingizni yuboring — «Telefon raqamni yuborish» tugmasi ham bo'ladi.",
-    "uz_cyrl": "Sahiy user ID (масалан 111111) ёки телефон рақамингизни юборинг — «Телефон рақамни юбориш» тугмаси ҳам бўлади.",
-    "ru": "Отправьте Sahiy user ID (например 111111) или номер телефона — также доступна кнопка «Отправить номер телефона».",
-    "en": "Send your Sahiy user ID (e.g. 111111) or phone number — you can also use the «Send phone number» button.",
-    "zh": "请发送Sahiy用户ID（例如111111）或电话号码 — 也可使用«发送电话号码»按钮。",
+    "uz_lat": (
+        "Hisob ID raqamingizni (masalan: 111111) yoki telefon raqamingizni yuboring — "
+        "«Telefon raqamni yuborish» tugmasidan ham foydalanishingiz mumkin."
+    ),
+    "uz_cyrl": (
+        "Ҳисоб ID рақамингизни (масалан: 111111) ёки телефон рақамингизни юборинг — "
+        "«Телефон рақамни юбориш» тугмасидан хам фойдаланишинг мумкин."
+    ),
+    "ru": (
+        "Отправьте ID аккаунта (например: 111111) или номер телефона — "
+        "также можно нажать «Отправить номер телефона»."
+    ),
+    "en": (
+        "Send your account ID (e.g. 111111) or phone number — "
+        "you can also tap «Send phone number»."
+    ),
+    "zh": "请发送账户ID（例如：111111）或电话号码 — 也可点击«发送电话号码»按钮。",
 }
 
 _PHONE_SAVED: dict[str, str] = {
-    "uz_lat": "Rahmat! Telefon raqamingiz saqlandi. Buyurtma yoki yetkazish haqida savolingizni yozing.",
-    "uz_cyrl": "Раҳмат! Телефон рақамингиз сақланди. Буюртма ёки етказиш ҳақида саволингизни ёзинг.",
-    "ru": "Спасибо! Номер телефона сохранён. Напишите вопрос о заказе или доставке.",
-    "en": "Thank you! Your phone number has been saved. Write your question about orders or delivery.",
-    "zh": "谢谢！您的电话号码已保存。请提出关于订单或配送的问题。",
+    "uz_lat": "Rahmat! Telefon raqamingiz saqlandi. Endi savolingizni yozing.",
+    "uz_cyrl": "Раҳмат! Телефон рақамингиз сақланди. Энди саволингизни ёзинг.",
+    "ru": "Спасибо! Номер телефона сохранён. Теперь напишите ваш вопрос.",
+    "en": "Thank you! Your phone number has been saved. Now write your question.",
+    "zh": "谢谢！您的电话号码已保存。请提出您的问题。",
 }
 
 _PHONE_WRONG_CONTACT: dict[str, str] = {
-    "uz_lat": "Telefon raqamini aniqlab bo'lmadi.\n\nSahiy user ID yozing (masalan 111111) yoki «Telefon raqamni yuborish» tugmasini bosing.",
-    "uz_cyrl": "Телефон рақамини аниқлаб бўлмади.\n\nSahiy user ID ёзинг (масалан 111111) ёки «Телефон рақамни юбориш» тугмасини босинг.",
-    "ru": "Не удалось определить номер телефона.\n\nНапишите Sahiy user ID (например 111111) или нажмите «Отправить номер телефона».",
-    "en": "Could not determine phone number.\n\nWrite your Sahiy user ID (e.g. 111111) or press «Send phone number».",
-    "zh": "无法确认电话号码。\n\n请输入Sahiy用户ID（例如111111）或点击«发送电话号码»。",
+    "uz_lat": (
+        "Telefon raqamini aniqlab bo'lmadi.\n\n"
+        "Hisob ID raqamingizni yozing (masalan: 111111) yoki "
+        "«Telefon raqamni yuborish» tugmasini bosing."
+    ),
+    "uz_cyrl": (
+        "Телефон рақамини аниқлаб бўлмади.\n\n"
+        "Ҳисоб ID рақамингизни ёзинг (масалан: 111111) ёки "
+        "«Телефон рақамни юбориш» тугмасини босинг."
+    ),
+    "ru": (
+        "Не удалось определить номер телефона.\n\n"
+        "Напишите ID аккаунта (например: 111111) или нажмите «Отправить номер телефона»."
+    ),
+    "en": (
+        "Could not determine phone number.\n\n"
+        "Write your account ID (e.g. 111111) or press «Send phone number»."
+    ),
+    "zh": "无法确认电话号码。\n\n请输入账户ID（例如：111111）或点击«发送电话号码»。",
 }
 
 _FALLBACK_ERROR: dict[str, str] = {
@@ -256,7 +297,7 @@ class TelegramBot(BotChannel):
         lang = _tg_lang(update, context)
         _new_chat_started: dict[str, str] = {
             "uz_lat": "Yangi suhbat boshlandi.\n\n",
-            "uz_cyrl": "Янги суҳбат босhlandi.\n\n",
+            "uz_cyrl": "Янги суҳбат бошланди.\n\n",
             "ru": "Новый диалог начат.\n\n",
             "en": "New chat started.\n\n",
             "zh": "新对话已开始。\n\n",

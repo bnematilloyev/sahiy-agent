@@ -247,11 +247,11 @@ _STRINGS: Dict[str, Dict[str, str]] = {
         ZH: "您想查看哪些订单？\n请选择下方按钮 👇",
     },
     "identity_verified_uid": {
-        UZ_LAT: "✅ Sahiy user ID qabul qilindi. Endi savolingizni yozing.",
-        UZ_CYRL: "✅ Sahiy user ID қабул қилинди. Энди саволингизни ёзинг.",
-        RU: "✅ Sahiy user ID принят. Теперь напишите ваш вопрос.",
-        EN: "✅ Sahiy user ID accepted. Now write your question.",
-        ZH: "✅ Sahiy用户ID已接受。请提出您的问题。",
+        UZ_LAT: "✅ Hisob ID qabul qilindi. Endi savolingizni yozing.",
+        UZ_CYRL: "✅ Ҳисоб ID қабул қилинди. Энди саволингизни ёзинг.",
+        RU: "✅ ID аккаунта принят. Теперь напишите ваш вопрос.",
+        EN: "✅ Account ID accepted. Now write your question.",
+        ZH: "✅ 账户ID已确认。请提出您的问题。",
     },
     "identity_verified_phone": {
         UZ_LAT: "✅ Telefon raqamingiz tasdiqlandi. Endi savolingizni yozing.",

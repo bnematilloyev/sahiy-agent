@@ -9,8 +9,8 @@ from app.domain.reply_language import EN, RU, UZ_LAT, ZH
 CALLBACK_PREFIX = "lang"
 
 LANGUAGE_PICKER_PROMPT = (
-    "🌐 Tilni tanlang\n"
-    "Выберите язык · Choose language · 选择语言"
+    "🌐 Muloqot tilini tanlang:\n"
+    "Quyidagi tugmalardan birini bosing 👇"
 )
 
 # callback suffix -> reply_language code
