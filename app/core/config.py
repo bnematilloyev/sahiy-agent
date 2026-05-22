@@ -79,6 +79,12 @@ class Settings(BaseSettings):
     sahiy_admin_captcha_model: str = ""           # bo'sh = ANTHROPIC_MODEL ishlatiladi
     sahiy_sku_photos_enabled: bool = True        # False = rasmsiz, tez rejim
 
+    # CNY → UZS (SKU narxlarini so'mda ko'rsatish)
+    sahiy_exchange_api_url: str = "https://api.abusahiy.uz/api/client/exchange/rates"
+    sahiy_exchange_client_uuid: str = "259bb5ce-16a8-4d4a-81d5-1aaba0ba4a54"
+    sahiy_exchange_cache_ttl_seconds: int = 3600
+    sahiy_exchange_cny_uzs_fallback: float = 1750.0
+
     @property
     def sahiy_admin_captcha_model_resolved(self) -> str:
         return self.sahiy_admin_captcha_model.strip() or self.anthropic_model

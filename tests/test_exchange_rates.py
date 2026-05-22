@@ -1,0 +1,99 @@
+"""Tests for CNY→UZS exchange rate and SKU price formatting."""
+
+from app.domain.order_present import (
+    _localize_spec_label,
+    format_sku_text,
+    format_uzs,
+)
+from app.infrastructure.sahiy_api.daigou_admin import DaigouOrderDetail, SkuInfo
+from app.infrastructure.sahiy_api.exchange_rates import parse_cny_uzs_rate
+
+
+def test_parse_cny_uzs_rate():
+    body = {
+        "ret": 1,
+        "data": [
+            {"from": "CNY", "currency_code": "USD", "rate": "0.1500"},
+            {"from": "CNY", "currency_code": "UZS", "rate": "1750.0000"},
+        ],
+    }
+    assert parse_cny_uzs_rate(body) == 1750.0
+
+
+def test_format_uzs():
+    assert format_uzs(7.26, 1750, "uz_lat") == "12 705 so'm"
+    assert format_uzs(9.26, 1750, "ru") == "16 205 сум"
+
+
+def test_localize_spec_label():
+    assert _localize_spec_label("尺码", "uz_lat") == "O'lcham"
+    assert _localize_spec_label("颜色分类", "ru") == "Цвет"
+    assert _localize_spec_label("颜色", "en") == "Color"
+
+
+def test_format_sku_text_in_uzs():
+    detail = DaigouOrderDetail(
+        order_id=1,
+        order_sn="DG1",
+        status=6,
+        status_name="",
+        goods_amount=9.26,
+        amount=9.26,
+        skus=[
+            SkuInfo(
+                name="Test slipper",
+                platform="1688",
+                platform_url="",
+                platform_sku="",
+                quantity=1,
+                price=7.26,
+                actual_price=7.26,
+                amount=7.26,
+                specs=[
+                    {"label": "尺码", "value": "44-45"},
+                    {"label": "颜色分类", "value": "228 qora"},
+                ],
+            )
+        ],
+    )
+    text = format_sku_text(detail, "uz_lat", cny_to_uzs=1750)
+    assert "📦 Mahsulotlar" in text
+    assert "_______" in text
+    assert "└ O'lcham: 44-45" in text
+    assert "└ Rang: 228 qora" in text
+    assert "└ Miqdor: 1 dona" in text
+    assert "└ Birlik narxi: 12 705 so'm" in text
+    assert "└ Qator jami: 12 705 so'm" in text
+    assert "└ Do'kon: 1688" in text
+    assert "💵 Buyurtma jami: 16 205 so'm" in text
+    assert "¥" not in text
+
+
+def test_format_sku_text_russian():
+    detail = DaigouOrderDetail(
+        order_id=1,
+        order_sn="DG1",
+        status=6,
+        status_name="",
+        goods_amount=9.26,
+        amount=9.26,
+        skus=[
+            SkuInfo(
+                name="Test",
+                platform="1688",
+                platform_url="",
+                platform_sku="",
+                quantity=2,
+                price=7.26,
+                actual_price=7.26,
+                amount=14.52,
+                specs=[{"label": "颜色", "value": "black"}],
+            )
+        ],
+    )
+    text = format_sku_text(detail, "ru", cny_to_uzs=1750)
+    assert "📦 Товары" in text
+    assert "└ Цвет: black" in text
+    assert "└ Количество: 2 шт" in text
+    assert "└ Магазин: 1688" in text
+    assert "💵 Итого по заказу:" in text

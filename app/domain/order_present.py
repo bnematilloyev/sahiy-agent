@@ -17,7 +17,7 @@ from app.infrastructure.sahiy_api.status_maps import (
 )
 
 if TYPE_CHECKING:
-    from app.infrastructure.sahiy_api.daigou_admin import DaigouOrderDetail
+    from app.infrastructure.sahiy_api.daigou_admin import DaigouOrderDetail, SkuInfo
 
 _ORDER_SN_KEYS = (
     "order_sn",
@@ -380,6 +380,8 @@ def _coerce_int(value: Any) -> Optional[int]:
 
 # ── SKU formatting ────────────────────────────────────────────────────────────
 
+_SEP = "_______"
+
 _SKU_HEADER: Dict[str, str] = {
     "uz_lat": "📦 Mahsulotlar",
     "uz_cyrl": "📦 Маҳсулотлар",
@@ -387,53 +389,176 @@ _SKU_HEADER: Dict[str, str] = {
     "en": "📦 Products",
     "zh": "📦 商品",
 }
-_TOTAL_LABEL: Dict[str, str] = {
-    "uz_lat": "Jami",
-    "uz_cyrl": "Жами",
-    "ru": "Итого",
-    "en": "Total",
-    "zh": "合计",
+_SKU_ITEM: Dict[str, str] = {
+    "uz_lat": "Mahsulot",
+    "uz_cyrl": "Маҳsulot",
+    "ru": "Товар",
+    "en": "Product",
+    "zh": "商品",
 }
-_QTY_LABEL: Dict[str, str] = {
+_SKU_QTY: Dict[str, str] = {
+    "uz_lat": "Miqdor",
+    "uz_cyrl": "Миқдор",
+    "ru": "Количество",
+    "en": "Quantity",
+    "zh": "数量",
+}
+_SKU_UNIT: Dict[str, str] = {
+    "uz_lat": "Birlik narxi",
+    "uz_cyrl": "Бирлик нархи",
+    "ru": "Цена за шт",
+    "en": "Unit price",
+    "zh": "单价",
+}
+_SKU_LINE: Dict[str, str] = {
+    "uz_lat": "Qator jami",
+    "uz_cyrl": "Қator boʻyicha jami",
+    "ru": "Сумма по позиции",
+    "en": "Line total",
+    "zh": "小计",
+}
+_SKU_TOTAL: Dict[str, str] = {
+    "uz_lat": "Buyurtma jami",
+    "uz_cyrl": "Буюртма жами",
+    "ru": "Итого по заказу",
+    "en": "Order total",
+    "zh": "订单合计",
+}
+_SKU_STORE: Dict[str, str] = {
+    "uz_lat": "Do'kon",
+    "uz_cyrl": "Дўкон",
+    "ru": "Магазин",
+    "en": "Store",
+    "zh": "店铺",
+}
+_QTY_UNIT: Dict[str, str] = {
     "uz_lat": "dona",
     "uz_cyrl": "дона",
     "ru": "шт",
     "en": "pcs",
     "zh": "件",
 }
-_PRICE_LABEL: Dict[str, str] = {
-    "uz_lat": "narx",
-    "uz_cyrl": "нарx",
-    "ru": "цена",
-    "en": "price",
-    "zh": "价格",
+_UZS_SUFFIX: Dict[str, str] = {
+    "uz_lat": "so'm",
+    "uz_cyrl": "сўм",
+    "ru": "сум",
+    "en": "UZS",
+    "zh": "UZS",
+    "zh": "UZS",
+}
+
+_SPEC_KEYS: Dict[str, Dict[str, str]] = {
+    "尺码": {"uz_lat": "O'lcham", "uz_cyrl": "Ўлчам", "ru": "Размер", "en": "Size", "zh": "尺码"},
+    "尺寸": {"uz_lat": "O'lcham", "uz_cyrl": "Ўлчам", "ru": "Размер", "en": "Size", "zh": "尺寸"},
+    "大小": {"uz_lat": "O'lcham", "uz_cyrl": "Ўлчам", "ru": "Размер", "en": "Size", "zh": "大小"},
+    "颜色分类": {"uz_lat": "Rang", "uz_cyrl": "Ранг", "ru": "Цвет", "en": "Color", "zh": "颜色分类"},
+    "颜色": {"uz_lat": "Rang", "uz_cyrl": "Ранг", "ru": "Цвет", "en": "Color", "zh": "颜色"},
+    "规格": {"uz_lat": "Variant", "uz_cyrl": "Variant", "ru": "Вариант", "en": "Variant", "zh": "规格"},
+    "型号": {"uz_lat": "Model", "uz_cyrl": "Модел", "ru": "Модель", "en": "Model", "zh": "型号"},
+    "款式": {"uz_lat": "Model", "uz_cyrl": "Модел", "ru": "Модель", "en": "Style", "zh": "款式"},
+    "容量": {"uz_lat": "Hajm", "uz_cyrl": "Ҳajm", "ru": "Объём", "en": "Capacity", "zh": "容量"},
+    "套餐": {"uz_lat": "To'plam", "uz_cyrl": "Тўplam", "ru": "Комплект", "en": "Package", "zh": "套餐"},
+    "材质": {"uz_lat": "Material", "uz_cyrl": "Material", "ru": "Материал", "en": "Material", "zh": "材质"},
+    "长度": {"uz_lat": "Uzunlik", "uz_cyrl": "Uzunlik", "ru": "Длина", "en": "Length", "zh": "长度"},
+    "宽度": {"uz_lat": "Kenglik", "uz_cyrl": "Kenglik", "ru": "Ширина", "en": "Width", "zh": "宽度"},
+    "高度": {"uz_lat": "Balandlik", "uz_cyrl": "Balandlik", "ru": "Высота", "en": "Height", "zh": "高度"},
+    "重量": {"uz_lat": "Og'irlik", "uz_cyrl": "Og'irlik", "ru": "Вес", "en": "Weight", "zh": "重量"},
 }
 
 
-def format_sku_text(detail: "DaigouOrderDetail", lang: str = UZ_LAT) -> str:
+def _t(labels: Dict[str, str], lang: str) -> str:
+    return labels.get(lang) or labels.get(UZ_LAT) or next(iter(labels.values()))
+
+
+def _truncate(text: str, limit: int = 100) -> str:
+    text = " ".join(text.split())
+    if len(text) <= limit:
+        return text
+    return text[: limit - 1].rstrip() + "…"
+
+
+def _localize_spec_label(raw_label: str, lang: str) -> str:
+    key = raw_label.strip().rstrip(":：")
+    if not key:
+        return ""
+    if key in _SPEC_KEYS:
+        return _t(_SPEC_KEYS[key], lang)
+    for zh, tr in _SPEC_KEYS.items():
+        if zh in key:
+            return _t(tr, lang)
+    return key
+
+
+def format_uzs(cny_amount: float, cny_to_uzs: float, lang: str = UZ_LAT) -> str:
+    """Convert CNY amount to formatted UZS string."""
+    suffix = _UZS_SUFFIX.get(lang) or _UZS_SUFFIX[UZ_LAT]
+    uzs = int(round(cny_amount * cny_to_uzs))
+    formatted = f"{uzs:,}".replace(",", " ")
+    return f"{formatted} {suffix}"
+
+
+def _format_money(cny: float, lang: str, cny_to_uzs: Optional[float]) -> str:
+    if cny_to_uzs and cny_to_uzs > 0:
+        return format_uzs(cny, cny_to_uzs, lang)
+    return f"{cny:.2f} ¥"
+
+
+def _format_sku_block(
+    sku: "SkuInfo",
+    index: int,
+    lang: str,
+    *,
+    cny_to_uzs: Optional[float],
+    multi: bool,
+) -> List[str]:
+    name = sku.name.strip() or f"SKU {index}"
+    title = f"🔹 {_t(_SKU_ITEM, lang)} {index}" if multi else f"🔹 {_truncate(name, 80)}"
+    lines: List[str] = [title]
+
+    if multi or len(name) > 80:
+        lines.append(f"   📝 {_truncate(name, 120)}")
+
+    for spec in sku.specs:
+        raw_l = str(spec.get("label", "")).strip()
+        raw_v = str(spec.get("value", "")).strip()
+        if not raw_l and not raw_v:
+            continue
+        label = _localize_spec_label(raw_l, lang) if raw_l else "—"
+        value = raw_v or "—"
+        lines.append(f"   └ {label}: {value}")
+
+    qty_word = _t(_QTY_UNIT, lang)
+    lines.append(f"   └ {_t(_SKU_QTY, lang)}: {sku.quantity} {qty_word}")
+    lines.append(f"   └ {_t(_SKU_UNIT, lang)}: {_format_money(sku.actual_price, lang, cny_to_uzs)}")
+    lines.append(f"   └ {_t(_SKU_LINE, lang)}: {_format_money(sku.amount, lang, cny_to_uzs)}")
+
+    platform = (sku.platform or "").strip()
+    if platform:
+        lines.append(f"   └ {_t(_SKU_STORE, lang)}: {platform}")
+
+    return lines
+
+
+def format_sku_text(
+    detail: "DaigouOrderDetail",
+    lang: str = UZ_LAT,
+    *,
+    cny_to_uzs: Optional[float] = None,
+) -> str:
     """Format DaigouOrderDetail SKU list as a Telegram-friendly text block."""
     if not detail.skus:
         return ""
 
-    header = _SKU_HEADER.get(lang) or _SKU_HEADER[UZ_LAT]
-    total_label = _TOTAL_LABEL.get(lang) or _TOTAL_LABEL[UZ_LAT]
-    qty_label = _QTY_LABEL.get(lang) or _QTY_LABEL[UZ_LAT]
-    price_label = _PRICE_LABEL.get(lang) or _PRICE_LABEL[UZ_LAT]
+    multi = len(detail.skus) > 1
+    parts: List[str] = [_t(_SKU_HEADER, lang), _SEP, ""]
 
-    lines: List[str] = [header]
     for i, sku in enumerate(detail.skus, 1):
-        name = sku.name or f"SKU {i}"
-        qty_price = f"{sku.quantity} {qty_label} × {sku.actual_price:.2f} ¥ = {sku.amount:.2f} ¥"
-        line = f"  {i}. {name}"
-        if sku.spec_label:
-            line += f" ({sku.spec_label})"
-        line += f"\n     {price_label}: {qty_price}"
-        if sku.platform:
-            line += f"  [{sku.platform}]"
-        lines.append(line)
+        parts.extend(_format_sku_block(sku, i, lang, cny_to_uzs=cny_to_uzs, multi=multi))
+        if i < len(detail.skus):
+            parts.append("")
 
-    lines.append(f"  {total_label}: {detail.amount:.2f} ¥")
-    return "\n".join(lines)
+    parts.extend(["", _SEP, f"💵 {_t(_SKU_TOTAL, lang)}: {_format_money(detail.amount, lang, cny_to_uzs)}"])
+    return "\n".join(parts)
 
 
 def collect_sku_images(detail: "DaigouOrderDetail", *, max_photos: int = 5) -> List[str]:

@@ -141,12 +141,25 @@ class OrderHandler:
                 )
             return "", []
 
-        sku_text = format_sku_text(detail, lang)
+        sku_text = format_sku_text(
+            detail,
+            lang,
+            cny_to_uzs=await self._cny_uzs_rate(),
+        )
         photo_urls: List[str] = []
         if settings.sahiy_sku_photos_enabled:
             photo_urls = collect_sku_images(detail, max_photos=5)
 
         return sku_text, photo_urls
+
+    async def _cny_uzs_rate(self) -> float:
+        from app.infrastructure.sahiy_api.exchange_rates import get_cny_uzs_rate
+
+        try:
+            return await get_cny_uzs_rate()
+        except Exception as exc:
+            logger.warning("Exchange rate fetch failed, using fallback: %s", exc)
+            return get_settings().sahiy_exchange_cny_uzs_fallback
 
     async def _format_reply(
         self, data: dict, query: str, *, reply_language: str = UZ_LAT
