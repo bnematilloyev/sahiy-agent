@@ -31,6 +31,53 @@ def test_parse_aktiv_filter():
     assert intent.row_filter == "active"
 
 
+def test_parse_tovarim_qachon_keladi_pending_arrival():
+    intent = parse_order_list_intent("tovarim qachon keladi")
+    assert intent.row_filter == "pending_arrival"
+    assert intent.sources == OrderListIntent.default().sources
+
+
+def test_pending_arrival_excludes_completed_and_cancelled():
+    delivery = [
+        {"order_sn": "A", "status": 7},
+        {"order_sn": "B", "status": 2},
+        {"order_sn": "C", "status": 8},
+    ]
+    daigou = [
+        {"order_sn": "DG1", "status": 10},
+        {"order_sn": "DG2", "status": 6},
+    ]
+    jiyun = [
+        {"order_sn": "J1", "status": 5},
+        {"order_sn": "J2", "status": 4},
+    ]
+    assert len(filter_order_rows(delivery, "delivery", "pending_arrival")) == 2
+    assert len(filter_order_rows(daigou, "daigou", "pending_arrival")) == 1
+    assert len(filter_order_rows(jiyun, "jiyun", "pending_arrival")) == 1
+
+
+def test_apply_pending_arrival_filters_payload():
+    data = {
+        "delivery_orders": [
+            {"order_sn": "done", "status": 7},
+            {"order_sn": "kz", "status": 2},
+        ],
+        "daigou_orders": [
+            {"order_sn": "DG1", "status": 10},
+            {"order_sn": "DG2", "status": 6},
+        ],
+        "jiyun_orders": [{"order_sn": "435", "status": 4}],
+        "daigou_total": 2,
+    }
+    intent = parse_order_list_intent("tovarim qachon keladi")
+    filtered = apply_list_intent_to_payload(data, intent)
+    assert len(filtered["delivery_orders"]) == 1
+    assert filtered["delivery_orders"][0]["order_sn"] == "kz"
+    assert len(filtered["daigou_orders"]) == 1
+    assert filtered["daigou_orders"][0]["order_sn"] == "DG2"
+    assert filtered["list_scope"] == "Kutilayotgan buyurtmalar"
+
+
 def test_filter_cancelled_daigou():
     rows = [
         {"order_sn": "DG1", "status": 10},

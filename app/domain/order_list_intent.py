@@ -63,6 +63,33 @@ _IN_CHINA_KW = (
     # RU
     "v kitae", "iz kitaya", "kitajskij sklad",
 )
+_ARRIVAL_KW = (
+    "qachon keladi",
+    "qachon kelad",
+    "qachon yetkaziladi",
+    "qachon yetib keladi",
+    "qachon olaman",
+    "qachon boradi",
+    "qachon priydet",
+    "kogda pridet",
+    "kogda priydet",
+    "when will it arrive",
+    "when will my order arrive",
+    "when will my package arrive",
+)
+_ARRIVAL_CONTEXT = (
+    "tovar",
+    "tovarim",
+    "tovarlar",
+    "zakaz",
+    "zakazim",
+    "buyurtma",
+    "buyurtmam",
+    "posylk",
+    "mahsulot",
+    "moi tovar",
+    "moi zakaz",
+)
 
 
 def _status_code(row: Dict[str, Any]) -> Optional[int]:
@@ -78,7 +105,7 @@ class OrderListIntent:
     """Qaysi manbalarga API chaqirish va qaysi qatorlarni ko'rsatish."""
 
     sources: FrozenSet[str]
-    row_filter: Optional[str] = None  # active | cancelled | completed | delayed | in_china
+    row_filter: Optional[str] = None  # active | pending_arrival | cancelled | completed | delayed | in_china
 
     @staticmethod
     def default() -> OrderListIntent:
@@ -99,6 +126,13 @@ class OrderListIntent:
                 "ru": "Активные заказы",
                 "en": "Active orders",
                 "zh": "活跃订单",
+            },
+            "pending_arrival": {
+                "uz_lat": "Kutilayotgan buyurtmalar",
+                "uz_cyrl": "Кutilayotgan буюртмалар",
+                "ru": "Заказы в пути",
+                "en": "Orders on the way",
+                "zh": "在途订单",
             },
             "completed": {
                 "uz_lat": "Yakunlangan buyurtmalar",
@@ -181,6 +215,16 @@ class OrderListIntent:
         return None
 
 
+def _is_pending_arrival_question(lowered: str) -> bool:
+    if any(k in lowered for k in _ARRIVAL_KW):
+        return True
+    if not any(w in lowered for w in ("qachon", "kogda", "when")):
+        return False
+    if not any(w in lowered for w in ("keladi", "kelad", "pridet", "priydet", "arrive", "yetkaz")):
+        return False
+    return any(w in lowered for w in _ARRIVAL_CONTEXT)
+
+
 def parse_order_list_intent(text: str) -> OrderListIntent:
     lowered = normalize_text(text or "")
     if not lowered:
@@ -191,6 +235,8 @@ def parse_order_list_intent(text: str) -> OrderListIntent:
         row_filter = "cancelled"
     elif any(k in lowered for k in _DELAYED_KW):
         row_filter = "delayed"
+    elif _is_pending_arrival_question(lowered):
+        row_filter = "pending_arrival"
     elif any(k in lowered for k in _IN_CHINA_KW):
         row_filter = "in_china"
     elif any(k in lowered for k in _COMPLETED_KW):
@@ -270,7 +316,7 @@ def _row_matches_filter(row: Dict[str, Any], source: str, row_filter: str) -> bo
             return code == 5
         return False
 
-    if row_filter == "active":
+    if row_filter in ("active", "pending_arrival"):
         if source == "daigou":
             return code not in (10, 11) if code is not None else True
         if source == "delivery":
