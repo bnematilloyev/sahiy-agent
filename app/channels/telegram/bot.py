@@ -25,7 +25,7 @@ from app.domain.pickup_present import parse_callback
 from app.handlers.pickup_handler import PickupHandler
 from app.infrastructure.sahiy_api.factory import get_sahiy_api_client
 from app.infrastructure.sahiy_api.pickup_points import get_pickup_points_cached
-from app.domain.customer_identity import PHONE_VERIFIED_TEXT, validate_uzbek_phone
+from app.domain.customer_identity import PHONE_VERIFIED_TEXT, resolve_contact_phone
 from app.domain.order_refs import normalize_phone
 from telegram.request import HTTPXRequest
 
@@ -40,14 +40,16 @@ logger = logging.getLogger(__name__)
 
 WELCOME_TEXT = (
     "Assalomu alaykum! Men Sahiy yordamchi botman.\n\n"
-    "Buyurtma holati uchun telefon raqamingizni yuboring.\n"
-    "Topshirish punktlari: «qayerdan olib ketaman», «filial», «postomat» deb yozing.\n\n"
+    "Davom etish uchun Sahiy user ID yoki telefon raqamingizni yuboring:\n"
+    "• user ID — masalan 111111\n"
+    "• telefon — tugma yoki 998901234567\n\n"
+    "Topshirish punktlari: «filial», «postomat» deb yozing.\n\n"
     "Yangi suhbat: /new"
 )
 
 PHONE_PROMPT_TEXT = (
-    "Buyurtmangiz haqida ma'lumot olish uchun «Telefon raqamni yuborish» "
-    "tugmasini bosing."
+    "Sahiy user ID (masalan 111111) yoki telefon raqamingizni yuboring — "
+    "«Telefon raqamni yuborish» tugmasi ham bo'ladi."
 )
 
 PHONE_SAVED_TEXT = (
@@ -55,7 +57,8 @@ PHONE_SAVED_TEXT = (
 )
 
 PHONE_WRONG_CONTACT_TEXT = (
-    "Faqat o'zingizning telefon raqamingizni yuboring — «Telefon raqamni yuborish» tugmasini bosing."
+    "Telefon raqamini aniqlab bo'lmadi.\n\n"
+    "Sahiy user ID yozing (masalan 111111) yoki «Telefon raqamni yuborish» tugmasini bosing."
 )
 
 FALLBACK_ERROR_TEXT = (
@@ -186,16 +189,8 @@ class TelegramBot(BotChannel):
 
         contact = update.message.contact
         owner_id = update.effective_user.id
-        if contact.user_id is not None and contact.user_id != owner_id:
-            await self._safe_reply_text(
-                update,
-                PHONE_WRONG_CONTACT_TEXT,
-                reply_markup=phone_request_keyboard(),
-            )
-            return
-
         raw_phone = contact.phone_number or ""
-        phone = validate_uzbek_phone(raw_phone)
+        phone = resolve_contact_phone(raw_phone)
         if not phone:
             await self._safe_reply_text(
                 update,
@@ -205,6 +200,9 @@ class TelegramBot(BotChannel):
             return
 
         user_id = str(owner_id)
+        foreign_contact = (
+            contact.user_id is not None and contact.user_id != owner_id
+        )
 
         try:
             sahiy_user_id, error_text = await self._with_chat(
@@ -230,10 +228,11 @@ class TelegramBot(BotChannel):
             context.user_data["verified_phone"] = phone
             context.user_data["sahiy_user_id"] = sahiy_user_id
             logger.info(
-                "Telegram user %s -> Sahiy user_id=%s (phone=%s)",
+                "Telegram user %s -> Sahiy user_id=%s (phone=%s, foreign_contact=%s)",
                 user_id,
                 sahiy_user_id,
                 phone,
+                foreign_contact,
             )
         except Exception:
             logger.exception("register_verified_phone failed for user_id=%s", user_id)

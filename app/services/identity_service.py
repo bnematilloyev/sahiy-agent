@@ -11,7 +11,19 @@ from app.domain.customer_identity import (
     PhoneVerifyResult,
     PHONE_NOT_REGISTERED_TEXT,
     PHONE_VERIFIED_TEXT,
+    SAHIY_USER_ID_VERIFIED_TEXT,
+    sahiy_phone_search_candidates,
     validate_uzbek_phone,
+)
+
+SAHIY_USER_ID_INVALID_TEXT = (
+    "❌ Sahiy user ID noto'g'ri.\n\n"
+    "Masalan: 111111 yoki id 191052 — ilovadagi hisob raqamingizni yozing."
+)
+
+SAHIY_USER_ID_NOT_FOUND_TEXT = (
+    "❌ Bu user ID bo'yicha mijoz topilmadi.\n\n"
+    "Telefon raqamini yuboring yoki boshqa ID ni tekshirib ko'ring."
 )
 from app.domain.dto import ChatReply
 from app.domain.enums import MessageRole, QuestionCategory, ResponseType
@@ -27,20 +39,27 @@ class IdentityService:
         self._messages = messages
 
     async def verify_phone(self, phone: str) -> PhoneVerifyResult:
-        normalized = validate_uzbek_phone(phone)
-        if not normalized:
+        candidates = sahiy_phone_search_candidates(phone)
+        if not candidates:
             return PhoneVerifyResult(ok=False, error="invalid_format")
 
         api = get_sahiy_customer_api()
         if api is None:
             return PhoneVerifyResult(ok=False, error="api_unavailable")
 
-        user_id = await api.find_user_id_by_phone(normalized)
-        if user_id is None:
-            logger.info("Phone %s not found in Sahiy", normalized)
-            return PhoneVerifyResult(ok=False, error="not_found", phone=normalized)
+        for candidate in candidates:
+            user_id = await api.find_user_id_by_phone(candidate)
+            if user_id is not None:
+                logger.info("Phone %r -> Sahiy user_id=%s", candidate, user_id)
+                stored_phone = validate_uzbek_phone(candidate) or candidate
+                return PhoneVerifyResult(
+                    ok=True,
+                    phone=stored_phone,
+                    sahiy_user_id=user_id,
+                )
 
-        return PhoneVerifyResult(ok=True, phone=normalized, sahiy_user_id=user_id)
+        logger.info("Phone %r not found in Sahiy (tried %s)", phone, candidates)
+        return PhoneVerifyResult(ok=False, error="not_found", phone=candidates[0])
 
     async def persist_identity(
         self, session_id: UUID, phone: str, sahiy_user_id: int
@@ -55,6 +74,35 @@ class IdentityService:
             role=MessageRole.USER.value,
             content=f"{SAHIY_USER_MESSAGE_PREFIX}{sahiy_user_id}",
         )
+
+    async def verify_sahiy_user_id(self, sahiy_user_id: int) -> bool:
+        if sahiy_user_id < 1:
+            return False
+        api = get_sahiy_customer_api()
+        if api is None:
+            return True
+        try:
+            snapshot = await api.build_snapshot(sahiy_user_id)
+            return snapshot.user_id == sahiy_user_id
+        except Exception as exc:
+            logger.warning("Sahiy user_id=%s verify failed: %s", sahiy_user_id, exc)
+            return False
+
+    async def register_sahiy_user_id_in_session(
+        self, session_id: UUID, sahiy_user_id: int
+    ) -> tuple[Optional[int], Optional[ChatReply]]:
+        if sahiy_user_id < 1:
+            return None, self._reply(SAHIY_USER_ID_INVALID_TEXT)
+
+        if not await self.verify_sahiy_user_id(sahiy_user_id):
+            return None, self._reply(SAHIY_USER_ID_NOT_FOUND_TEXT)
+
+        await self._messages.create(
+            session_id=session_id,
+            role=MessageRole.USER.value,
+            content=f"{SAHIY_USER_MESSAGE_PREFIX}{sahiy_user_id}",
+        )
+        return sahiy_user_id, None
 
     async def register_phone_in_session(
         self, session_id: UUID, phone: str
@@ -87,3 +135,7 @@ class IdentityService:
     @staticmethod
     def verified_reply() -> ChatReply:
         return IdentityService._reply(PHONE_VERIFIED_TEXT)
+
+    @staticmethod
+    def verified_user_id_reply() -> ChatReply:
+        return IdentityService._reply(SAHIY_USER_ID_VERIFIED_TEXT)

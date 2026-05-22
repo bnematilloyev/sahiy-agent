@@ -24,21 +24,25 @@ class RulesAi:
     @staticmethod
     def _answer_from_faq(user_prompt: str) -> str:
         blocks = re.findall(
-            r"Q:\s*(?P<q>.+?)\nA:\s*(?P<a>.+?)\n\(category:.*?similarity:\s*(?P<s>[\d.]+)\)",
+            r"Q:\s*(?P<q>.+?)\nA:\s*(?P<a>.+?)(?=\n\nQ:|\n\nSuhbat|\n\nMijoz|$)",
             user_prompt,
             flags=re.DOTALL,
         )
         if blocks:
-            _q, answer, _score = max(blocks, key=lambda row: float(row[2]))
-            compact = " ".join(answer.split())
-            sentences = re.split(r"(?<=[.!?])\s+", compact)
-            short = " ".join(sentences[:2]).strip() or compact
-            if len(short) > 320:
-                short = short[:320].rsplit(" ", 1)[0] + "..."
-            return short
-        match = re.search(r"A:\s*(.+)", user_prompt, re.IGNORECASE | re.DOTALL)
+            _q, answer = max(blocks, key=lambda row: len(row[1]))[:2]
+            return RulesAi._normalize_faq_answer(answer)
+        match = re.search(
+            r"A:\s*(.+?)(?=\n\nQ:|\n\nSuhbat|\n\nMijoz|$)",
+            user_prompt,
+            re.IGNORECASE | re.DOTALL,
+        )
         if match:
-            compact = " ".join(match.group(1).strip().split())
-            sentences = re.split(r"(?<=[.!?])\s+", compact)
-            return " ".join(sentences[:2]).strip() or compact[:320]
+            return RulesAi._normalize_faq_answer(match.group(1))
         return NO_FAQ_FALLBACK
+
+    @staticmethod
+    def _normalize_faq_answer(answer: str) -> str:
+        text = answer.strip()
+        if len(text) > 3500:
+            text = text[:3500].rsplit("\n", 1)[0].strip() + "..."
+        return text

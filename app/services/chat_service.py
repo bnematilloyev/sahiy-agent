@@ -91,6 +91,24 @@ class ChatService:
             return None, err_reply.text
         return sahiy_user_id, None
 
+    async def register_sahiy_user_id(
+        self,
+        user_id: str,
+        sahiy_user_id: int,
+        channel: str = "telegram",
+    ) -> tuple[Optional[int], Optional[str]]:
+        """Persist SAHIY_USER marker. Returns (sahiy_user_id, error_text)."""
+        if self._messages is None:
+            return None, None
+        session = await self._sessions.open_session(user_id=user_id, channel=channel)
+        identity = IdentityService(self._messages)
+        uid, err_reply = await identity.register_sahiy_user_id_in_session(
+            session.id, sahiy_user_id
+        )
+        if err_reply is not None:
+            return None, err_reply.text
+        return uid, None
+
     async def _open_session(
             self,
             user_id: str,

@@ -13,6 +13,8 @@ from app.domain.scope import is_off_topic, is_operator_request
 from app.domain.customer_identity import (
     IDENTITY_REQUIRED_TEXT,
     extract_registration_phone,
+    extract_sahiy_user_id,
+    is_identity_only_message,
     requires_customer_identity,
 )
 from app.domain.order_refs import is_order_lookup_request
@@ -139,8 +141,20 @@ class ReplyService:
         meta: Dict[str, Any],
         text: str,
     ) -> Optional[ChatReply]:
-        """Block until Sahiy user_id is known; try phone from message text."""
+        """Block until Sahiy user_id is known; accept Sahiy ID or phone in text."""
         if meta.get("sahiy_user_id") is not None:
+            return None
+
+        sahiy_id_in_text = extract_sahiy_user_id(text)
+        if sahiy_id_in_text is not None:
+            sahiy_uid, err = await self._identity.register_sahiy_user_id_in_session(
+                session_id, sahiy_id_in_text
+            )
+            if err is not None:
+                return err
+            meta["sahiy_user_id"] = sahiy_uid
+            if is_identity_only_message(text):
+                return self._identity.verified_user_id_reply()
             return None
 
         phone_in_text = extract_registration_phone(text)
@@ -152,6 +166,8 @@ class ReplyService:
                 return err
             meta["verified_phone"] = phone_in_text
             meta["sahiy_user_id"] = sahiy_uid
+            if is_identity_only_message(text):
+                return self._identity.verified_reply()
             return None
 
         return ChatReply(

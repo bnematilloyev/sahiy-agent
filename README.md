@@ -58,7 +58,9 @@ curl http://localhost:8001/health
 | `AI_MAX_CONCURRENT` | `10` | Max parallel AI calls |
 | `AI_TIMEOUT_SECONDS` | `30` | Per-request timeout |
 | `RAG_SIMILARITY_THRESHOLD` | `0.85` | Min cosine similarity for FAQ match |
-| `RAG_TOP_K` | `3` | Max FAQ chunks retrieved |
+| `RAG_TOP_K` | `7` | Max FAQ chunks retrieved |
+| `RAG_MAX_TOKENS` | `1024` | Max tokens for FAQ/RAG reply |
+| `AI_ORDER_MAX_TOKENS` | `1024` | Max tokens for order status LLM format |
 | `GO_BACKEND_URL` | `http://localhost:8080` | Go tool-call base URL |
 | `TELEGRAM_BOT_TOKEN` | _(empty)_ | Required for Telegram bot |
 | `LOG_JSON` | `false` | `true` for JSON logs in production |

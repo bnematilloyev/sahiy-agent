@@ -43,7 +43,9 @@ class Settings(BaseSettings):
     embedding_provider: str = "auto"
 
     rag_similarity_threshold: float = 0.85
-    rag_top_k: int = 3
+    rag_top_k: int = 7
+    rag_max_tokens: int = 1024
+    ai_order_max_tokens: int = 1024
     embedding_dimension: int = 1536
 
     telegram_bot_token: str = ""

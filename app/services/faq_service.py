@@ -93,10 +93,12 @@ class FaqService:
 
         # 4. AI mavjud bo'lmasa yoki rules mode
         if not self._ai.is_available:
-            return greeting + self._compose_local_answer(matches[0].answer)
+            return greeting + self._compose_local_answer(matches, max_chars=3500)
 
         # 5. LLM orqali javob
-        context_matches = matches[:3]
+        settings = get_settings()
+        context_limit = max(1, settings.rag_top_k)
+        context_matches = matches[:context_limit]
         prompt = RAG_USER_TEMPLATE.format(
             context=self._format_matches(context_matches),
             history=self._format_history(history) or "(yo'q)",
@@ -104,17 +106,37 @@ class FaqService:
         )
 
         try:
-            ai_reply = await self._ai.complete(RAG_SYSTEM, prompt, max_tokens=256)
+            ai_reply = await self._ai.complete(
+                RAG_SYSTEM,
+                prompt,
+                max_tokens=settings.rag_max_tokens,
+            )
             return f"{greeting}{ai_reply}".strip()
         except Exception as e:
             logger.error(f"RAG LLM failed: {e}")
-            return greeting + self._compose_local_answer(matches[0].answer)
+            return greeting + self._compose_local_answer(
+                matches, max_chars=3500
+            )
 
     @staticmethod
-    def _compose_local_answer(answer: str) -> str:
-        compact = " ".join(answer.split())
-        sentences = re.split(r"(?<=[.!?])\s+", compact)
-        return " ".join(sentences[:2]).strip()
+    def _compose_local_answer(
+        matches: List[FAQEntry],
+        *,
+        max_chars: int = 3500,
+    ) -> str:
+        """AI yo'q bo'lsa — FAQ javoblarini to'liq (qisqartirmasdan) berish."""
+        parts: List[str] = []
+        for entry in matches:
+            block = entry.answer.strip()
+            if block and block not in parts:
+                parts.append(block)
+        text = "\n\n".join(parts).strip()
+        if len(text) <= max_chars:
+            return text
+        trimmed = text[:max_chars].rsplit("\n", 1)[0].strip()
+        if trimmed and trimmed[-1] not in ".!?":
+            trimmed += "..."
+        return trimmed
 
     @staticmethod
     def _format_matches(entries: List[FAQEntry]) -> str:

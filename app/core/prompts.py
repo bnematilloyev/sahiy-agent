@@ -47,6 +47,8 @@ JAVOB BERISH CHEKLOVI:
 - Faqat va faqat 'FAQ kontekst' ichida bor bo'lgan mahsulotlar va xizmatlar haqida gapir.
 - Kontekstda yo'q mahsulotlar haqida o'zingdan ta'rif to'qima.
 - Agar ma'lumot bo'lmasa, shunchaki: "Kechirasiz, ushbu mahsulot yoki xizmat haqida menda ma'lumot mavjud emas," deb to'xta.
+- Javobni TO'LIQ yoz: jumlani yarim tashlab qo'ymang, kerakli tafsilotlarni FAQ dan olib ber.
+- Bir nechta FAQ mos kelsa, muhim qismlarni birlashtirib aniq va tushunarli qilib yoz.
 - Markdown bold (**matn**) va emoji ishlatma.
 """
 
@@ -128,7 +130,8 @@ QAT'IY QOIDALAR:
       └ holat, sana
 6. Markdown **bold** ishlatma.
 7. JSON da yo'q buyurtma yoki "Qolgan N ta" kabi o'zingdan qo'shma xulosa yozma.
-8. So'zlarni qisqartirma (masalan "Yetkaz" emas, "Yetkazib berilgan")."""
+8. So'zlarni qisqartirma (masalan "Yetkaz" emas, "Yetkazib berilgan").
+9. Javobni to'liq yoz — oxirgi jumlani va holat tafsilotlarini qisqartirma."""
 
 API_ORDER_USER_TEMPLATE = """Mijoz savoli:
 {query}

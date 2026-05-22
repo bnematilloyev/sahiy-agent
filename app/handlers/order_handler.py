@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 
+from app.core.config import get_settings
 from app.core.exceptions import LLMError, LLMTimeoutError
 from app.core.prompts import API_ORDER_USER_TEMPLATE, API_RESPONSE_SYSTEM
 from app.domain.dto import ChatContext, ChatReply
@@ -59,6 +60,10 @@ class OrderHandler:
             orders_json=json.dumps(summary, ensure_ascii=False, indent=2),
         )
         try:
-            return await self._ai.complete(API_RESPONSE_SYSTEM, prompt, max_tokens=768)
+            return await self._ai.complete(
+                API_RESPONSE_SYSTEM,
+                prompt,
+                max_tokens=get_settings().ai_order_max_tokens,
+            )
         except (LLMTimeoutError, LLMError):
             return format_orders_message(data)
