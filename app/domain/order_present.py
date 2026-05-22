@@ -249,7 +249,10 @@ def format_orders_message(data: Dict[str, Any], *, max_per_section: int = _DEFAU
     if requested:
         return _format_requested_track_fallback(data, str(requested))
 
-    lines: List[str] = ["📋 Buyurtmalaringiz holati"]
+    scope = data.get("list_scope")
+    lines: List[str] = [
+        f"📋 {scope}" if scope else "📋 Buyurtmalaringiz holati",
+    ]
 
     summary = summarize_orders_for_prompt(data, max_per_section=max_per_section)
     sections = summary.get("bolimlar") or {}

@@ -21,6 +21,7 @@ from app.channels.telegram.keyboards import (
     remove_keyboard,
 )
 from app.core.config import get_settings
+from app.domain.order_list_menu import parse_order_menu_callback
 from app.domain.pickup_present import parse_callback
 from app.handlers.pickup_handler import PickupHandler
 from app.infrastructure.sahiy_api.factory import get_sahiy_api_client
@@ -43,6 +44,7 @@ WELCOME_TEXT = (
     "Davom etish uchun Sahiy user ID yoki telefon raqamingizni yuboring:\n"
     "• user ID — masalan 111111\n"
     "• telefon — tugma yoki 998901234567\n\n"
+    "Buyurtmalar: «zakazlarimni ko'rsat» — turini tugma bilan tanlaysiz.\n"
     "Topshirish punktlari: «filial», «postomat» deb yozing.\n\n"
     "Yangi suhbat: /new"
 )
@@ -99,6 +101,7 @@ class TelegramBot(BotChannel):
         self._app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self._on_text))
         self._app.add_handler(MessageHandler(filters.PHOTO, self._on_photo))
         self._app.add_handler(CallbackQueryHandler(self._on_pickup_callback, pattern=r"^pp_"))
+        self._app.add_handler(CallbackQueryHandler(self._on_order_menu_callback, pattern=r"^ord_"))
         self._app.add_error_handler(self._on_error)
 
     async def start(self) -> None:
@@ -260,6 +263,71 @@ class TelegramBot(BotChannel):
         if sahiy_user_id is not None:
             meta["sahiy_user_id"] = sahiy_user_id
         return meta
+
+    async def _on_order_menu_callback(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        query = update.callback_query
+        if not query or not query.data or not update.effective_user:
+            return
+
+        synthetic_text = parse_order_menu_callback(query.data)
+        if not synthetic_text:
+            return
+
+        await query.answer()
+        user_id = str(update.effective_user.id)
+        self._run_in_background(
+            context,
+            self._process_order_menu_choice(
+                update, context, user_id, synthetic_text, query=query
+            ),
+            name=f"ord-{user_id}",
+        )
+
+    async def _process_order_menu_choice(
+        self,
+        update: Update,
+        context: ContextTypes.DEFAULT_TYPE,
+        user_id: str,
+        text: str,
+        *,
+        query: Any,
+    ) -> None:
+        metadata = self._build_metadata(update, context)
+        chat_id = query.message.chat_id if query.message else None
+        typing_task = None
+        if chat_id is not None:
+            typing_task = asyncio.create_task(self._typing_loop(context, chat_id))
+
+        reply_text = FALLBACK_ERROR_TEXT
+        reply_markup = None
+        try:
+            result = await self._with_chat(
+                lambda chat: chat.reply(
+                    user_id=user_id,
+                    text=text,
+                    channel="telegram",
+                    metadata=metadata,
+                )
+            )
+            reply_text = result.text
+            reply_markup = inline_keyboard_from_extra(getattr(result, "channel_extra", None))
+        except Exception:
+            logger.exception("order menu callback failed user_id=%s", user_id)
+        finally:
+            if typing_task is not None:
+                typing_task.cancel()
+                try:
+                    await typing_task
+                except asyncio.CancelledError:
+                    pass
+
+        if query.message:
+            try:
+                await query.message.reply_text(reply_text, reply_markup=reply_markup)
+            except TelegramError as exc:
+                logger.warning("order menu reply failed: %s", exc)
 
     async def _on_pickup_callback(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE

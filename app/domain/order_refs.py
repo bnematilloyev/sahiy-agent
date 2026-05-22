@@ -216,6 +216,13 @@ _ORDER_LOOKUP_STATUS_WORDS = (
     "status",
     "kuzat",
     "tracking",
+    "qachon",
+    "keladi",
+    "keladimi",
+    "kelarkan",
+    "kogda",
+    "pridet",
+    "priydet",
     *_DELIVERY_DELAY_WORDS,
 )
 
@@ -229,6 +236,8 @@ _ORDER_LOOKUP_CONTEXT_WORDS = (
     "buyurtmalarim",
     "tovar",
     "tovarim",
+    "tovarlar",
+    "moy zakaz",
 )
 
 
@@ -264,11 +273,18 @@ def is_order_list_question(text: str) -> bool:
         "barcha buyurtma",
         "buyurtmalarim qayerda",
         "buyurtmalarim qayda",
+        "tovarlar",
+        "olganman",
+        "nima tovar",
+        "moy zakaz",
     )
     if any(h in lowered for h in list_hints):
         return True
     if any(w in lowered for w in ("zakazlarim", "buyurtmalarim", "buyurtmalar", "buyurtmam")):
-        if any(w in lowered for w in ("qayerda", "qayda", "holat", "royxat", "kor", "ko'r")):
+        if any(
+            w in lowered
+            for w in ("qayerda", "qayda", "holat", "royxat", "kor", "ko'r", "korsat", "ko'rsat")
+        ):
             return True
     return False
 

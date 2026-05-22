@@ -8,6 +8,7 @@ from typing import List, Sequence
 from app.domain.classification import has_order_reference
 from app.domain.entities import Message
 from app.domain.enums import MessageRole
+from app.domain.customer_identity import extract_sahiy_user_id, is_identity_only_message
 from app.domain.order_refs import extract_track
 from app.domain.pickup_present import has_location_in_text
 from app.domain.text_normalize import normalize_text
@@ -76,6 +77,11 @@ _SUPPORT_TOPIC_WORDS = (
 )
 
 
+def is_identity_registration_text(text: str) -> bool:
+    """«user ID 7991625» — filial emas, identifikatsiya."""
+    return extract_sahiy_user_id(text) is not None and is_identity_only_message(text)
+
+
 def is_support_or_order_topic(text: str) -> bool:
     """Buyurtma track, shikoyat, qaytarish — filial emas."""
     if extract_track(text) or has_order_reference(text):
@@ -107,6 +113,8 @@ def is_order_status_question(text: str) -> bool:
 
 
 def is_pickup_points_question(text: str) -> bool:
+    if is_identity_registration_text(text):
+        return False
     if is_order_status_question(text):
         return False
     lowered = normalize_text(text)
@@ -158,6 +166,8 @@ def is_pickup_location_followup(text: str) -> bool:
 
 def is_pickup_conversation_turn(text: str, recent_messages: Sequence[Message]) -> bool:
     """Standalone pickup question or contextual follow-up in an active pickup thread."""
+    if is_identity_registration_text(text):
+        return False
     if is_support_or_order_topic(text):
         return False
     if is_pickup_points_question(text):

@@ -17,6 +17,12 @@ from app.domain.customer_identity import (
     is_identity_only_message,
     requires_customer_identity,
 )
+from app.domain.pickup_keywords import is_identity_registration_text
+from app.domain.order_list_menu import (
+    ORDER_MENU_PROMPT,
+    build_order_list_menu_extra,
+    needs_order_list_menu,
+)
 from app.domain.order_refs import is_order_lookup_request
 from app.domain.pickup_keywords import (
     is_pickup_conversation_turn,
@@ -102,7 +108,16 @@ class ReplyService:
                 metadata=meta,
             )
 
-        if is_order_lookup_request(text):
+        if is_identity_registration_text(text):
+            result = self._identity.verified_user_id_reply()
+        elif needs_order_list_menu(text):
+            result = ChatReply(
+                response_type=ResponseType.AUTO,
+                text=ORDER_MENU_PROMPT,
+                category=QuestionCategory.API,
+                channel_extra=build_order_list_menu_extra(),
+            )
+        elif is_order_lookup_request(text):
             order_handler = self._router.pick(QuestionCategory.API)
             result = await order_handler.reply(chat_context)
         elif is_support_or_order_topic(text):

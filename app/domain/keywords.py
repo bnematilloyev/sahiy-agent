@@ -22,6 +22,14 @@ API_KEYWORDS = (
     "kelmayapti",
     "kelmay",
     "kemayapti",
+    "qachon",
+    "keladi",
+    "tovarim",
+    "zakaz",
+    "zakazim",
+    "kogda",
+    "pridet",
+    "gde zakaz",
 )
 
 TICKET_KEYWORDS = (

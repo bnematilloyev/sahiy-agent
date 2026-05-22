@@ -22,6 +22,7 @@ from app.core.prompts import (
 from app.domain.entities import FAQEntry, Message
 from app.domain.enums import MessageRole
 from app.domain.classification import is_company_question
+from app.domain.text_normalize import normalize_text
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,10 @@ class FaqService:
         if settings.resolved_embedding_provider() == "mock":
             threshold = 0.55
 
-        vector = self._embedder.embed(query)
+        normalized_query = normalize_text(query)
+        search_text = normalized_query if normalized_query else query
+
+        vector = self._embedder.embed(search_text)
         matches = await self._faq_repo.search_similar(embedding=vector, threshold=threshold)
 
         if matches:
@@ -60,7 +64,7 @@ class FaqService:
                 return []
             return ranked
 
-        return await self._faq_repo.search_by_keywords(query)
+        return await self._faq_repo.search_by_keywords(search_text)
 
     def _should_greet(self, history: List[Message]) -> bool:
         """Tarixda botning biror xabari borligini tekshiradi."""

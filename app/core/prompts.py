@@ -27,9 +27,11 @@ CLASSIFIER_MARKER = "faq | api | ticket"
 CLASSIFIER_SYSTEM = f"""Sen Sahiy do'kon botining savol tasniflovchisisan.
 Mijoz xabarini bitta kategoriyaga ajrat. Faqat bitta so'z yoz: {CLASSIFIER_MARKER}
 
+Mijoz o'zbek (lotin yoki kirill) yoki rus tilida yozishi mumkin — mazmun bir xil.
+
 faq — umumiy savol, qoida, siyosat, kompaniya, narx, muddat; gipotetik savollar
       ("singan kelsa qaytarasizlarmi?", "mumkinmi?" — hali hodisa bo'lmagan).
-api — aniq buyurtma holati (raqam bilan): DG123, ORD-456, tracking.
+api — buyurtma holati: track raqam (DG123, TRACK...), «qachon keladi», «zakazlarim», tovar qayerda.
 ticket — haqiqiy, ro'y bergan muammo (kecha singan keldi, foto, pul qaytmadi, operator)."""
 
 CLASSIFIER_USER_TEMPLATE = (

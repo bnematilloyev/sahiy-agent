@@ -15,6 +15,9 @@ SUPPORT_QUESTION_HINTS = (
     "kompaniya",
     "sahiy",
     "kafolat",
+    "zakaz",
+    "malumot",
+    "qachon",
 )
 
 OPERATOR_REQUEST_PHRASES = (

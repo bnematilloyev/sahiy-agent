@@ -71,6 +71,19 @@ def _msg(role: str, content: str) -> Message:
     )
 
 
+def test_user_id_registration_not_pickup():
+    from app.domain.pickup_keywords import (
+        is_identity_registration_text,
+        is_pickup_conversation_turn,
+    )
+    from app.domain.pickup_present import has_location_in_text
+
+    msg = "user ID 7991625"
+    assert is_identity_registration_text(msg)
+    assert not has_location_in_text(msg)
+    assert not is_pickup_conversation_turn(msg, [])
+
+
 def test_complaint_with_track_not_pickup():
     msg = "435147294520990 Tovar siniq kelgan vozvrat bormi"
     from app.domain.pickup_keywords import is_pickup_conversation_turn, is_support_or_order_topic

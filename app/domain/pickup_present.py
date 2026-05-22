@@ -46,6 +46,9 @@ _LOCATION_STOP_TOKENS = frozenset(
         "rahmat",
         "track",
         "raqam",
+        "user",
+        "userid",
+        "foydalanuvchi",
     }
 )
 

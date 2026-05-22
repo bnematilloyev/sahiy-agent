@@ -15,6 +15,12 @@ from app.domain.order_match import (
     row_matches_track,
     track_focus_is_valid,
 )
+from app.domain.order_list_intent import (
+    OrderListIntent,
+    apply_list_intent_to_payload,
+    parse_order_list_intent,
+    should_fetch_with_list_intent,
+)
 from app.domain.order_refs import (
     extract_phone,
     extract_track,
@@ -56,6 +62,7 @@ class CustomerSnapshot:
     unpicked_delivery: List[Dict[str, Any]] = field(default_factory=list)
     ownership_mismatch: bool = False
     requested_track: Optional[str] = None
+    list_scope: Optional[str] = None
 
     def to_api_payload(self) -> Dict[str, Any]:
         return {
@@ -72,6 +79,7 @@ class CustomerSnapshot:
             "unpicked_delivery": self.unpicked_delivery,
             "ownership_mismatch": self.ownership_mismatch,
             "requested_track": self.requested_track,
+            "list_scope": self.list_scope,
             "status_labels": {
                 "delivery": delivery_label,
                 "dashboard": dashboard_label,
@@ -138,7 +146,18 @@ class CustomerApi:
                 "message": "Telefon yoki track raqamini yuboring.",
             }
 
-        snapshot = await self.build_snapshot(user_id, phone=normalized_phone)
+        list_intent: Optional[OrderListIntent] = None
+        if should_fetch_with_list_intent(query, track=track):
+            list_intent = parse_order_list_intent(query)
+
+        snapshot = await self.build_snapshot(
+            user_id,
+            phone=normalized_phone,
+            intent=list_intent,
+        )
+        if list_intent is not None and list_intent != OrderListIntent.default():
+            payload = apply_list_intent_to_payload(snapshot.to_api_payload(), list_intent)
+            snapshot = self._snapshot_from_filtered_payload(snapshot, payload, list_intent)
 
         if track and not is_order_list_question(query):
             focused = await self._apply_track_focus(snapshot, track)
@@ -355,15 +374,57 @@ class CustomerApi:
                 return await self.find_user_id_by_search(compact)
         return None
 
-    async def build_snapshot(self, user_id: int, *, phone: Optional[str] = None) -> CustomerSnapshot:
-        delivery, dashboard, jiyun, daigou, unpicked = await asyncio.gather(
-            self._delivery_orders(user_id),
-            self._dashboard_orders(user_id),
-            self._jiyun_orders(user_id),
-            self._daigou_orders(user_id),
-            self._unpicked_delivery(user_id),
-            return_exceptions=True,
+    @staticmethod
+    def _snapshot_from_filtered_payload(
+        base: CustomerSnapshot,
+        payload: Dict[str, Any],
+        intent: OrderListIntent,
+    ) -> CustomerSnapshot:
+        return CustomerSnapshot(
+            user_id=base.user_id,
+            phone=base.phone,
+            delivery_orders=list(payload.get("delivery_orders") or []),
+            dashboard_orders=list(payload.get("dashboard_orders") or []),
+            jiyun_orders=list(payload.get("jiyun_orders") or []),
+            daigou_orders=list(payload.get("daigou_orders") or []),
+            daigou_total=int(payload.get("daigou_total") or 0),
+            daigou_focus=base.daigou_focus,
+            order_focus=base.order_focus,
+            tracking=base.tracking,
+            unpicked_delivery=list(payload.get("unpicked_delivery") or []),
+            ownership_mismatch=base.ownership_mismatch,
+            requested_track=base.requested_track,
+            list_scope=intent.scope_title(),
         )
+
+    async def build_snapshot(
+        self,
+        user_id: int,
+        *,
+        phone: Optional[str] = None,
+        intent: Optional[OrderListIntent] = None,
+    ) -> CustomerSnapshot:
+        fetch = intent.sources if intent is not None else OrderListIntent.default().sources
+
+        task_map: Dict[str, Any] = {}
+        if "delivery" in fetch:
+            task_map["delivery"] = self._delivery_orders(user_id)
+        if "dashboard" in fetch:
+            task_map["dashboard"] = self._dashboard_orders(user_id)
+        if "jiyun" in fetch:
+            task_map["jiyun"] = self._jiyun_orders(user_id)
+        if "daigou" in fetch:
+            task_map["daigou"] = self._daigou_orders(user_id)
+        if "unpicked" in fetch:
+            task_map["unpicked"] = self._unpicked_delivery(user_id)
+
+        keys = list(task_map.keys())
+        results = (
+            await asyncio.gather(*task_map.values(), return_exceptions=True)
+            if keys
+            else []
+        )
+        by_src = dict(zip(keys, results))
 
         def _unwrap_list(result: Any, label: str) -> list:
             if isinstance(result, Exception):
@@ -380,17 +441,17 @@ class CustomerApi:
                 return (items if isinstance(items, list) else []), int(total or 0)
             return [], 0
 
-        dg_items, dg_total = _unwrap_daigou(daigou)
+        dg_items, dg_total = _unwrap_daigou(by_src.get("daigou", ([], 0)))
 
         return CustomerSnapshot(
             user_id=user_id,
             phone=phone,
-            delivery_orders=_unwrap_list(delivery, "delivery"),
-            dashboard_orders=_unwrap_list(dashboard, "dashboard"),
-            jiyun_orders=_unwrap_list(jiyun, "jiyun"),
+            delivery_orders=_unwrap_list(by_src.get("delivery", []), "delivery"),
+            dashboard_orders=_unwrap_list(by_src.get("dashboard", []), "dashboard"),
+            jiyun_orders=_unwrap_list(by_src.get("jiyun", []), "jiyun"),
             daigou_orders=dg_items,
             daigou_total=dg_total,
-            unpicked_delivery=_unwrap_list(unpicked, "unpicked"),
+            unpicked_delivery=_unwrap_list(by_src.get("unpicked", []), "unpicked"),
         )
 
     async def _delivery_orders(self, user_id: int) -> List[Dict[str, Any]]:
