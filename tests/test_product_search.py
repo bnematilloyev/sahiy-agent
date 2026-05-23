@@ -49,10 +49,19 @@ def test_build_goods_deeplink():
 
 
 def test_build_product_search_deeplink():
-    link = build_product_search_deeplink("成人用品", page_size=20)
-    assert link.startswith("https://sahiy.uz/PurchaseSearchView?")
-    assert "keyword=" in link
-    assert "page_size=20" in link
+    link = build_product_search_deeplink("kurtka", page_size=20)
+    assert link.startswith("https://sahiy.uz/search?")
+    qs = parse_qs(urlparse(link).query)
+    assert qs["q"] == ["kurtka"]
+    assert qs["platform"] == ["1688"]
+    assert "PurchaseSearchView" not in link
+    assert "keyword=" not in link
+
+
+def test_build_product_search_deeplink_chinese_query():
+    link = build_product_search_deeplink("夏季 帽子")
+    qs = parse_qs(urlparse(link).query)
+    assert qs["q"] == ["夏季 帽子"]
     assert "platform=1688" in link
 
 
@@ -69,8 +78,9 @@ def test_product_search_see_all_keyboard():
     extra = product_search_see_all_keyboard("lego", "uz_lat", page_size=20)
     btn = extra["inline_keyboard"][0][0]
     assert "Hammasini" in btn["text"]
-    assert "page_size=20" in btn["url"]
-    assert "keyword=lego" in btn["url"]
+    assert "q=lego" in btn["url"] or "q=lego" in btn["url"].lower()
+    assert "platform=1688" in btn["url"]
+    assert "PurchaseSearchView" not in btn["url"]
 
 
 def test_product_search_see_all_keyboard_category():

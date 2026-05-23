@@ -118,7 +118,7 @@ class Settings(BaseSettings):
     sahiy_product_search_see_all_page_size: int = 20
     sahiy_product_search_sort: str = "asc"
     sahiy_goods_deeplink_base: str = "https://sahiy.uz/GoodsDetailView?u="
-    sahiy_product_search_deeplink_base: str = "https://sahiy.uz/PurchaseSearchView"
+    sahiy_product_search_deeplink_base: str = "https://sahiy.uz/search"
     sahiy_category_search_deeplink_base: str = "https://sahiy.uz/search"
     sahiy_1688_categories_cache_ttl_seconds: int = 86400
     sahiy_category_root_max_buttons: int = 64

@@ -58,18 +58,17 @@ def build_product_search_deeplink(
     sort: Optional[str] = None,
     base: Optional[str] = None,
 ) -> str:
-    """Ilovada to'liq qidiruv ro'yxatini ochish (keyword + page_size)."""
+    """Veb qidiruv: /search?q=kurtka&platform=1688 (PurchaseSearchView emas)."""
+    _ = page_size, sort  # eski API — veb /search da ishlatilmaydi
     settings = get_settings()
     root = (base or settings.sahiy_product_search_deeplink_base).strip().rstrip("/?")
-    size = page_size if page_size is not None else settings.sahiy_product_search_see_all_page_size
+    q = keyword.strip()
+    if not q:
+        raise ValueError("keyword is required")
     params: dict[str, str] = {
-        "keyword": keyword.strip(),
-        "page_size": str(max(1, int(size))),
+        "q": q,
         "platform": platform.strip() or "1688",
     }
-    sort_val = (sort or settings.sahiy_product_search_sort or "").strip()
-    if sort_val:
-        params["sort"] = sort_val
     return f"{root}?{urlencode(params)}"
 
 
