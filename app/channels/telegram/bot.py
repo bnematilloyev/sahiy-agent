@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from typing import Any, Callable, Coroutine, Dict, Optional
 
 from telegram import InputMediaPhoto, Message, Update
-from telegram.error import Forbidden, NetworkError, TelegramError, TimedOut
+from telegram.error import Forbidden, NetworkError, RetryAfter, TelegramError, TimedOut
 from telegram.ext import (
     Application,
     CallbackQueryHandler,
@@ -172,23 +173,27 @@ _STREAM_CURSOR = "▌"
 _TELEGRAM_MAX_MESSAGE_LEN = 4096
 
 class _SmoothStreamSession:
-    """Buffer + timer: tokenlar navbatga, so'zma-so'z silliq chiqarish."""
+    """Adaptive pacing: lag kichik bo'lsa so'zma-so'z, katta bo'lsa kattaroq bo'lak.
+
+    IMAN APP kabi silliq oqim — Telegram edit_message_text uchun rate-limit
+    tafsilotlarini hisobga oladi (retry yo'q, RetryAfter ga rioya qiladi).
+    """
 
     def __init__(self, bot: "TelegramBot", message: Message) -> None:
         self._bot = bot
         self._message = message
-        self._token_queue: asyncio.Queue[str] = asyncio.Queue()
         self._full_response = ""
         self._displayed_response = ""
         self._stream_done = False
         self._last_pushed_len = 0
         self._last_frame = ""
+        self._last_edit_at = 0.0
         self._task = asyncio.create_task(self._smooth_display())
 
     async def enqueue(self, accumulated: str) -> None:
         display = self._bot._clip_telegram_text(accumulated)
         if len(display) > self._last_pushed_len:
-            await self._token_queue.put(display[self._last_pushed_len :])
+            self._full_response = display
             self._last_pushed_len = len(display)
 
     async def finish(self, final_text: str) -> None:
@@ -204,53 +209,95 @@ class _SmoothStreamSession:
                 pass
 
     @staticmethod
-    def _next_word_chunk(remaining: str, fallback_chars: int) -> str:
-        """Keyingi so'z (yoki bo'shliq yo'q bo'lsa kichik belgi bo'lagi)."""
+    def _take_chunk(remaining: str, target_chars: int) -> str:
+        """Keyingi bo'lak — so'z chegarasiga moslab, target_chars atrofida."""
         if not remaining:
             return ""
-        next_space = remaining.find(" ", 1)
-        if next_space == -1:
-            return remaining[: max(1, fallback_chars)]
-        return remaining[: next_space + 1]
+        if len(remaining) <= target_chars:
+            return remaining
+        # Try to break at a space close to target_chars (±25%)
+        window_start = max(1, int(target_chars * 0.75))
+        window_end = min(len(remaining), int(target_chars * 1.25) + 1)
+        slice_ = remaining[window_start:window_end]
+        space_pos = slice_.rfind(" ")
+        if space_pos != -1:
+            return remaining[: window_start + space_pos + 1]
+        space_pos = remaining.find(" ", target_chars)
+        if space_pos != -1 and space_pos < target_chars * 2:
+            return remaining[: space_pos + 1]
+        return remaining[:target_chars]
 
-    async def _edit_frame(self, *, show_cursor: bool) -> None:
+    def _adaptive_chunk_size(self, lag: int) -> int:
+        """Lag oshgan sari bo'lak kattalashadi — orqaga qolmaslik uchun."""
+        base = max(1, self._bot._stream_chars_per_tick)
+        if self._stream_done:
+            # Tugagandan keyin tezroq yopilsin
+            if lag > 200:
+                return max(base * 8, lag // 4)
+            if lag > 80:
+                return base * 4
+            if lag > 30:
+                return base * 2
+            return base
+        if lag > 120:
+            return base * 3
+        if lag > 50:
+            return base * 2
+        return base
+
+    async def _try_edit(self, *, show_cursor: bool) -> bool:
+        """Bir marta urinish — retry yo'q. 429/Network → False."""
         frame = self._bot._stream_frame_text(
-            self._displayed_response,
-            show_cursor=show_cursor,
+            self._displayed_response, show_cursor=show_cursor
         )
         if frame == self._last_frame:
-            return
-        ok = await self._bot._safe_edit_stream_frame(
-            self._message,
-            self._displayed_response,
-            show_cursor=show_cursor,
-        )
-        if ok:
+            return True
+        try:
+            await self._message.edit_text(frame)
             self._last_frame = frame
-        else:
-            await asyncio.sleep(self._bot._stream_rate_limit_backoff)
+            self._last_edit_at = time.monotonic()
+            return True
+        except RetryAfter as exc:
+            backoff = float(getattr(exc, "retry_after", 1.0)) + 0.05
+            self._last_edit_at = time.monotonic() + backoff
+            await asyncio.sleep(min(backoff, 2.0))
+            return False
+        except Forbidden:
+            return False
+        except (TimedOut, NetworkError):
+            self._last_edit_at = time.monotonic()
+            return False
+        except TelegramError as exc:
+            msg = str(exc).lower()
+            if "not modified" in msg:
+                self._last_frame = frame
+                return True
+            logger.warning("stream edit_text failed: %s", exc)
+            return False
 
     async def _smooth_display(self) -> None:
         tick_delay = self._bot._stream_tick_delay
-        fallback_chars = max(1, self._bot._stream_chars_per_tick)
+        min_edit_gap = self._bot._stream_min_edit_gap
 
         while True:
-            while not self._token_queue.empty():
-                self._full_response += await self._token_queue.get()
-
             remaining = self._full_response[len(self._displayed_response) :]
-            if remaining:
-                self._displayed_response += self._next_word_chunk(
-                    remaining, fallback_chars
-                )
+            now = time.monotonic()
+            gap_ready = (now - self._last_edit_at) >= min_edit_gap
+
+            if remaining and gap_ready:
+                chunk_size = self._adaptive_chunk_size(len(remaining))
+                chunk = self._take_chunk(remaining, chunk_size)
+                self._displayed_response += chunk
                 at_end = (
                     self._stream_done
                     and self._displayed_response == self._full_response
                 )
-                await self._edit_frame(show_cursor=not at_end)
+                await self._try_edit(show_cursor=not at_end)
 
             if self._stream_done and self._displayed_response == self._full_response:
-                await self._edit_frame(show_cursor=False)
+                if self._bot._stream_show_cursor:
+                    # Cursorsiz oxirgi frame
+                    await self._try_edit(show_cursor=False)
                 break
 
             await asyncio.sleep(tick_delay)
@@ -313,10 +360,8 @@ class TelegramBot(BotChannel):
         self._stream_enabled = settings.telegram_stream_enabled
         self._stream_chars_per_tick = settings.telegram_stream_edit_min_chars
         self._stream_tick_delay = settings.telegram_stream_edit_delay_seconds
+        self._stream_min_edit_gap = settings.telegram_stream_min_edit_gap_seconds
         self._stream_show_cursor = settings.telegram_stream_show_cursor
-        self._stream_rate_limit_backoff = (
-            settings.telegram_stream_rate_limit_backoff_seconds
-        )
         self._app.add_handler(CommandHandler("start", self._on_start))
         self._app.add_handler(CommandHandler("new", self._on_new))
         self._app.add_handler(MessageHandler(filters.CONTACT, self._on_contact))

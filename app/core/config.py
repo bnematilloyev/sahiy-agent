@@ -71,12 +71,13 @@ class Settings(BaseSettings):
     telegram_send_retries: int = 3
     telegram_typing_interval_seconds: float = 4.0
     telegram_stream_enabled: bool = True
-    # So'z bo'lmaganda bir tickdagi belgilar (3–4 = silliq)
-    telegram_stream_edit_min_chars: int = 3
-    # So'zlar orasidagi interval (0.06 ≈ Iman APP)
-    telegram_stream_edit_delay_seconds: float = 0.06
+    # Bir editda taxminan necha belgi qo'shiladi (base; adaptive scales up under load)
+    telegram_stream_edit_min_chars: int = 8
+    # Pump tick (yangilanish chastotasi)
+    telegram_stream_edit_delay_seconds: float = 0.05
+    # Ikki edit orasidagi minimal interval (Telegram rate-limit) — 0.15 ≈ 6 edit/s
+    telegram_stream_min_edit_gap_seconds: float = 0.15
     telegram_stream_show_cursor: bool = True
-    telegram_stream_rate_limit_backoff_seconds: float = 0.5
 
     # Close active session after this many hours without messages (0 = disabled)
     session_idle_hours: float = 24.0
