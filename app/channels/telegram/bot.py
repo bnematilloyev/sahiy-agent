@@ -168,8 +168,13 @@ _FALLBACK_ERROR: dict[str, str] = {
     "zh": "暂时无法发送回复（网络错误）。请1–2分钟后重试。",
 }
 
-_STREAM_PLACEHOLDER = "⏳"
+_STREAM_PLACEHOLDER = "·"
+_STREAM_PLACEHOLDER_FRAMES = ("·", "··", "···")
+_STREAM_PLACEHOLDER_INTERVAL = 0.4
 _STREAM_CURSOR = "▌"
+# Streaming davomida matn oxiridagi cycling "..." (cursor o'rniga)
+_STREAM_TRAIL_FRAMES = (" ·", " ··", " ···")
+_STREAM_TRAIL_INTERVAL = 0.45
 _TELEGRAM_MAX_MESSAGE_LEN = 4096
 
 class _SmoothStreamSession:
@@ -188,6 +193,8 @@ class _SmoothStreamSession:
         self._last_pushed_len = 0
         self._last_frame = ""
         self._last_edit_at = 0.0
+        self._placeholder_idx = 0
+        self._placeholder_last_at = 0.0
         self._task = asyncio.create_task(self._smooth_display())
 
     async def enqueue(self, accumulated: str) -> None:
@@ -245,11 +252,24 @@ class _SmoothStreamSession:
             return base * 2
         return base
 
+    def _trail(self, *, show: bool) -> str:
+        if not show or not self._bot._stream_show_cursor:
+            return ""
+        return _STREAM_TRAIL_FRAMES[self._placeholder_idx % len(_STREAM_TRAIL_FRAMES)]
+
+    def _build_frame(self, *, show_trail: bool) -> str:
+        body = self._displayed_response
+        trail = self._trail(show=show_trail)
+        if not body:
+            return trail or "…"
+        body = self._bot._clip_telegram_text(body)
+        if trail and len(body) + len(trail) <= _TELEGRAM_MAX_MESSAGE_LEN:
+            return body + trail
+        return body
+
     async def _try_edit(self, *, show_cursor: bool) -> bool:
         """Bir marta urinish — retry yo'q. 429/Network → False."""
-        frame = self._bot._stream_frame_text(
-            self._displayed_response, show_cursor=show_cursor
-        )
+        frame = self._build_frame(show_trail=show_cursor)
         if frame == self._last_frame:
             return True
         try:
@@ -275,28 +295,69 @@ class _SmoothStreamSession:
             logger.warning("stream edit_text failed: %s", exc)
             return False
 
+    async def _animate_placeholder(self, now: float) -> None:
+        """LLM hali yozmaganda animatsiyali nuqtalar (·  ··  ···)."""
+        if (now - self._placeholder_last_at) < _STREAM_PLACEHOLDER_INTERVAL:
+            return
+        frame = _STREAM_PLACEHOLDER_FRAMES[
+            self._placeholder_idx % len(_STREAM_PLACEHOLDER_FRAMES)
+        ]
+        self._placeholder_idx += 1
+        self._placeholder_last_at = now
+        if frame == self._last_frame:
+            return
+        try:
+            await self._message.edit_text(frame)
+            self._last_frame = frame
+        except RetryAfter as exc:
+            await asyncio.sleep(min(float(getattr(exc, "retry_after", 1.0)), 2.0))
+        except (TimedOut, NetworkError, Forbidden):
+            return
+        except TelegramError as exc:
+            if "not modified" not in str(exc).lower():
+                logger.debug("placeholder edit skipped: %s", exc)
+
     async def _smooth_display(self) -> None:
         tick_delay = self._bot._stream_tick_delay
         min_edit_gap = self._bot._stream_min_edit_gap
 
         while True:
-            remaining = self._full_response[len(self._displayed_response) :]
             now = time.monotonic()
-            gap_ready = (now - self._last_edit_at) >= min_edit_gap
+            remaining = self._full_response[len(self._displayed_response) :]
 
+            # 1) Birinchi token kelmaguncha animatsiyali "···"
+            if not self._full_response and not self._stream_done:
+                await self._animate_placeholder(now)
+                await asyncio.sleep(tick_delay)
+                continue
+
+            # 2) Adaptive smooth display
+            gap_ready = (now - self._last_edit_at) >= min_edit_gap
+            edited = False
             if remaining and gap_ready:
                 chunk_size = self._adaptive_chunk_size(len(remaining))
                 chunk = self._take_chunk(remaining, chunk_size)
                 self._displayed_response += chunk
+                self._placeholder_idx += 1
                 at_end = (
                     self._stream_done
                     and self._displayed_response == self._full_response
                 )
                 await self._try_edit(show_cursor=not at_end)
+                edited = True
+
+            # 3) LLM hali yozyapti, lekin yangi token kelmadi — trail dots animatsiyasi
+            if (
+                not edited
+                and not self._stream_done
+                and self._displayed_response
+                and (now - self._last_edit_at) >= _STREAM_TRAIL_INTERVAL
+            ):
+                self._placeholder_idx += 1
+                await self._try_edit(show_cursor=True)
 
             if self._stream_done and self._displayed_response == self._full_response:
                 if self._bot._stream_show_cursor:
-                    # Cursorsiz oxirgi frame
                     await self._try_edit(show_cursor=False)
                 break
 
@@ -721,9 +782,9 @@ class TelegramBot(BotChannel):
         use_stream = self._stream_enabled and update.message is not None
         sent_message: Optional[Message] = None
         stream_session: Optional[_SmoothStreamSession] = None
-        typing_task: Optional[asyncio.Task[None]] = None
-        if not use_stream:
-            typing_task = asyncio.create_task(self._typing_loop(context, chat_id))
+        typing_task: Optional[asyncio.Task[None]] = asyncio.create_task(
+            self._typing_loop(context, chat_id)
+        )
 
         reply_text = fallback_text
         reply_markup = None
