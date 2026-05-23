@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import time
 from typing import Any, Callable, Coroutine, Dict, Optional
 
 from telegram import InputMediaPhoto, Message, Update
@@ -169,7 +168,69 @@ _FALLBACK_ERROR: dict[str, str] = {
 }
 
 _STREAM_PLACEHOLDER = "⏳"
+_STREAM_CURSOR = " ▌"
 _TELEGRAM_MAX_MESSAGE_LEN = 4096
+
+class _SmoothStreamSession:
+    """Buffer + timer: tokenlar navbatga, ekran doimiy tezlikda yangilanadi."""
+
+    def __init__(self, bot: "TelegramBot", message: Message) -> None:
+        self._bot = bot
+        self._message = message
+        self._token_queue: asyncio.Queue[str] = asyncio.Queue()
+        self._full_response = ""
+        self._displayed_response = ""
+        self._stream_done = False
+        self._last_pushed_len = 0
+        self._task = asyncio.create_task(self._smooth_display())
+
+    async def enqueue(self, accumulated: str) -> None:
+        display = self._bot._clip_telegram_text(accumulated)
+        if len(display) > self._last_pushed_len:
+            await self._token_queue.put(display[self._last_pushed_len :])
+            self._last_pushed_len = len(display)
+
+    async def finish(self, final_text: str) -> None:
+        await self.enqueue(final_text)
+        self._stream_done = True
+        try:
+            await asyncio.wait_for(self._task, timeout=120.0)
+        except asyncio.TimeoutError:
+            self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
+
+    async def _smooth_display(self) -> None:
+        chars_per_tick = max(1, self._bot._stream_chars_per_tick)
+        tick_delay = self._bot._stream_tick_delay
+
+        while True:
+            while not self._token_queue.empty():
+                self._full_response += await self._token_queue.get()
+
+            if len(self._displayed_response) < len(self._full_response):
+                target = min(
+                    len(self._displayed_response) + chars_per_tick,
+                    len(self._full_response),
+                )
+                self._displayed_response = self._full_response[:target]
+                show_cursor = self._bot._stream_show_cursor and not (
+                    self._stream_done
+                    and self._displayed_response == self._full_response
+                )
+                await self._bot._safe_edit_stream_frame(
+                    self._message,
+                    self._displayed_response,
+                    show_cursor=show_cursor,
+                )
+
+            if self._stream_done and self._displayed_response == self._full_response:
+                break
+
+            await asyncio.sleep(tick_delay)
+
 
 _PHOTO_FALLBACK: dict[str, str] = {
     "uz_lat": "Rasmingiz qabul qilindi. Operator tez orada bog'lanadi: @sahiy_operator",
@@ -226,8 +287,9 @@ class TelegramBot(BotChannel):
         self._send_retries = settings.telegram_send_retries
         self._typing_interval = settings.telegram_typing_interval_seconds
         self._stream_enabled = settings.telegram_stream_enabled
-        self._stream_min_chars = settings.telegram_stream_edit_min_chars
-        self._stream_delay = settings.telegram_stream_edit_delay_seconds
+        self._stream_chars_per_tick = settings.telegram_stream_edit_min_chars
+        self._stream_tick_delay = settings.telegram_stream_edit_delay_seconds
+        self._stream_show_cursor = settings.telegram_stream_show_cursor
         self._app.add_handler(CommandHandler("start", self._on_start))
         self._app.add_handler(CommandHandler("new", self._on_new))
         self._app.add_handler(MessageHandler(filters.CONTACT, self._on_contact))
@@ -586,12 +648,7 @@ class TelegramBot(BotChannel):
         chat_id = update.effective_chat.id
         use_stream = self._stream_enabled and update.message is not None
         sent_message: Optional[Message] = None
-        last_stream_len = 0
-        stream_target = ""
-        stream_shown_len = 0
-        stream_last_edit = 0.0
-        stream_finished = False
-        stream_pump_task: Optional[asyncio.Task[None]] = None
+        stream_session: Optional[_SmoothStreamSession] = None
         typing_task: Optional[asyncio.Task[None]] = None
         if not use_stream:
             typing_task = asyncio.create_task(self._typing_loop(context, chat_id))
@@ -605,38 +662,11 @@ class TelegramBot(BotChannel):
             sent_message = await self._safe_reply_text(update, _STREAM_PLACEHOLDER)
             if sent_message is None:
                 return
-
-            async def _stream_pump() -> None:
-                nonlocal stream_shown_len, stream_last_edit, last_stream_len
-                interval = self._stream_delay
-                chars_per_tick = max(1, self._stream_min_chars)
-                while True:
-                    target = stream_target
-                    behind = len(target) - stream_shown_len
-                    if behind > 0:
-                        now = time.monotonic()
-                        due = (now - stream_last_edit) >= interval
-                        if due or behind >= 6 or stream_finished:
-                            advance = chars_per_tick
-                            if stream_finished and behind > 30:
-                                advance = max(advance, behind // 4)
-                            stream_shown_len = min(
-                                stream_shown_len + advance, len(target)
-                            )
-                            if await self._safe_edit_message_text(
-                                sent_message, target[:stream_shown_len]
-                            ):
-                                last_stream_len = stream_shown_len
-                            stream_last_edit = now
-                    if stream_finished and stream_shown_len >= len(stream_target):
-                        break
-                    await asyncio.sleep(0.01)
-
-            stream_pump_task = asyncio.create_task(_stream_pump())
+            stream_session = _SmoothStreamSession(self, sent_message)
 
         async def on_stream(accumulated: str) -> None:
-            nonlocal stream_target
-            stream_target = self._clip_telegram_text(accumulated)
+            if stream_session is not None:
+                await stream_session.enqueue(accumulated)
 
         try:
             result = await self._with_chat(
@@ -662,24 +692,15 @@ class TelegramBot(BotChannel):
                     await typing_task
                 except asyncio.CancelledError:
                     pass
-            if use_stream:
-                stream_finished = True
-                stream_target = self._clip_telegram_text(reply_text) or _t(
+            if stream_session is not None:
+                final_text = self._clip_telegram_text(reply_text) or _t(
                     _FALLBACK_ERROR, _lang
                 )
-                if stream_pump_task is not None:
-                    try:
-                        await asyncio.wait_for(stream_pump_task, timeout=90.0)
-                    except asyncio.TimeoutError:
-                        stream_pump_task.cancel()
-                        try:
-                            await stream_pump_task
-                        except asyncio.CancelledError:
-                            pass
+                await stream_session.finish(final_text)
 
         if use_stream and sent_message is not None:
             display = self._clip_telegram_text(reply_text) or _t(_FALLBACK_ERROR, _lang)
-            if len(display) != last_stream_len or reply_markup is not None:
+            if reply_markup is not None:
                 if not await self._safe_edit_message_text(
                     sent_message,
                     display,
@@ -756,16 +777,43 @@ class TelegramBot(BotChannel):
             return text
         return text[: _TELEGRAM_MAX_MESSAGE_LEN - 1] + "…"
 
+    def _stream_frame_text(self, body: str, *, show_cursor: bool) -> str:
+        body = body.strip() or "…"
+        body = self._clip_telegram_text(body)
+        if not show_cursor or not self._stream_show_cursor:
+            return body
+        suffix = _STREAM_CURSOR
+        if len(body) + len(suffix) <= _TELEGRAM_MAX_MESSAGE_LEN:
+            return body + suffix
+        return self._clip_telegram_text(body[: _TELEGRAM_MAX_MESSAGE_LEN - len(suffix)]) + suffix
+
+    async def _safe_edit_stream_frame(
+        self,
+        message: Optional[Message],
+        body: str,
+        *,
+        show_cursor: bool,
+    ) -> bool:
+        return await self._safe_edit_message_text(
+            message,
+            self._stream_frame_text(body, show_cursor=show_cursor),
+            allow_empty_strip=False,
+        )
+
     async def _safe_edit_message_text(
         self,
         message: Optional[Message],
         text: str,
         *,
         reply_markup: Any = None,
+        allow_empty_strip: bool = True,
     ) -> bool:
         if message is None:
             return False
-        display = self._clip_telegram_text(text.strip() or "…")
+        if allow_empty_strip:
+            display = self._clip_telegram_text(text.strip() or "…")
+        else:
+            display = self._clip_telegram_text(text)
         for attempt in range(1, self._send_retries + 1):
             try:
                 await message.edit_text(display, reply_markup=reply_markup)

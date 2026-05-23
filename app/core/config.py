@@ -71,10 +71,11 @@ class Settings(BaseSettings):
     telegram_send_retries: int = 3
     telegram_typing_interval_seconds: float = 4.0
     telegram_stream_enabled: bool = True
-    # Har yangilanishda necha belgi qo'shiladi (2–3 = tez va silliq)
-    telegram_stream_edit_min_chars: int = 2
-    # Ikki edit orasidagi minimal interval (sekund); 0.04 ≈ 25 ta/s
-    telegram_stream_edit_delay_seconds: float = 0.04
+    # Smooth display: har tickda necha belgi (8 = tabiiy)
+    telegram_stream_edit_min_chars: int = 8
+    # Smooth display: tick interval sekund (0.05 = 20 fps)
+    telegram_stream_edit_delay_seconds: float = 0.05
+    telegram_stream_show_cursor: bool = True
 
     # Close active session after this many hours without messages (0 = disabled)
     session_idle_hours: float = 24.0
