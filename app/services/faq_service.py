@@ -12,6 +12,8 @@ from app.infrastructure.llm.ports import AiClient
 
 from app.core.config import get_settings
 from app.core.prompts import (
+    GENERIC_ASSISTANT_SYSTEM,
+    GENERIC_ASSISTANT_USER_TEMPLATE,
     NO_FAQ_FALLBACK,
     PROFANITY_KEYWORDS,
     RAG_SYSTEM,
@@ -90,13 +92,19 @@ class FaqService:
         if any(word in question.lower() for word in PROFANITY_KEYWORDS):
             return "Iltimos, muloqotda o'zaro hurmatni saqlaylik. Sahiy xizmatiga oid savollaringiz bo'lsa, yordam berishga tayyorman."
 
-        # 2. Agar bazadan (RAG) hech narsa topilmasa
+        # 2. Agar bazadan (RAG) hech narsa topilmasa — generic AI yordamchisi
         if not matches:
             static = self.static_answer_for_question(question)
-            text = static if static else localize("no_faq_fallback", reply_language)
-            if on_stream is not None:
-                await on_stream(text)
-            return text
+            if static:
+                if on_stream is not None:
+                    await on_stream(static)
+                return static
+            return await self.generic_ai_answer(
+                question=question,
+                history=history,
+                reply_language=reply_language,
+                on_stream=on_stream,
+            )
 
         # 3. Salomlashish qo'shish
         greeting = (
@@ -141,6 +149,57 @@ class FaqService:
             text = greeting + self._compose_local_answer(
                 matches, max_chars=3500, reply_language=reply_language
             )
+            if on_stream is not None:
+                await on_stream(text)
+            return text
+
+    async def generic_ai_answer(
+        self,
+        *,
+        question: str,
+        history: List[Message],
+        reply_language: str = UZ_LAT,
+        on_stream: Optional[Callable[[str], Awaitable[None]]] = None,
+    ) -> str:
+        """FAQ topilmagan paytda Sahiy doirasida xushmuomilali AI javob."""
+        if any(word in question.lower() for word in PROFANITY_KEYWORDS):
+            text = (
+                "Iltimos, muloqotda o'zaro hurmatni saqlaylik. "
+                "Sahiy xizmatiga oid savollaringiz bo'lsa, yordam berishga tayyorman."
+            )
+            if on_stream is not None:
+                await on_stream(text)
+            return text
+
+        if not self._ai.is_available:
+            text = localize("no_faq_fallback", reply_language)
+            if on_stream is not None:
+                await on_stream(text)
+            return text
+
+        settings = get_settings()
+        prompt = GENERIC_ASSISTANT_USER_TEMPLATE.format(
+            history=self._format_history(history) or "(yo'q)",
+            wrapped_question=wrap_user_message(question),
+        )
+        system = system_prompt_with_language(
+            GENERIC_ASSISTANT_SYSTEM, reply_language
+        )
+        try:
+            accumulated = ""
+            async for token in self._ai.complete_stream(
+                system,
+                prompt,
+                max_tokens=settings.rag_max_tokens,
+            ):
+                accumulated += token
+                if on_stream is not None:
+                    await on_stream(accumulated)
+            text = accumulated.strip()
+            return text or localize("no_faq_fallback", reply_language)
+        except Exception as exc:
+            logger.warning("generic_ai_answer failed: %s", exc)
+            text = localize("no_faq_fallback", reply_language)
             if on_stream is not None:
                 await on_stream(text)
             return text

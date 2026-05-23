@@ -128,11 +128,16 @@ class ReplyService:
         elif is_pickup_conversation_turn(text, recent):
             result = await self._pickup.reply(chat_context)
         elif is_chitchat(text):
-            result = ChatReply(
-                response_type=ResponseType.AUTO,
-                text=localize("chitchat", reply_lang),
-                category=QuestionCategory.FAQ,
-            )
+            faq_handler = self._router.pick(QuestionCategory.FAQ)
+            try:
+                result = await faq_handler.reply(chat_context, on_stream=stream_callback)
+            except Exception:
+                logger.exception("Chitchat AI reply failed")
+                result = ChatReply(
+                    response_type=ResponseType.AUTO,
+                    text=localize("chitchat", reply_lang),
+                    category=QuestionCategory.FAQ,
+                )
         else:
             result = await self._route_intent(chat_context, text, on_stream=stream_callback)
 
@@ -207,14 +212,14 @@ class ReplyService:
         on_stream: Optional[Callable[[str], Awaitable[None]]] = None,
     ) -> ChatReply:
         try:
-            if is_off_topic(text):
-                support = self._router.pick(QuestionCategory.TICKET)
-                result = await support.reply(chat_context.with_handoff_reason("off_topic"))
-            elif is_operator_request(text):
+            if is_operator_request(text):
                 support = self._router.pick(QuestionCategory.TICKET)
                 result = await support.reply(
                     chat_context.with_handoff_reason("operator_request")
                 )
+            elif is_off_topic(text):
+                faq_handler = self._router.pick(QuestionCategory.FAQ)
+                result = await faq_handler.reply(chat_context, on_stream=on_stream)
             else:
                 category = await self._intent.detect(text)
                 handler = self._router.pick(category)

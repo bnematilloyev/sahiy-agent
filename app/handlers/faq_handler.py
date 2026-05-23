@@ -44,9 +44,20 @@ class FaqHandler:
 
         matches = await self._faq.find_matches(context.text)
         if not matches:
-            text = (
-                self._faq.static_answer_for_question(context.text)
-                or localize("no_faq_fallback", lang)
+            static = self._faq.static_answer_for_question(context.text)
+            if static:
+                if on_stream is not None:
+                    await on_stream(static)
+                return ChatReply(
+                    response_type=ResponseType.AUTO,
+                    text=static,
+                    category=self.category,
+                )
+            text = await self._faq.generic_ai_answer(
+                question=context.text,
+                history=context.recent_messages,
+                reply_language=lang,
+                on_stream=on_stream,
             )
             return ChatReply(
                 response_type=ResponseType.AUTO,
