@@ -7,11 +7,16 @@ import logging
 from typing import Any, Optional
 
 from telegram import InputMediaPhoto, Message, Update
-from telegram.error import Forbidden, NetworkError, RetryAfter, TelegramError, TimedOut
+from telegram.error import BadRequest, Forbidden, NetworkError, RetryAfter, TelegramError, TimedOut
 
 from app.channels.telegram.keyboards import main_menu_keyboard
 
 logger = logging.getLogger(__name__)
+
+
+def _is_message_not_modified(exc: BaseException) -> bool:
+    """Telegram 400 when edit payload matches current message (harmless)."""
+    return "not modified" in str(exc).lower()
 
 TELEGRAM_MAX_MESSAGE_LEN = 4096
 STREAM_CURSOR = "▌"
@@ -123,7 +128,14 @@ class TelegramMessenger:
                 return True
             except Forbidden:
                 return False
+            except BadRequest as exc:
+                if _is_message_not_modified(exc):
+                    return True
+                logger.warning("edit_text bad request: %s", exc)
+                return False
             except (TimedOut, NetworkError) as exc:
+                if _is_message_not_modified(exc):
+                    return True
                 logger.warning(
                     "edit_text attempt %s/%s failed: %s",
                     attempt,
@@ -133,7 +145,7 @@ class TelegramMessenger:
                 if attempt < self._send_retries:
                     await asyncio.sleep(1.5 * attempt)
             except TelegramError as exc:
-                if "not modified" in str(exc).lower():
+                if _is_message_not_modified(exc):
                     return True
                 logger.warning("edit_text failed: %s", exc)
                 return False

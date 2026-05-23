@@ -708,23 +708,31 @@ class TelegramBot(BotChannel):
 
         payload = ReplyPayload.from_channel_extra(reply_text, extra)
 
+        has_follow_ups = bool(payload.follow_up_messages or payload.photo_urls)
+
         if use_stream and sent_message is not None:
-            if not await deliver_to_update(
+            delivered = await deliver_to_update(
                 update,
                 self._messenger,
                 payload,
                 lang=lang,
                 use_stream=True,
                 stream_message=sent_message,
-            ):
+            )
+            if not delivered and not has_follow_ups:
                 logger.error(
                     "Could not deliver streamed reply to Telegram for user_id=%s",
                     user_id,
                 )
                 return
         else:
-            if not await deliver_to_update(update, self._messenger, payload, lang=lang):
-                logger.error("Could not deliver reply to Telegram for user_id=%s", user_id)
+            delivered = await deliver_to_update(
+                update, self._messenger, payload, lang=lang
+            )
+            if not delivered and not has_follow_ups:
+                logger.error(
+                    "Could not deliver reply to Telegram for user_id=%s", user_id
+                )
                 return
 
         await deliver_follow_ups_and_media(update, self._messenger, payload, lang=lang)
