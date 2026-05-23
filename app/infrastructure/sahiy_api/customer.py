@@ -168,7 +168,7 @@ class CustomerApi:
                 _id_msg = _IDENTIFICATION_REQUIRED.get(lang, _IDENTIFICATION_REQUIRED["uz_lat"])
                 return {
                     "error": "identification_required",
-                    "message": f"🔎 {track}\n_______\n{_id_msg}",
+                    "message": f"📦 #{track.lstrip('#')}\n\n{_id_msg}",
                 }
             if verified_user_id is not None and owner_id != verified_user_id:
                 return self._ownership_mismatch_error(track, lang=lang)
@@ -344,7 +344,7 @@ class CustomerApi:
         return {
             "error": "ownership_mismatch",
             "ownership_mismatch": True,
-            "message": f"🔎 {track}\n_______\n{_msg}",
+            "message": f"📦 #{track.lstrip('#')}\n\n{_msg}",
         }
 
     @staticmethod
@@ -353,7 +353,7 @@ class CustomerApi:
             _msg = _ORDER_NOT_FOUND_IN_ACCOUNT.get(lang, _ORDER_NOT_FOUND_IN_ACCOUNT["uz_lat"])
         else:
             _msg = _ORDER_NOT_FOUND_GLOBAL.get(lang, _ORDER_NOT_FOUND_GLOBAL["uz_lat"])
-        return {"error": "order_not_found", "message": f"🔎 {track}\n_______\n{_msg}"}
+        return {"error": "order_not_found", "message": f"📦 #{track.lstrip('#')}\n\n{_msg}"}
 
     async def find_user_id_by_phone(self, phone: str) -> Optional[int]:
         path = "/api/v2/admin/delivery/orders/search"

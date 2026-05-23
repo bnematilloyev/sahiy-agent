@@ -23,36 +23,36 @@ _IDENTITY_REQUIRED: dict[str, str] = {
     "uz_lat": (
         "📱 Davom etish uchun Sahiy hisobingiz kerak.\n\n"
         "Quyidagilardan birini yuboring:\n"
-        "🔹 Hisob ID — masalan: 111111 yoki id 111111\n"
-        "🔹 Telefon — 998901234567 yoki «Telefon raqamni yuborish» tugmasi\n\n"
+        "- Hisob ID — masalan: 111111 yoki id 111111\n"
+        "- Telefon — 998901234567 yoki «Telefon raqamni yuborish» tugmasi\n\n"
         "Tasdiqlangach savolingizga javob beraman."
     ),
     "uz_cyrl": (
         "📱 Давом этиш учун Sahiy ҳисобингиз керак.\n\n"
         "Қуйидагилардан бирини юборинг:\n"
-        "🔹 Ҳисоб ID — масалан: 111111 ёки id 111111\n"
-        "🔹 Телефон — 998901234567 ёки «Телефон рақамни юбориш» тугмаси\n\n"
+        "- Ҳисоб ID — масалан: 111111 ёки id 111111\n"
+        "- Телефон — 998901234567 ёки «Телефон рақамни юбориш» тугмаси\n\n"
         "Тасдиқлангач саволингизга жавоб бераман."
     ),
     "ru": (
         "📱 Для продолжения необходим аккаунт Sahiy.\n\n"
         "Отправьте одно из следующего:\n"
-        "🔹 ID аккаунта — например: 111111 или id 111111\n"
-        "🔹 Телефон — 998901234567 или кнопка «Отправить номер телефона»\n\n"
+        "- ID аккаунта — например: 111111 или id 111111\n"
+        "- Телефон — 998901234567 или кнопка «Отправить номер телефона»\n\n"
         "После подтверждения отвечу на ваш вопрос."
     ),
     "en": (
         "📱 A Sahiy account is required to continue.\n\n"
         "Please send one of the following:\n"
-        "🔹 Account ID — e.g.: 111111 or id 111111\n"
-        "🔹 Phone — 998901234567 or tap «Send phone number»\n\n"
+        "- Account ID — e.g.: 111111 or id 111111\n"
+        "- Phone — 998901234567 or tap «Send phone number»\n\n"
         "I'll answer your question after verification."
     ),
     "zh": (
         "📱 继续操作需要Sahiy账户。\n\n"
         "请发送以下其中一项：\n"
-        "🔹 账户ID — 例如：111111 或 id 111111\n"
-        "🔹 电话 — 998901234567 或点击«发送电话号码»\n\n"
+        "- 账户ID — 例如：111111 或 id 111111\n"
+        "- 电话 — 998901234567 或点击«发送电话号码»\n\n"
         "验证后我将回答您的问题。"
     ),
 }

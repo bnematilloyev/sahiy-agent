@@ -4,16 +4,15 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from app.domain.order_present import format_orders_message
+from app.domain.order_present import _display_sn, format_orders_message
 from app.domain.reply_language import UZ_LAT, localize
 
 _MAX_ITEMS = 6
-_SEP = "──────────────────────"
 
 _SECTION_META: Dict[str, Dict[str, Dict[str, str]]] = {
     "china_purchase": {
         "uz_lat": {"icon": "🇨🇳", "title": "Xitoyda (xarid)"},
-        "uz_cyrl": {"icon": "🇨🇳", "title": "Xitoyda (xarid)"},
+        "uz_cyrl": {"icon": "🇨🇳", "title": "Хитойда (харид)"},
         "ru": {"icon": "🇨🇳", "title": "В Китае (закупка)"},
         "en": {"icon": "🇨🇳", "title": "In China (purchase)"},
         "zh": {"icon": "🇨🇳", "title": "在中国（采购）"},
@@ -35,18 +34,18 @@ _SECTION_META: Dict[str, Dict[str, Dict[str, str]]] = {
 }
 
 _HINT: Dict[str, str] = {
-    "uz_lat": "💡 Batafsil: track raqam (DG… yoki raqam) yuboring.",
-    "uz_cyrl": "💡 Batafsil: track raqam (DG… yoki raqam) yuboring.",
-    "ru": "💡 Подробнее: отправьте track (DG… или номер).",
-    "en": "💡 Details: send a track number (DG… or numeric track).",
-    "zh": "💡 详情：请发送tracking号码。",
+    "uz_lat": "Batafsil bilish uchun track raqamni yuboring.",
+    "uz_cyrl": "Батафсил: track рақамни юборинг.",
+    "ru": "Подробнее: отправьте номер track.",
+    "en": "For details, send your track number.",
+    "zh": "详情：请发送tracking号码。",
 }
 _COMPLETED_HINT: Dict[str, str] = {
-    "uz_lat": "💡 Mahsulot va rasm: track raqam (DG… yoki raqam) yuboring.",
-    "uz_cyrl": "💡 Mahsulot va rasm: track raqam (DG… yoki raqam) yuboring.",
-    "ru": "💡 Товар и фото: отправьте track (DG… или номер).",
-    "en": "💡 Product details and photos: send a track number (DG… or numeric track).",
-    "zh": "💡 商品详情和图片：请发送tracking号码。",
+    "uz_lat": "Mahsulot va rasm uchun track raqamni yuboring.",
+    "uz_cyrl": "Маҳсулот ва расм учун track рақамни юборинг.",
+    "ru": "Для товара и фото отправьте номер track.",
+    "en": "For product details and photos, send your track number.",
+    "zh": "商品详情和图片：请发送tracking号码。",
 }
 
 
@@ -64,39 +63,24 @@ def _section_header(section: Dict[str, Any], lang: str) -> str:
     total = int(section.get("total") or len(items))
     shown = min(len(items), _MAX_ITEMS)
     if total > shown:
-        count = f" · {shown}/{total}"
+        count = f" ({shown}/{total})"
     elif total:
-        count = f" · {total}"
+        count = f" ({total} ta)"
     else:
         count = ""
     return f"{icon} {title}{count}"
 
 
-def _format_extra_line(extra: str) -> str:
-    text = extra.strip()
-    if not text:
-        return ""
-    lowered = text.lower()
-    if lowered.startswith(("to'lov", "toʻlov", "tolov", "oplata", "payment", "付款")):
-        return f"   └ 💳 {text}"
-    return f"   └ {text}"
-
-
-def _format_chain_item(item: Dict[str, Any]) -> str:
-    track = item.get("track") or "—"
-    status = item.get("status") or "—"
-    lines = [f"🔹 {track}", f"   └ {status}"]
-    loc = (item.get("location") or "").strip()
-    if loc:
-        lines.append(f"   └ 📍 {loc}")
-    for extra in item.get("extras") or []:
-        line = _format_extra_line(str(extra))
-        if line:
-            lines.append(line)
+def _format_chain_item(item: Dict[str, Any], index: int) -> str:
+    track = _display_sn(str(item.get("track") or "—"))
+    line = f"{index}. {track}"
     date = (item.get("date") or "").strip()
     if date:
-        lines.append(f"   └ 📅 {date}")
-    return "\n".join(lines)
+        line += f" — {date}"
+    loc = (item.get("location") or "").strip()
+    if loc:
+        line += f" ({loc})"
+    return line
 
 
 def format_chain_section_message(section: Dict[str, Any], lang: str = UZ_LAT) -> str:
@@ -104,12 +88,11 @@ def format_chain_section_message(section: Dict[str, Any], lang: str = UZ_LAT) ->
     if not items:
         return ""
     header = _section_header(section, lang)
-    blocks = [
-        _format_chain_item(it)
-        for it in items[:_MAX_ITEMS]
-        if isinstance(it, dict)
-    ]
-    return header + "\n" + _SEP + "\n\n" + "\n\n".join(blocks)
+    lines = [header, ""]
+    for i, it in enumerate(items[:_MAX_ITEMS], 1):
+        if isinstance(it, dict):
+            lines.append(_format_chain_item(it, i))
+    return "\n".join(lines)
 
 
 def build_order_telegram_messages(
@@ -117,7 +100,7 @@ def build_order_telegram_messages(
     *,
     lang: str = UZ_LAT,
 ) -> List[str]:
-    """Sarlavha + har bir bo'lim alohida xabar + qisqa hint."""
+    """Sarlavha + har bir bo'lim alohida xabar + qisqa yo'naltirish."""
     if data.get("error") or data.get("ownership_mismatch"):
         return [format_orders_message(data, reply_language=lang)]
 
@@ -129,10 +112,13 @@ def build_order_telegram_messages(
         return [format_orders_message(data, reply_language=lang)]
 
     scope = (data.get("list_scope") or "").strip()
+    total = sum(int(s.get("total") or len(s.get("items") or [])) for s in chain if isinstance(s, dict))
     if scope:
-        header = scope if scope.startswith("📋") else f"📋 {scope}"
+        header = f"📋 {scope} ({total} ta)" if total else f"📋 {scope}"
     else:
         header = localize("orders_header", lang)
+        if total:
+            header = f"{header} ({total} ta)"
 
     messages: List[str] = [header]
 

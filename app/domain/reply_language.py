@@ -299,29 +299,29 @@ _STRINGS: Dict[str, Dict[str, str]] = {
     },
     "orders_empty": {
         UZ_LAT: (
-            "📭 Aktiv buyurtma topilmadi.\n_______\n"
+            "📭 Aktiv buyurtma topilmadi.\n\n"
             "Yaqinda buyurtma qilgan bo'lsangiz, birozdan keyin yozing."
         ),
         UZ_CYRL: (
-            "📭 Актив буюртма топилмади.\n_______\n"
+            "📭 Актив буюртма топилмади.\n\n"
             "Яқинда буюртма қилган бўлсангиз, бироздан кейин ёзинг."
         ),
         RU: (
-            "📭 Активных заказов не найдено.\n_______\n"
+            "📭 Активных заказов не найдено.\n\n"
             "Если недавно оформляли заказ, напишите чуть позже."
         ),
         EN: (
-            "📭 No active orders found.\n_______\n"
+            "📭 No active orders found.\n\n"
             "If you placed an order recently, please write again shortly."
         ),
-        ZH: "📭 未找到活跃订单。\n_______\n如果您最近下过订单，请稍后再写。",
+        ZH: "📭 未找到活跃订单。\n\n如果您最近下过订单，请稍后再写。",
     },
     "orders_track_hint": {
-        UZ_LAT: "Batafsil: track raqam (DG... yoki TRACK...) yuboring.",
-        UZ_CYRL: "Батафсил: track рақам (DG... ёки TRACK...) юборинг.",
-        RU: "Подробнее: отправьте номер track (DG... или TRACK...).",
-        EN: "Details: send track number (DG... or TRACK...).",
-        ZH: "详情：发送跟踪号码（DG... 或 TRACK...）。",
+        UZ_LAT: "Batafsil bilish uchun track raqamni yuboring.",
+        UZ_CYRL: "Батафсил: track рақамни юборинг.",
+        RU: "Подробнее: отправьте номер track.",
+        EN: "For details, send your track number.",
+        ZH: "详情：请发送tracking号码。",
     },
     "rag_greeting": {
         UZ_LAT: "Assalomu alaykum, hurmatli mijoz! ",

@@ -210,13 +210,40 @@ def normalize_order_row(row: Dict[str, Any], source: str, lang: str = UZ_LAT) ->
     return out
 
 
-def _format_line(item: Dict[str, str]) -> str:
-    line = f"🔹 {item.get('sn', '—')}\n   └ {item.get('holat', '—')}"
+def _display_sn(sn: str) -> str:
+    text = (sn or "—").strip()
+    if text == "—":
+        return text
+    return text if text.startswith("#") else f"#{text}"
+
+
+def _strip_section_emoji(title: str) -> str:
+    """Bo'lim sarlavhasidan boshidagi emoji olib tashlanadi (xabar boshidagi 1 emoji qoladi)."""
+    parts = title.split(maxsplit=1)
+    if len(parts) == 2 and not parts[0][:1].isalnum():
+        return parts[1]
+    return title
+
+
+def _format_list_item(item: Dict[str, str], index: int) -> str:
+    line = f"{index}. {_display_sn(str(item.get('sn', '—')))}"
     if item.get("sana"):
-        line += f", {item['sana']}"
-    if item.get("joy"):
-        line += f" — {item['joy']}"
+        line += f" — {item['sana']}"
+    joy = (item.get("joy") or "").strip()
+    if joy:
+        line += f" ({joy})"
     return line
+
+
+def _format_order_card(item: Dict[str, str], lang: str) -> str:
+    sn = _display_sn(str(item.get("sn", "—")))
+    holat = item.get("holat") or _unknown_status(lang)
+    lines = [f"📦 {_order_label(lang)} {sn}", ""]
+    status = f"Holat: {holat}"
+    if item.get("sana"):
+        status += f" · {item['sana']}"
+    lines.append(status)
+    return "\n".join(lines)
 
 
 def summarize_orders_for_prompt(
@@ -299,33 +326,12 @@ def _format_focused_order(data: Dict[str, Any], lang: str = UZ_LAT) -> Optional[
             if not sn or sn == "—":
                 return None
             item = normalize_order_row(row, source if source != "tracking" else "delivery", lang)
-            label = _order_label(lang)
-            return "\n".join(
-                [
-                    f"🔎 {label}: {sn}",
-                    "_______",
-                    "",
-                    _format_line(item),
-                    "",
-                    "_______",
-                ]
-            ).strip()
+            return _format_order_card(item, lang)
 
     focus = data.get("daigou_focus")
     if isinstance(focus, dict):
         item = normalize_order_row(focus, "daigou", lang)
-        sn = item.get("sn", "—")
-        label = _order_label(lang)
-        return "\n".join(
-            [
-                f"🔎 {label}: {sn}",
-                "_______",
-                "",
-                _format_line(item),
-                "",
-                "_______",
-            ]
-        ).strip()
+        return _format_order_card(item, lang)
     return None
 
 
@@ -336,23 +342,8 @@ def _format_requested_track_fallback(
     if match and isinstance(match.get("row"), dict):
         source = str(match.get("source") or "delivery")
         item = normalize_order_row(match["row"], source, lang)
-        sn = item.get("sn") or track
-        label = _order_label(lang)
-        return "\n".join(
-            [
-                f"🔎 {label}: {sn}",
-                "_______",
-                "",
-                _format_line(item),
-                "",
-                "_______",
-            ]
-        ).strip()
-    return (
-        f"🔎 {track}\n"
-        "_______\n"
-        + _not_yours(lang)
-    )
+        return _format_order_card(item, lang)
+    return f"📦 {_display_sn(track)}\n\n{_not_yours(lang)}"
 
 
 def format_orders_message(
@@ -377,13 +368,19 @@ def format_orders_message(
         return _format_requested_track_fallback(data, str(requested), lang)
 
     scope = data.get("list_scope")
-    header = localize("orders_header", lang)
-    lines: List[str] = [f"📋 {scope}" if scope else header]
-
     summary = summarize_orders_for_prompt(data, max_per_section=max_per_section, lang=lang)
     sections = summary.get("bolimlar") or {}
     if not sections:
         return localize("orders_empty", lang)
+
+    total_all = int(summary.get("jami") or 0)
+    if scope:
+        header = f"📋 {scope} ({total_all} ta)" if total_all else f"📋 {scope}"
+    else:
+        header = localize("orders_header", lang)
+        if total_all:
+            header = f"{header} ({total_all} ta)"
+    lines: List[str] = [header, ""]
 
     shown_focus_sn = ""
     order_focus = data.get("order_focus")
@@ -392,24 +389,28 @@ def format_orders_message(
     elif isinstance(data.get("daigou_focus"), dict):
         shown_focus_sn = order_sn_from_row(data["daigou_focus"]).upper()
 
+    multi_section = len(sections) > 1
+    item_index = 0
     for key, block in sections.items():
-        title = block.get("sarlavha", _section_title(key, lang))
+        title = _strip_section_emoji(block.get("sarlavha", _section_title(key, lang)))
         orders = block.get("buyurtmalar") or []
         total = block.get("jami", len(orders))
         if not orders:
             continue
-        lines.append("_______")
-        if len(orders) < total:
-            lines.append(f"{title} ({len(orders)}/{total})")
-        else:
-            lines.append(f"{title} ({total})")
+        if multi_section:
+            if lines[-1] != "":
+                lines.append("")
+            if len(orders) < total:
+                lines.append(f"{title} ({len(orders)}/{total})")
+            else:
+                lines.append(f"{title} ({total})")
         for item in orders:
             if key == "daigou_orders" and item.get("sn", "").upper() == shown_focus_sn:
                 continue
-            lines.append(_format_line(item))
+            item_index += 1
+            lines.append(_format_list_item(item, item_index))
 
-    lines.append("_______")
-    lines.append(localize("orders_track_hint", lang))
+    lines.extend(["", localize("orders_track_hint", lang)])
     return "\n".join(lines).strip()
 
 
@@ -421,8 +422,6 @@ def _coerce_int(value: Any) -> Optional[int]:
 
 
 # ── SKU formatting ────────────────────────────────────────────────────────────
-
-_SEP = "_______"
 
 _SKU_HEADER: Dict[str, str] = {
     "uz_lat": "📦 Mahsulotlar",
@@ -467,11 +466,11 @@ _SKU_GOODS: Dict[str, str] = {
     "zh": "商品小计",
 }
 _SKU_FREIGHT: Dict[str, str] = {
-    "uz_lat": "Xitoy ichida yetkazish",
-    "uz_cyrl": "Хитoy ichida yetkazish",
-    "ru": "Доставка по Китаю",
-    "en": "Delivery within China",
-    "zh": "中国国内配送",
+    "uz_lat": "Yetkazish",
+    "uz_cyrl": "Етказиб бериш",
+    "ru": "Доставка",
+    "en": "Delivery",
+    "zh": "配送",
 }
 _SKU_TOTAL: Dict[str, str] = {
     "uz_lat": "Buyurtma jami",
@@ -566,6 +565,21 @@ def _format_money(cny: float, lang: str, cny_to_uzs: Optional[float]) -> str:
     return f"{cny:.2f} ¥"
 
 
+def _format_sku_specs_inline(sku: "SkuInfo", lang: str) -> str:
+    parts: List[str] = []
+    for spec in sku.specs:
+        raw_l = str(spec.get("label", "")).strip()
+        raw_v = str(spec.get("value", "")).strip()
+        if not raw_v:
+            continue
+        label = _localize_spec_label(raw_l, lang) if raw_l else ""
+        if label:
+            parts.append(f"{label}: {raw_v}")
+        else:
+            parts.append(raw_v)
+    return ", ".join(parts)
+
+
 def _format_sku_block(
     sku: "SkuInfo",
     index: int,
@@ -573,32 +587,38 @@ def _format_sku_block(
     *,
     cny_to_uzs: Optional[float],
     multi: bool,
+    inline: bool,
 ) -> List[str]:
     name = sku.name.strip() or f"SKU {index}"
-    title = f"🔹 {_t(_SKU_ITEM, lang)} {index}" if multi else f"🔹 {_truncate(name, 80)}"
+    qty_word = _t(_QTY_UNIT, lang)
+    line_total = _format_money(sku.amount, lang, cny_to_uzs)
+
+    if inline:
+        product = _truncate(name, 120)
+        specs = _format_sku_specs_inline(sku, lang)
+        if specs:
+            product = f"{product} ({specs})"
+        prefix = f"{_t(_SKU_ITEM, lang)} {index}: " if multi else f"{_t(_SKU_ITEM, lang)}: "
+        return [
+            f"{prefix}{product}",
+            f"{_t(_SKU_QTY, lang)}: {sku.quantity} {qty_word} · {line_total}",
+        ]
+
+    title = f"{_t(_SKU_ITEM, lang)} {index}" if multi else _truncate(name, 80)
     lines: List[str] = [title]
-
-    if multi or len(name) > 80:
-        lines.append(f"   📝 {_truncate(name, 120)}")
-
+    if multi:
+        lines.append(_truncate(name, 120))
     for spec in sku.specs:
         raw_l = str(spec.get("label", "")).strip()
         raw_v = str(spec.get("value", "")).strip()
         if not raw_l and not raw_v:
             continue
         label = _localize_spec_label(raw_l, lang) if raw_l else "—"
-        value = raw_v or "—"
-        lines.append(f"   └ {label}: {value}")
-
-    qty_word = _t(_QTY_UNIT, lang)
-    lines.append(f"   └ {_t(_SKU_QTY, lang)}: {sku.quantity} {qty_word}")
-    lines.append(f"   └ {_t(_SKU_UNIT, lang)}: {_format_money(sku.actual_price, lang, cny_to_uzs)}")
-    lines.append(f"   └ {_t(_SKU_LINE, lang)}: {_format_money(sku.amount, lang, cny_to_uzs)}")
-
+        lines.append(f"{label}: {raw_v or '—'}")
+    lines.append(f"{_t(_SKU_QTY, lang)}: {sku.quantity} {qty_word} · {line_total}")
     platform = (sku.platform or "").strip()
     if platform:
-        lines.append(f"   └ {_t(_SKU_STORE, lang)}: {platform}")
-
+        lines.append(f"{_t(_SKU_STORE, lang)}: {platform}")
     return lines
 
 
@@ -607,39 +627,57 @@ def format_sku_text(
     lang: str = UZ_LAT,
     *,
     cny_to_uzs: Optional[float] = None,
+    inline: bool = True,
 ) -> str:
     """Format DaigouOrderDetail SKU list as a Telegram-friendly text block."""
     if not detail.skus:
         return ""
 
     multi = len(detail.skus) > 1
-    parts: List[str] = [_t(_SKU_HEADER, lang), _SEP, ""]
+    parts: List[str] = []
+    if not inline:
+        parts.extend([_t(_SKU_HEADER, lang), ""])
 
     for i, sku in enumerate(detail.skus, 1):
-        parts.extend(_format_sku_block(sku, i, lang, cny_to_uzs=cny_to_uzs, multi=multi))
+        parts.extend(
+            _format_sku_block(sku, i, lang, cny_to_uzs=cny_to_uzs, multi=multi, inline=inline)
+        )
         if i < len(detail.skus):
             parts.append("")
 
-    parts.extend(["", _SEP])
-    show_breakdown = detail.freight_fee > 0 or (
-        detail.goods_amount > 0 and detail.amount > detail.goods_amount
-    )
-    if show_breakdown and detail.goods_amount > 0:
-        parts.append(
-            f"💵 {_t(_SKU_GOODS, lang)}: "
-            f"{_format_money(detail.goods_amount, lang, cny_to_uzs)}"
-        )
     freight = detail.freight_fee
     if freight <= 0 and detail.amount > detail.goods_amount > 0:
         freight = round(detail.amount - detail.goods_amount, 2)
-    if freight > 0:
+
+    if inline and not multi:
         parts.append(
-            f"💵 {_t(_SKU_FREIGHT, lang)}: {_format_money(freight, lang, cny_to_uzs)}"
+            f"{_t(_SKU_FREIGHT, lang)}: {_format_money(freight, lang, cny_to_uzs)}"
+            if freight > 0
+            else ""
         )
-    parts.append(
-        f"💵 {_t(_SKU_TOTAL, lang)}: {_format_money(detail.amount, lang, cny_to_uzs)}"
-    )
-    return "\n".join(parts)
+        parts.append(f"{_t(_SKU_TOTAL, lang)}: {_format_money(detail.amount, lang, cny_to_uzs)}")
+        platform = (detail.skus[0].platform or "").strip()
+        if platform:
+            parts.extend(["", f"{_t(_SKU_STORE, lang)}: {platform}"])
+    elif inline and multi:
+        if freight > 0:
+            parts.append(f"{_t(_SKU_FREIGHT, lang)}: {_format_money(freight, lang, cny_to_uzs)}")
+        parts.append(f"{_t(_SKU_TOTAL, lang)}: {_format_money(detail.amount, lang, cny_to_uzs)}")
+    else:
+        show_breakdown = detail.freight_fee > 0 or (
+            detail.goods_amount > 0 and detail.amount > detail.goods_amount
+        )
+        if show_breakdown and detail.goods_amount > 0:
+            parts.append(
+                f"{_t(_SKU_GOODS, lang)}: {_format_money(detail.goods_amount, lang, cny_to_uzs)}"
+            )
+        if freight > 0:
+            parts.append(
+                f"{_t(_SKU_FREIGHT, lang)}: {_format_money(freight, lang, cny_to_uzs)}"
+            )
+        parts.append(f"{_t(_SKU_TOTAL, lang)}: {_format_money(detail.amount, lang, cny_to_uzs)}")
+
+    return "\n".join(p for p in parts if p).strip()
 
 
 def enrich_order_summary_uzs(

@@ -32,7 +32,8 @@ def test_daigou_section_title():
         "daigou_total": 1,
     }
     text = format_orders_message(data)
-    assert "Xitoy omborigacha" in text
+    assert "#DG1" in text
+    assert "Toshkent" in text
     assert "Daigou" not in text
 
 
@@ -45,18 +46,19 @@ def test_jiyun_section_title_is_buyurtmalar_not_jiyun():
     text = format_orders_message(data)
     assert "Buyurtmalar" in text
     assert "Jiyun" not in text
-    assert "Jo'natilgan" in text
+    assert "#435147294520990" in text
     assert "已发货" not in text
 
 
-def test_format_message_has_separators_and_emoji():
+def test_format_message_numbered_list():
     data = {
         "delivery_orders": [
             {"express_num": "TRACK001", "status": 7, "updated_at": "2026-03-03T10:23:12.000000Z"},
         ],
     }
     text = format_orders_message(data)
-    assert "_______" in text
-    assert "📦" in text
-    assert "TRACK001" in text
+    assert "_______" not in text
+    assert "1. #TRACK001" in text
+    assert "📋" in text
+    assert "Batafsil bilish uchun" in text
     assert "78833" not in text

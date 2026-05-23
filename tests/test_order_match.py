@@ -61,6 +61,7 @@ def test_format_focused_only_one_order():
     }
     text = format_orders_message(data)
     assert "773402738804490" in text
-    assert "So'ralgan" in text or "Buyurtma:" in text
+    assert "📦 Buyurtma #" in text
+    assert "Holat:" in text
     assert "OTHER" not in text
     assert "Buyurtmalaringiz holati" not in text

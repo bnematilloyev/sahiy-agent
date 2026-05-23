@@ -158,19 +158,18 @@ def format_overview(points: List[Dict[str, Any]]) -> str:
 
 
 def format_region_list(region: str, points: List[Dict[str, Any]], *, limit: int = MAX_POINTS_IN_MESSAGE) -> str:
-    lines = [f"📍 {region}", "_______", ""]
+    lines = [f"📍 {region}", ""]
     for point in points[:limit]:
         lines.append(format_point_line(point))
         lines.append("")
     if len(points) > limit:
         lines.append(f"... yana {len(points) - limit} ta punkt")
-    lines.append("_______")
     lines.append("Boshqa viloyat: pastdagi tugmalardan tanlang.")
     return "\n".join(lines).strip()
 
 
 def format_type_list(label: str, points: List[Dict[str, Any]], *, limit: int = MAX_POINTS_IN_MESSAGE) -> str:
-    lines = [f"📍 {label}", "_______", ""]
+    lines = [f"📍 {label}", ""]
     for point in points[:limit]:
         lines.append(format_point_line(point))
         lines.append("")

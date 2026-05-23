@@ -60,17 +60,15 @@ def test_format_sku_text_in_uzs():
         ],
     )
     text = format_sku_text(detail, "uz_lat", cny_to_uzs=1750)
-    assert "📦 Mahsulotlar" in text
-    assert "_______" in text
-    assert "└ O'lcham: 44-45" in text
-    assert "└ Rang: 228 qora" in text
-    assert "└ Miqdor: 1 dona" in text
-    assert "└ Birlik narxi: 12 705 so'm" in text
-    assert "└ Qator jami: 12 705 so'm" in text
-    assert "└ Do'kon: 1688" in text
-    assert "💵 Mahsulotlar jami: 12 705 so'm" in text
-    assert "💵 Xitoy ichida yetkazish: 3 500 so'm" in text
-    assert "💵 Buyurtma jami: 16 205 so'm" in text
+    assert "Mahsulot:" in text
+    assert "_______" not in text
+    assert "O'lcham: 44-45" in text
+    assert "Rang: 228 qora" in text
+    assert "Miqdor: 1 dona" in text
+    assert "Yetkazish: 3 500 so'm" in text
+    assert "16 205 so'm" in text
+    assert "Jami" in text or "jami" in text
+    assert "Do'kon: 1688" in text
     assert "¥" not in text
 
 
@@ -133,9 +131,8 @@ def test_format_sku_text_russian():
             )
         ],
     )
-    text = format_sku_text(detail, "ru", cny_to_uzs=1750)
-    assert "📦 Товары" in text
-    assert "└ Цвет: black" in text
-    assert "└ Количество: 2 шт" in text
-    assert "└ Магазин: 1688" in text
-    assert "💵 Итого по заказу:" in text
+    text = format_sku_text(detail, "ru", cny_to_uzs=1750, inline=False)
+    assert "Товары" in text
+    assert "Цвет: black" in text
+    assert "Количество: 2 шт" in text
+    assert "Итого по заказу:" in text

@@ -8,4 +8,5 @@ def test_sahiy_company_answer_has_delivery_and_catalog():
     assert "20 kun" in SAHIY_COMPANY_ANSWER
     assert "million" in SAHIY_COMPANY_ANSWER.lower()
     assert "Xitoy" in SAHIY_COMPANY_ANSWER
-    assert "_______" in SAHIY_COMPANY_ANSWER
+    assert "_______" not in SAHIY_COMPANY_ANSWER
+    assert "12–15 kun" in SAHIY_COMPANY_ANSWER

@@ -73,8 +73,8 @@ def test_telegram_messages_are_separate():
     assert len(messages) >= 3
     assert "📋" in messages[0]
     assert "🚚" in messages[1] or "🇨🇳" in messages[1]
-    assert "🔹" in messages[1]
-    assert "💡" in messages[-1]
+    assert "1." in messages[1]
+    assert "Batafsil" in messages[-1] or "track" in messages[-1].lower()
 
 
 def test_active_orders_english_use_chain():
