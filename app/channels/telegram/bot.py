@@ -18,9 +18,31 @@ from telegram.ext import (
 
 from app.channels.telegram.keyboards import (
     inline_keyboard_from_extra,
+    main_menu_keyboard,
     phone_request_keyboard,
-    remove_keyboard,
 )
+from app.domain.product_search_present import (
+    format_product_caption,
+    product_buy_keyboard_extra,
+)
+from app.domain.telegram_menu import (
+    build_rating_inline_extra,
+    is_main_menu_label,
+    localize_menu,
+    match_menu_action,
+    parse_rating_callback,
+    RATING_PROMPT,
+    RATING_THANKS,
+    MENU_CALLBACK,
+    MENU_HELP,
+    PRODUCT_SEARCH_EMPTY,
+    PRODUCT_SEARCH_ERROR,
+    PRODUCT_SEARCH_HEADER,
+    PRODUCT_SEARCH_PROMPT,
+    PRODUCT_SEARCH_TOO_SHORT,
+)
+from app.infrastructure.sahiy_api.exchange_rates import get_cny_uzs_rate
+from app.infrastructure.sahiy_api.product_search import search_products
 from app.core.config import get_settings
 from app.domain.language_menu import (
     LANGUAGE_PICKER_PROMPT,
@@ -402,6 +424,7 @@ class TelegramBot(BotChannel):
         self._app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self._on_text))
         self._app.add_handler(MessageHandler(filters.PHOTO, self._on_photo))
         self._app.add_handler(CallbackQueryHandler(self._on_language_callback, pattern=r"^lang_"))
+        self._app.add_handler(CallbackQueryHandler(self._on_rating_callback, pattern=r"^rate_[1-5]$"))
         self._app.add_handler(CallbackQueryHandler(self._on_pickup_callback, pattern=r"^pp_"))
         self._app.add_handler(CallbackQueryHandler(self._on_order_menu_callback, pattern=r"^ord_"))
         self._app.add_error_handler(self._on_error)
@@ -439,6 +462,7 @@ class TelegramBot(BotChannel):
                 update,
                 LANGUAGE_PICKER_PROMPT,
                 reply_markup=markup,
+                attach_main_menu=False,
             )
 
     async def _on_language_callback(
@@ -461,10 +485,42 @@ class TelegramBot(BotChannel):
             if query.message:
                 await query.message.reply_text(welcome)
         if query.message:
-            await query.message.reply_text(
-                _t(_PHONE_PROMPT, lang),
-                reply_markup=phone_request_keyboard(lang),
-            )
+            verified = bool(context.user_data and context.user_data.get("verified_phone"))
+            if verified:
+                await query.message.reply_text(
+                    _t(_WELCOME, lang).split("\n\n")[0],
+                    reply_markup=main_menu_keyboard(lang),
+                )
+            else:
+                await query.message.reply_text(
+                    _t(_PHONE_PROMPT, lang),
+                    reply_markup=phone_request_keyboard(lang),
+                )
+
+    async def _on_rating_callback(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        query = update.callback_query
+        if not query or not query.data or not update.effective_user:
+            return
+        stars = parse_rating_callback(query.data)
+        if stars is None:
+            return
+        await query.answer()
+        lang = _tg_lang(update, context)
+        user_id = str(update.effective_user.id)
+        logger.info("telegram_service_rating user_id=%s stars=%s", user_id, stars)
+        if context.user_data is not None:
+            context.user_data["rated_this_session"] = True
+        thanks = localize_menu(RATING_THANKS, lang, stars=str(stars))
+        try:
+            await query.edit_message_text(thanks)
+        except TelegramError:
+            if query.message:
+                await query.message.reply_text(
+                    thanks,
+                    reply_markup=main_menu_keyboard(lang),
+                )
 
     async def _on_new(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if not update.message or not update.effective_user:
@@ -485,14 +541,25 @@ class TelegramBot(BotChannel):
             "zh": "发生错误。请稍后重试。",
         }
         user_id = str(update.effective_user.id)
+        if context.user_data is not None:
+            context.user_data.pop("rated_this_session", None)
+            context.user_data.pop("awaiting_product_search", None)
         try:
             await self._with_chat(
                 lambda chat: chat.reset_session(user_id=user_id, channel="telegram")
             )
+            verified = bool(context.user_data.get("verified_phone"))
+            markup = (
+                main_menu_keyboard(lang) if verified else phone_request_keyboard(lang)
+            )
+            body = _t(_new_chat_started, lang)
+            if not verified:
+                body += _t(_PHONE_PROMPT, lang)
             await self._safe_reply_text(
                 update,
-                _t(_new_chat_started, lang) + _t(_PHONE_PROMPT, lang),
-                reply_markup=phone_request_keyboard(lang),
+                body,
+                reply_markup=markup,
+                attach_main_menu=False,
             )
         except Exception:
             logger.exception("reset_session failed")
@@ -504,11 +571,150 @@ class TelegramBot(BotChannel):
 
         user_id = str(update.effective_user.id)
         text = update.message.text or ""
+        lang = _tg_lang(update, context)
+
+        if is_main_menu_label(text):
+            action = match_menu_action(text, lang)
+            if action:
+                await self._handle_menu_action(update, context, action, lang)
+                return
+
+        if context.user_data and context.user_data.get("awaiting_product_search"):
+            await self._handle_product_search_query(update, context, text, lang)
+            return
+
         self._run_in_background(
             context,
             self._process_message(update, context, user_id, text),
             name=f"text-{user_id}",
         )
+
+    async def _handle_menu_action(
+        self,
+        update: Update,
+        context: ContextTypes.DEFAULT_TYPE,
+        action: str,
+        lang: str,
+    ) -> None:
+        if action == "new_chat":
+            await self._on_new(update, context)
+            return
+        if action == "language":
+            markup = inline_keyboard_from_extra(build_language_menu_extra())
+            await self._safe_reply_text(
+                update,
+                LANGUAGE_PICKER_PROMPT,
+                reply_markup=markup,
+                lang=lang,
+                attach_main_menu=False,
+            )
+            return
+        if action == "help":
+            await self._safe_reply_text(
+                update,
+                localize_menu(MENU_HELP, lang),
+                lang=lang,
+            )
+            return
+        if action == "callback":
+            await self._safe_reply_text(
+                update,
+                localize_menu(MENU_CALLBACK, lang),
+                lang=lang,
+            )
+            return
+        if action == "product_search":
+            if context.user_data is not None:
+                context.user_data["awaiting_product_search"] = True
+            await self._safe_reply_text(
+                update,
+                localize_menu(PRODUCT_SEARCH_PROMPT, lang),
+                lang=lang,
+            )
+            return
+
+    async def _handle_product_search_query(
+        self,
+        update: Update,
+        context: ContextTypes.DEFAULT_TYPE,
+        text: str,
+        lang: str,
+    ) -> None:
+        if context.user_data is not None:
+            context.user_data["awaiting_product_search"] = False
+            context.user_data["skip_rating_once"] = True
+
+        keyword = (text or "").strip()
+        if len(keyword) < 2:
+            if context.user_data is not None:
+                context.user_data["awaiting_product_search"] = True
+            await self._safe_reply_text(
+                update,
+                localize_menu(PRODUCT_SEARCH_TOO_SHORT, lang),
+                lang=lang,
+            )
+            return
+
+        if not update.effective_chat:
+            return
+
+        chat_id = update.effective_chat.id
+        typing_task = asyncio.create_task(self._typing_loop(context, chat_id))
+        settings = get_settings()
+        try:
+            items = await search_products(
+                keyword,
+                lang,
+                page_size=max(1, settings.sahiy_product_search_page_size),
+                sort=settings.sahiy_product_search_sort or "asc",
+            )
+            if not items:
+                base = settings.sahiy_api_base_url.strip()
+                uuid = settings.sahiy_exchange_client_uuid.strip()
+                msg = (
+                    localize_menu(PRODUCT_SEARCH_ERROR, lang)
+                    if not base or not uuid
+                    else localize_menu(PRODUCT_SEARCH_EMPTY, lang)
+                )
+                await self._safe_reply_text(update, msg, lang=lang)
+                return
+
+            rate = await get_cny_uzs_rate()
+            header = localize_menu(
+                PRODUCT_SEARCH_HEADER,
+                lang,
+                keyword=keyword,
+                count=str(len(items)),
+            )
+            await self._safe_reply_text(update, header, lang=lang)
+
+            for index, item in enumerate(items, start=1):
+                caption = format_product_caption(
+                    item, lang, cny_to_uzs=rate, index=index
+                )
+                buy_markup = inline_keyboard_from_extra(
+                    product_buy_keyboard_extra(item, lang)
+                )
+                await self._safe_send_product_photo(
+                    update,
+                    item.pic_url,
+                    caption,
+                    reply_markup=buy_markup,
+                    lang=lang,
+                )
+        except Exception:
+            logger.exception("product search failed keyword=%r", keyword[:40])
+            await self._safe_reply_text(
+                update,
+                localize_menu(PRODUCT_SEARCH_ERROR, lang),
+                lang=lang,
+            )
+        finally:
+            typing_task.cancel()
+            try:
+                await typing_task
+            except asyncio.CancelledError:
+                pass
 
     async def _on_photo(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if not update.message or not update.effective_user or not update.effective_chat:
@@ -590,7 +796,8 @@ class TelegramBot(BotChannel):
         await self._safe_reply_text(
             update,
             phone_verified_text(lang),
-            reply_markup=remove_keyboard(),
+            reply_markup=main_menu_keyboard(lang),
+            attach_main_menu=False,
         )
 
     @staticmethod
@@ -765,7 +972,9 @@ class TelegramBot(BotChannel):
         extra: Dict[str, Any] = {}
 
         if use_stream:
-            sent_message = await self._safe_reply_text(update, _STREAM_PLACEHOLDER)
+            sent_message = await self._safe_reply_text(
+                update, _STREAM_PLACEHOLDER, attach_main_menu=False
+            )
             if sent_message is None:
                 return
             stream_session = _SmoothStreamSession(self, sent_message)
@@ -819,7 +1028,10 @@ class TelegramBot(BotChannel):
                     return
         else:
             sent = await self._safe_reply_text(
-                update, reply_text, reply_markup=reply_markup
+                update,
+                reply_text,
+                reply_markup=reply_markup,
+                lang=_lang,
             )
             if sent is None:
                 logger.error("Could not deliver reply to Telegram for user_id=%s", user_id)
@@ -828,10 +1040,33 @@ class TelegramBot(BotChannel):
         for follow_up in extra.get("telegram_messages") or []:
             text = str(follow_up).strip()
             if text:
-                await self._safe_reply_text(update, text)
+                await self._safe_reply_text(update, text, lang=_lang)
 
         if photo_urls and update.message:
             await self._safe_send_media_group(update, photo_urls)
+
+        await self._maybe_send_rating_prompt(update, context, _lang)
+
+    async def _maybe_send_rating_prompt(
+        self,
+        update: Update,
+        context: ContextTypes.DEFAULT_TYPE,
+        lang: str,
+    ) -> None:
+        if context.user_data and context.user_data.pop("skip_rating_once", None):
+            return
+        if context.user_data and context.user_data.get("rated_this_session"):
+            return
+        rating_markup = inline_keyboard_from_extra(build_rating_inline_extra())
+        if rating_markup is None:
+            return
+        await self._safe_reply_text(
+            update,
+            localize_menu(RATING_PROMPT, lang),
+            reply_markup=rating_markup,
+            lang=lang,
+            attach_main_menu=False,
+        )
 
     async def _typing_loop(
         self, context: ContextTypes.DEFAULT_TYPE, chat_id: int
@@ -854,6 +1089,43 @@ class TelegramBot(BotChannel):
             logger.warning("send_chat_action skipped (network): %s", exc)
         except TelegramError as exc:
             logger.warning("send_chat_action skipped: %s", exc)
+
+    async def _safe_send_product_photo(
+        self,
+        update: Update,
+        photo_url: str,
+        caption: str,
+        *,
+        reply_markup: Any = None,
+        lang: str = "uz_lat",
+    ) -> None:
+        if not update.message or not photo_url:
+            return
+        display_caption = self._clip_telegram_text(caption[:1024])
+        markup = reply_markup or main_menu_keyboard(lang)
+        user_id = update.effective_user.id if update.effective_user else "unknown"
+        for attempt in range(1, self._send_retries + 1):
+            try:
+                await update.message.reply_photo(
+                    photo=photo_url,
+                    caption=display_caption,
+                    reply_markup=markup,
+                )
+                return
+            except Forbidden:
+                return
+            except (TimedOut, NetworkError) as exc:
+                logger.warning(
+                    "reply_photo attempt %s/%s failed: %s",
+                    attempt,
+                    self._send_retries,
+                    exc,
+                )
+                if attempt < self._send_retries:
+                    await asyncio.sleep(1.5 * attempt)
+            except TelegramError as exc:
+                logger.warning("reply_photo failed user_id=%s: %s", user_id, exc)
+                return
 
     async def _safe_send_media_group(
         self,
@@ -949,14 +1221,19 @@ class TelegramBot(BotChannel):
         text: str,
         *,
         reply_markup: Any = None,
+        lang: Optional[str] = None,
+        attach_main_menu: bool = True,
     ) -> Optional[Message]:
         if not update.message:
             return None
         message = update.message
         user_id = update.effective_user.id if update.effective_user else "unknown"
+        markup = reply_markup
+        if markup is None and attach_main_menu:
+            markup = main_menu_keyboard(lang or "uz_lat")
         for attempt in range(1, self._send_retries + 1):
             try:
-                return await message.reply_text(text, reply_markup=reply_markup)
+                return await message.reply_text(text, reply_markup=markup)
             except Forbidden:
                 logger.info("User blocked bot, skipping reply user_id=%s", user_id)
                 return None

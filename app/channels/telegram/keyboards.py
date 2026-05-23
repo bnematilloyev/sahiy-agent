@@ -6,6 +6,8 @@ from typing import Any, Dict, List, Optional
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 
+from app.domain.telegram_menu import main_menu_button_texts
+
 PHONE_BUTTON_TEXT = "📱 Telefon raqamni yuborish"
 
 _PHONE_BUTTON: Dict[str, str] = {
@@ -30,6 +32,26 @@ def remove_keyboard() -> ReplyKeyboardRemove:
     return ReplyKeyboardRemove()
 
 
+def main_menu_keyboard(lang: str = "uz_lat") -> ReplyKeyboardMarkup:
+    """Asosiy menyu: 2×2 + mahsulot qidirish."""
+    labels = main_menu_button_texts(lang)
+    return ReplyKeyboardMarkup(
+        [
+            [
+                KeyboardButton(labels["callback"]),
+                KeyboardButton(labels["new_chat"]),
+            ],
+            [
+                KeyboardButton(labels["language"]),
+                KeyboardButton(labels["help"]),
+            ],
+            [KeyboardButton(labels["product_search"])],
+        ],
+        resize_keyboard=True,
+        is_persistent=True,
+    )
+
+
 def inline_keyboard_from_extra(extra: Optional[Dict[str, Any]]) -> Optional[InlineKeyboardMarkup]:
     if not extra:
         return None
@@ -42,7 +64,13 @@ def inline_keyboard_from_extra(extra: Optional[Dict[str, Any]]) -> Optional[Inli
             continue
         buttons = []
         for btn in row:
-            if isinstance(btn, dict) and btn.get("text") and btn.get("callback_data"):
+            if not isinstance(btn, dict) or not btn.get("text"):
+                continue
+            if btn.get("url"):
+                buttons.append(
+                    InlineKeyboardButton(str(btn["text"]), url=str(btn["url"]))
+                )
+            elif btn.get("callback_data"):
                 buttons.append(
                     InlineKeyboardButton(
                         str(btn["text"]),
