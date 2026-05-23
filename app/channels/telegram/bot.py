@@ -603,11 +603,13 @@ class TelegramBot(BotChannel):
         async def on_stream(accumulated: str) -> None:
             nonlocal last_stream_len
             display = self._clip_telegram_text(accumulated)
-            if len(display) - last_stream_len < self._stream_min_chars:
+            if len(display) <= last_stream_len:
                 return
-            if await self._safe_edit_message_text(sent_message, display):
-                last_stream_len = len(display)
-            await asyncio.sleep(self._stream_delay)
+            last_stream_len = await self._reveal_stream_text(
+                sent_message,
+                display,
+                shown_len=last_stream_len,
+            )
 
         try:
             result = await self._with_chat(
@@ -712,6 +714,26 @@ class TelegramBot(BotChannel):
         if len(text) <= _TELEGRAM_MAX_MESSAGE_LEN:
             return text
         return text[: _TELEGRAM_MAX_MESSAGE_LEN - 1] + "…"
+
+    async def _reveal_stream_text(
+        self,
+        message: Optional[Message],
+        target: str,
+        *,
+        shown_len: int,
+    ) -> int:
+        """Matnni belma-bel (yoki kichik qadam bilan) ko'rsatish — IMAN bot effekti."""
+        if message is None or shown_len >= len(target):
+            return shown_len
+
+        step = max(1, self._stream_min_chars)
+        pos = shown_len
+        while pos < len(target):
+            pos = min(pos + step, len(target))
+            if await self._safe_edit_message_text(message, target[:pos]):
+                shown_len = pos
+            await asyncio.sleep(self._stream_delay)
+        return shown_len
 
     async def _safe_edit_message_text(
         self,
