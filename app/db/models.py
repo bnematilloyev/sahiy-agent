@@ -9,11 +9,8 @@ from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.core.config import get_settings
 from app.core.database import Base
-
-_settings = get_settings()
-_EMBEDDING_DIM = _settings.embedding_dimension
+from app.db.constants import EMBEDDING_DIMENSION
 
 
 class ChatSessionModel(Base):
@@ -72,7 +69,9 @@ class FAQEmbeddingModel(Base):
     answer_en: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     question_zh: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     answer_zh: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    embedding: Mapped[Optional[List[float]]] = mapped_column(Vector(_EMBEDDING_DIM), nullable=True)
+    embedding: Mapped[Optional[List[float]]] = mapped_column(
+        Vector(EMBEDDING_DIMENSION), nullable=True
+    )
 
 
 class TicketModel(Base):

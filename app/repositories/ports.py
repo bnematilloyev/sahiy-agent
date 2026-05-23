@@ -44,6 +44,10 @@ class MessageRepositoryPort(Protocol):
 
     async def get_recent(self, session_id: UUID, limit: int = 10) -> List[Message]: ...
 
+    async def find_customer_identity(
+        self, session_id: UUID, *, scan_limit: int = 100
+    ) -> tuple[Optional[str], Optional[int]]: ...
+
 
 class FAQRepositoryPort(Protocol):
     async def create(

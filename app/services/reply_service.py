@@ -24,7 +24,7 @@ from app.domain.pickup_keywords import (
 )
 from app.handlers.pickup_handler import PickupHandler
 from app.handlers.routes import IntentRouter
-from app.repositories.message_repository import MessageRepository
+from app.repositories.ports import MessageRepositoryPort
 from app.services.identity_service import IdentityService
 from app.services.intent_service import IntentService
 
@@ -36,14 +36,15 @@ class ReplyService:
 
     def __init__(
         self,
-        messages: MessageRepository,
+        messages: MessageRepositoryPort,
         intent: IntentService,
         router: IntentRouter,
+        pickup: Optional[PickupHandler] = None,
     ) -> None:
         self._messages = messages
         self._intent = intent
         self._router = router
-        self._pickup = PickupHandler()
+        self._pickup = pickup or PickupHandler()
         self._identity = IdentityService(messages)
 
     async def reply(

@@ -1,4 +1,3 @@
-from app.services.chat_service import ChatService
-from app.services.reply_service import ReplyService
+"""Application services package (import submodules directly to avoid import cycles)."""
 
-__all__ = ["ChatService", "ReplyService"]
+__all__: list[str] = []

@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import List, Optional
 
-from app.core.config import get_settings
 from app.domain.dto import ChatContext, ChatReply
 from app.domain.enums import QuestionCategory, ResponseType
 from app.domain.pickup_keywords import build_pickup_query_text
@@ -15,14 +14,15 @@ from app.domain.pickup_present import (
     format_region_list,
     format_type_list,
 )
-from app.infrastructure.sahiy_api.auth import ServiceUserAuth
-from app.infrastructure.sahiy_api.client import SahiyApiClient
-from app.infrastructure.sahiy_api.factory import get_sahiy_api_client
-from app.infrastructure.sahiy_api.pickup_points import get_pickup_points_cached
+from app.core.config import get_settings
+from app.services.pickup_points_service import PickupPointsService
 
 
 class PickupHandler:
     category = QuestionCategory.FAQ
+
+    def __init__(self, pickup_points: Optional[PickupPointsService] = None) -> None:
+        self._pickup_points = pickup_points or PickupPointsService()
 
     async def reply(self, context: ChatContext) -> ChatReply:
         settings = get_settings()
@@ -33,18 +33,13 @@ class PickupHandler:
                 category=self.category,
             )
 
-        client = get_sahiy_api_client()
-        if client is None:
+        points = await self._pickup_points.fetch_points()
+        if points is None:
             return ChatReply(
                 response_type=ResponseType.AUTO,
                 text="Topshirish punktlari vaqtincha mavjud emas.",
                 category=self.category,
             )
-
-        points = await get_pickup_points_cached(
-            client,
-            ttl_seconds=settings.pickup_points_cache_ttl_seconds,
-        )
         if not points:
             return ChatReply(
                 response_type=ResponseType.AUTO,
@@ -71,8 +66,18 @@ class PickupHandler:
             },
         )
 
+    async def reply_for_callback(self, kind: str, value: int) -> ChatReply:
+        points = await self._pickup_points.fetch_points()
+        if points is None:
+            return ChatReply(
+                response_type=ResponseType.AUTO,
+                text="Topshirish punktlari vaqtincha mavjud emas.",
+                category=self.category,
+            )
+        return self.build_callback_reply(kind, value, points)
+
     @staticmethod
-    async def reply_for_callback(kind: str, value: int, points: List[dict]) -> ChatReply:
+    def build_callback_reply(kind: str, value: int, points: List[dict]) -> ChatReply:
         if kind == "t":
             filtered = [p for p in points if p.get("type") == value]
             label = "Filial punktlari" if value == 1 else "Postomatlar"

@@ -78,6 +78,8 @@ class Settings(BaseSettings):
     # Ikki edit orasidagi minimal interval (Telegram rate-limit) — 0.15 ≈ 6 edit/s
     telegram_stream_min_edit_gap_seconds: float = 0.15
     telegram_stream_show_cursor: bool = True
+    # Xizmat bahosi: oxirgi bot javobidan keyin mijoz jim turganda (sekund)
+    telegram_rating_inactivity_seconds: float = 1800.0
 
     # Close active session after this many hours without messages (0 = disabled)
     session_idle_hours: float = 24.0
