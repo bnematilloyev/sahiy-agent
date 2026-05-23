@@ -168,11 +168,11 @@ _FALLBACK_ERROR: dict[str, str] = {
 }
 
 _STREAM_PLACEHOLDER = "⏳"
-_STREAM_CURSOR = " ▌"
+_STREAM_CURSOR = "▌"
 _TELEGRAM_MAX_MESSAGE_LEN = 4096
 
 class _SmoothStreamSession:
-    """Buffer + timer: tokenlar navbatga, ekran doimiy tezlikda yangilanadi."""
+    """Buffer + timer: tokenlar navbatga, so'zma-so'z silliq chiqarish."""
 
     def __init__(self, bot: "TelegramBot", message: Message) -> None:
         self._bot = bot
@@ -182,6 +182,7 @@ class _SmoothStreamSession:
         self._displayed_response = ""
         self._stream_done = False
         self._last_pushed_len = 0
+        self._last_frame = ""
         self._task = asyncio.create_task(self._smooth_display())
 
     async def enqueue(self, accumulated: str) -> None:
@@ -202,31 +203,54 @@ class _SmoothStreamSession:
             except asyncio.CancelledError:
                 pass
 
+    @staticmethod
+    def _next_word_chunk(remaining: str, fallback_chars: int) -> str:
+        """Keyingi so'z (yoki bo'shliq yo'q bo'lsa kichik belgi bo'lagi)."""
+        if not remaining:
+            return ""
+        next_space = remaining.find(" ", 1)
+        if next_space == -1:
+            return remaining[: max(1, fallback_chars)]
+        return remaining[: next_space + 1]
+
+    async def _edit_frame(self, *, show_cursor: bool) -> None:
+        frame = self._bot._stream_frame_text(
+            self._displayed_response,
+            show_cursor=show_cursor,
+        )
+        if frame == self._last_frame:
+            return
+        ok = await self._bot._safe_edit_stream_frame(
+            self._message,
+            self._displayed_response,
+            show_cursor=show_cursor,
+        )
+        if ok:
+            self._last_frame = frame
+        else:
+            await asyncio.sleep(self._bot._stream_rate_limit_backoff)
+
     async def _smooth_display(self) -> None:
-        chars_per_tick = max(1, self._bot._stream_chars_per_tick)
         tick_delay = self._bot._stream_tick_delay
+        fallback_chars = max(1, self._bot._stream_chars_per_tick)
 
         while True:
             while not self._token_queue.empty():
                 self._full_response += await self._token_queue.get()
 
-            if len(self._displayed_response) < len(self._full_response):
-                target = min(
-                    len(self._displayed_response) + chars_per_tick,
-                    len(self._full_response),
+            remaining = self._full_response[len(self._displayed_response) :]
+            if remaining:
+                self._displayed_response += self._next_word_chunk(
+                    remaining, fallback_chars
                 )
-                self._displayed_response = self._full_response[:target]
-                show_cursor = self._bot._stream_show_cursor and not (
+                at_end = (
                     self._stream_done
                     and self._displayed_response == self._full_response
                 )
-                await self._bot._safe_edit_stream_frame(
-                    self._message,
-                    self._displayed_response,
-                    show_cursor=show_cursor,
-                )
+                await self._edit_frame(show_cursor=not at_end)
 
             if self._stream_done and self._displayed_response == self._full_response:
+                await self._edit_frame(show_cursor=False)
                 break
 
             await asyncio.sleep(tick_delay)
@@ -290,6 +314,9 @@ class TelegramBot(BotChannel):
         self._stream_chars_per_tick = settings.telegram_stream_edit_min_chars
         self._stream_tick_delay = settings.telegram_stream_edit_delay_seconds
         self._stream_show_cursor = settings.telegram_stream_show_cursor
+        self._stream_rate_limit_backoff = (
+            settings.telegram_stream_rate_limit_backoff_seconds
+        )
         self._app.add_handler(CommandHandler("start", self._on_start))
         self._app.add_handler(CommandHandler("new", self._on_new))
         self._app.add_handler(MessageHandler(filters.CONTACT, self._on_contact))
@@ -778,7 +805,8 @@ class TelegramBot(BotChannel):
         return text[: _TELEGRAM_MAX_MESSAGE_LEN - 1] + "…"
 
     def _stream_frame_text(self, body: str, *, show_cursor: bool) -> str:
-        body = body.strip() or "…"
+        if not body:
+            body = "…"
         body = self._clip_telegram_text(body)
         if not show_cursor or not self._stream_show_cursor:
             return body
