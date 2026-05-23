@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import AsyncIterator
 
 import anthropic
 
@@ -48,3 +49,28 @@ class ClaudeClient:
             if block.type == "text" and block.text.strip():
                 return block.text.strip()
         raise LLMError("Claude returned an empty response")
+
+    async def complete_stream(
+        self, system_prompt: str, user_prompt: str, max_tokens: int = 1024
+    ) -> AsyncIterator[str]:
+        async with self._semaphore:
+            try:
+                async with self._client.messages.stream(
+                    model=self._model,
+                    max_tokens=max_tokens,
+                    system=system_prompt,
+                    messages=[{"role": "user", "content": user_prompt}],
+                ) as stream:
+                    got_content = False
+                    started = asyncio.get_running_loop().time()
+                    async for text in stream.text_stream:
+                        if asyncio.get_running_loop().time() - started > self._timeout:
+                            raise LLMTimeoutError("Claude API request timed out")
+                        if text:
+                            got_content = True
+                            yield text
+                    if not got_content:
+                        raise LLMError("Claude returned an empty response")
+            except anthropic.APIError as exc:
+                logger.exception("Claude API error")
+                raise LLMError(str(exc)) from exc

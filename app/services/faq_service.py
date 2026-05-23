@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import List, Optional
+from typing import Awaitable, Callable, List, Optional
 
 # --- MUHIM IMPORTLAR ---
 from app.repositories.faq_repository import FAQRepository
@@ -84,6 +84,7 @@ class FaqService:
             history: List[Message],
             *,
             reply_language: str = UZ_LAT,
+            on_stream: Optional[Callable[[str], Awaitable[None]]] = None,
     ) -> str:
         # 1. So'kinishni tekshirish
         if any(word in question.lower() for word in PROFANITY_KEYWORDS):
@@ -92,9 +93,10 @@ class FaqService:
         # 2. Agar bazadan (RAG) hech narsa topilmasa
         if not matches:
             static = self.static_answer_for_question(question)
-            if static:
-                return static
-            return localize("no_faq_fallback", reply_language)
+            text = static if static else localize("no_faq_fallback", reply_language)
+            if on_stream is not None:
+                await on_stream(text)
+            return text
 
         # 3. Salomlashish qo'shish
         greeting = (
@@ -103,9 +105,12 @@ class FaqService:
 
         # 4. AI mavjud bo'lmasa yoki rules mode
         if not self._ai.is_available:
-            return greeting + self._compose_local_answer(
+            text = greeting + self._compose_local_answer(
                 matches, max_chars=3500, reply_language=reply_language
             )
+            if on_stream is not None:
+                await on_stream(text)
+            return text
 
         # 5. LLM orqali javob
         settings = get_settings()
@@ -116,19 +121,29 @@ class FaqService:
             history=self._format_history(history) or "(yo'q)",
             wrapped_question=wrap_user_message(question),
         )
+        system = system_prompt_with_language(RAG_SYSTEM, reply_language)
 
         try:
-            ai_reply = await self._ai.complete(
-                system_prompt_with_language(RAG_SYSTEM, reply_language),
+            accumulated = greeting
+            if on_stream is not None and accumulated:
+                await on_stream(accumulated)
+            async for token in self._ai.complete_stream(
+                system,
                 prompt,
                 max_tokens=settings.rag_max_tokens,
-            )
-            return f"{greeting}{ai_reply}".strip()
+            ):
+                accumulated += token
+                if on_stream is not None:
+                    await on_stream(accumulated)
+            return accumulated.strip()
         except Exception as e:
             logger.error(f"RAG LLM failed: {e}")
-            return greeting + self._compose_local_answer(
+            text = greeting + self._compose_local_answer(
                 matches, max_chars=3500, reply_language=reply_language
             )
+            if on_stream is not None:
+                await on_stream(text)
+            return text
 
     @staticmethod
     def _compose_local_answer(

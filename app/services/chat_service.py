@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Awaitable, Callable, Dict, Optional
 from uuid import UUID
 
 from app.core.config import get_settings
@@ -38,6 +38,8 @@ class ChatService:
             channel: str = "telegram",
             metadata: Optional[Dict[str, Any]] = None,
             session_id: Optional[UUID] = None,
+            *,
+            on_stream: Optional[Callable[[str], Awaitable[None]]] = None,
     ) -> ChatReply:
         """
         Xabarga javob qaytarishning asosiy oqimi.
@@ -59,6 +61,7 @@ class ChatService:
             user_id=user_id,
             text=text,
             context=ctx,
+            on_stream=on_stream,
         )
 
     async def reset_session(self, user_id: str, channel: str = "telegram") -> None:

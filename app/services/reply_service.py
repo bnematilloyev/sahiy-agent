@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Awaitable, Callable, Dict, Optional
 from uuid import UUID
 
 from app.core.exceptions import LLMError, LLMTimeoutError
@@ -52,9 +52,20 @@ class ReplyService:
         user_id: str,
         text: str,
         context: Optional[Dict[str, Any]] = None,
+        *,
+        on_stream: Optional[Callable[[str], Awaitable[None]]] = None,
     ) -> ChatReply:
         meta = dict(context or {})
         channel = str(meta.get("channel", "telegram"))
+        streamed = False
+        stream_callback = on_stream
+        if stream_callback is not None:
+            _original_stream = stream_callback
+
+            async def stream_callback(chunk: str) -> None:
+                nonlocal streamed
+                streamed = True
+                await _original_stream(chunk)
 
         stored_phone, stored_uid = await self._messages.find_customer_identity(session_id)
         if stored_phone and not meta.get("verified_phone"):
@@ -86,6 +97,8 @@ class ReplyService:
                     content=identity_reply.text,
                     msg_type=identity_reply.response_type.value,
                 )
+                if stream_callback is not None:
+                    await stream_callback(identity_reply.text)
                 return identity_reply
             chat_context = ChatContext(
                 session_id=session_id,
@@ -121,7 +134,7 @@ class ReplyService:
                 category=QuestionCategory.FAQ,
             )
         else:
-            result = await self._route_intent(chat_context, text)
+            result = await self._route_intent(chat_context, text, on_stream=stream_callback)
 
         if not result.text.strip():
             result = ChatReply(
@@ -137,6 +150,8 @@ class ReplyService:
             content=result.text,
             msg_type=result.response_type.value,
         )
+        if stream_callback is not None and not streamed:
+            await stream_callback(result.text)
         return result
 
     async def _ensure_verified_customer(
@@ -184,7 +199,13 @@ class ReplyService:
             category=QuestionCategory.FAQ,
         )
 
-    async def _route_intent(self, chat_context: ChatContext, text: str) -> ChatReply:
+    async def _route_intent(
+        self,
+        chat_context: ChatContext,
+        text: str,
+        *,
+        on_stream: Optional[Callable[[str], Awaitable[None]]] = None,
+    ) -> ChatReply:
         try:
             if is_off_topic(text):
                 support = self._router.pick(QuestionCategory.TICKET)
@@ -197,7 +218,10 @@ class ReplyService:
             else:
                 category = await self._intent.detect(text)
                 handler = self._router.pick(category)
-                result = await handler.reply(chat_context)
+                if category == QuestionCategory.FAQ and on_stream is not None:
+                    result = await handler.reply(chat_context, on_stream=on_stream)
+                else:
+                    result = await handler.reply(chat_context)
         except (LLMTimeoutError, LLMError) as exc:
             logger.warning("AI unavailable, trying FAQ handler: %s", exc)
             try:

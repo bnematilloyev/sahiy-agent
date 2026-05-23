@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import AsyncIterator
 from typing import List
 
 from app.core.exceptions import LLMError, LLMTimeoutError
@@ -51,6 +52,43 @@ class ChainedAiClient:
         if CLASSIFIER_MARKER in system_prompt or system_prompt == RAG_SYSTEM:
             logger.warning("All LLM providers failed, using rules fallback")
             return await self._rules.complete(system_prompt, user_prompt, max_tokens=max_tokens)
+
+        if last_error:
+            raise last_error
+        raise LLMError("No LLM provider available")
+
+    async def complete_stream(
+        self, system_prompt: str, user_prompt: str, max_tokens: int = 1024
+    ) -> AsyncIterator[str]:
+        last_error: Exception | None = None
+        for index, provider in enumerate(self._providers):
+            if not provider.is_available:
+                continue
+            try:
+                async for token in provider.complete_stream(
+                    system_prompt, user_prompt, max_tokens=max_tokens
+                ):
+                    yield token
+                return
+            except (LLMTimeoutError, LLMError) as exc:
+                last_error = exc
+                name = type(provider).__name__
+                if is_billing_or_auth_error(exc):
+                    logger.warning(
+                        "LLM stream %s unavailable (quota/billing/auth): %s",
+                        name,
+                        exc,
+                    )
+                else:
+                    logger.warning("LLM stream %s failed: %s", name, exc)
+                if index < len(self._providers) - 1:
+                    logger.info("Trying next LLM provider in chain (stream)")
+
+        if CLASSIFIER_MARKER in system_prompt or system_prompt == RAG_SYSTEM:
+            logger.warning("All LLM stream providers failed, using rules fallback")
+            text = await self._rules.complete(system_prompt, user_prompt, max_tokens=max_tokens)
+            yield text
+            return
 
         if last_error:
             raise last_error

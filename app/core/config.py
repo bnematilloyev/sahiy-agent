@@ -52,6 +52,9 @@ class Settings(BaseSettings):
     telegram_http_timeout_seconds: int = 60
     telegram_send_retries: int = 3
     telegram_typing_interval_seconds: float = 4.0
+    telegram_stream_enabled: bool = True
+    telegram_stream_edit_min_chars: int = 20
+    telegram_stream_edit_delay_seconds: float = 0.05
 
     # Close active session after this many hours without messages (0 = disabled)
     session_idle_hours: float = 24.0

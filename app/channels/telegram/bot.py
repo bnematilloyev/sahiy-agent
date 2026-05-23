@@ -4,7 +4,7 @@ import asyncio
 import logging
 from typing import Any, Callable, Coroutine, Dict, Optional
 
-from telegram import InputMediaPhoto, Update
+from telegram import InputMediaPhoto, Message, Update
 from telegram.error import Forbidden, NetworkError, TelegramError, TimedOut
 from telegram.ext import (
     Application,
@@ -167,6 +167,9 @@ _FALLBACK_ERROR: dict[str, str] = {
     "zh": "暂时无法发送回复（网络错误）。请1–2分钟后重试。",
 }
 
+_STREAM_PLACEHOLDER = "⏳"
+_TELEGRAM_MAX_MESSAGE_LEN = 4096
+
 _PHOTO_FALLBACK: dict[str, str] = {
     "uz_lat": "Rasmingiz qabul qilindi. Operator tez orada bog'lanadi: @sahiy_operator",
     "uz_cyrl": "Расмингиз қабул қилинди. Оператор тез орада боғланади: @sahiy_operator",
@@ -221,6 +224,9 @@ class TelegramBot(BotChannel):
         )
         self._send_retries = settings.telegram_send_retries
         self._typing_interval = settings.telegram_typing_interval_seconds
+        self._stream_enabled = settings.telegram_stream_enabled
+        self._stream_min_chars = settings.telegram_stream_edit_min_chars
+        self._stream_delay = settings.telegram_stream_edit_delay_seconds
         self._app.add_handler(CommandHandler("start", self._on_start))
         self._app.add_handler(CommandHandler("new", self._on_new))
         self._app.add_handler(MessageHandler(filters.CONTACT, self._on_contact))
@@ -577,11 +583,32 @@ class TelegramBot(BotChannel):
             fallback_text = _t(_FALLBACK_ERROR, _lang)
 
         chat_id = update.effective_chat.id
-        typing_task = asyncio.create_task(self._typing_loop(context, chat_id))
+        use_stream = self._stream_enabled and update.message is not None
+        sent_message: Optional[Message] = None
+        last_stream_len = 0
+        typing_task: Optional[asyncio.Task[None]] = None
+        if not use_stream:
+            typing_task = asyncio.create_task(self._typing_loop(context, chat_id))
+
         reply_text = fallback_text
         reply_markup = None
         photo_urls: list = []
         extra: Dict[str, Any] = {}
+
+        if use_stream:
+            sent_message = await self._safe_reply_text(update, _STREAM_PLACEHOLDER)
+            if sent_message is None:
+                return
+
+        async def on_stream(accumulated: str) -> None:
+            nonlocal last_stream_len
+            display = self._clip_telegram_text(accumulated)
+            if len(display) - last_stream_len < self._stream_min_chars:
+                return
+            if await self._safe_edit_message_text(sent_message, display):
+                last_stream_len = len(display)
+            await asyncio.sleep(self._stream_delay)
+
         try:
             result = await self._with_chat(
                 lambda chat: chat.reply(
@@ -589,6 +616,7 @@ class TelegramBot(BotChannel):
                     text=text,
                     channel="telegram",
                     metadata=metadata,
+                    on_stream=on_stream if use_stream else None,
                 )
             )
             reply_text = result.text
@@ -599,16 +627,33 @@ class TelegramBot(BotChannel):
         except Exception:
             logger.exception("ChatService.reply failed for user_id=%s", user_id)
         finally:
-            typing_task.cancel()
-            try:
-                await typing_task
-            except asyncio.CancelledError:
-                pass
+            if typing_task is not None:
+                typing_task.cancel()
+                try:
+                    await typing_task
+                except asyncio.CancelledError:
+                    pass
 
-        sent = await self._safe_reply_text(update, reply_text, reply_markup=reply_markup)
-        if not sent:
-            logger.error("Could not deliver reply to Telegram for user_id=%s", user_id)
-            return
+        if use_stream and sent_message is not None:
+            display = self._clip_telegram_text(reply_text) or _t(_FALLBACK_ERROR, _lang)
+            if len(display) != last_stream_len or reply_markup is not None:
+                if not await self._safe_edit_message_text(
+                    sent_message,
+                    display,
+                    reply_markup=reply_markup,
+                ):
+                    logger.error(
+                        "Could not deliver streamed reply to Telegram for user_id=%s",
+                        user_id,
+                    )
+                    return
+        else:
+            sent = await self._safe_reply_text(
+                update, reply_text, reply_markup=reply_markup
+            )
+            if sent is None:
+                logger.error("Could not deliver reply to Telegram for user_id=%s", user_id)
+                return
 
         for follow_up in extra.get("telegram_messages") or []:
             text = str(follow_up).strip()
@@ -662,24 +707,61 @@ class TelegramBot(BotChannel):
             except TelegramError as exc2:
                 logger.warning("single photo fallback failed: %s", exc2)
 
+    @staticmethod
+    def _clip_telegram_text(text: str) -> str:
+        if len(text) <= _TELEGRAM_MAX_MESSAGE_LEN:
+            return text
+        return text[: _TELEGRAM_MAX_MESSAGE_LEN - 1] + "…"
+
+    async def _safe_edit_message_text(
+        self,
+        message: Optional[Message],
+        text: str,
+        *,
+        reply_markup: Any = None,
+    ) -> bool:
+        if message is None:
+            return False
+        display = self._clip_telegram_text(text.strip() or "…")
+        for attempt in range(1, self._send_retries + 1):
+            try:
+                await message.edit_text(display, reply_markup=reply_markup)
+                return True
+            except Forbidden:
+                return False
+            except (TimedOut, NetworkError) as exc:
+                logger.warning(
+                    "edit_text attempt %s/%s failed: %s",
+                    attempt,
+                    self._send_retries,
+                    exc,
+                )
+                if attempt < self._send_retries:
+                    await asyncio.sleep(1.5 * attempt)
+            except TelegramError as exc:
+                if "not modified" in str(exc).lower():
+                    return True
+                logger.warning("edit_text failed: %s", exc)
+                return False
+        return False
+
     async def _safe_reply_text(
         self,
         update: Update,
         text: str,
         *,
         reply_markup: Any = None,
-    ) -> bool:
+    ) -> Optional[Message]:
         if not update.message:
-            return False
+            return None
         message = update.message
         user_id = update.effective_user.id if update.effective_user else "unknown"
         for attempt in range(1, self._send_retries + 1):
             try:
-                await message.reply_text(text, reply_markup=reply_markup)
-                return True
+                return await message.reply_text(text, reply_markup=reply_markup)
             except Forbidden:
                 logger.info("User blocked bot, skipping reply user_id=%s", user_id)
-                return False
+                return None
             except (TimedOut, NetworkError) as exc:
                 logger.warning(
                     "reply_text attempt %s/%s failed: %s",
@@ -691,8 +773,8 @@ class TelegramBot(BotChannel):
                     await asyncio.sleep(1.5 * attempt)
             except TelegramError as exc:
                 logger.warning("reply_text failed user_id=%s: %s", user_id, exc)
-                return False
-        return False
+                return None
+        return None
 
     async def _with_chat(self, callback: Callable[[ChatService], Coroutine[Any, Any, Any]]):
         return await run_in_session(

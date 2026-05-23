@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import AsyncIterator
 
 from app.core.prompts import CLASSIFIER_MARKER, NO_FAQ_FALLBACK, RAG_SYSTEM, extract_user_message
 from app.domain.keywords import classify_by_keywords
@@ -20,6 +21,11 @@ class RulesAi:
         if system_prompt == RAG_SYSTEM or "FAQ kontekst" in user_prompt:
             return self._answer_from_faq(user_prompt)
         return NO_FAQ_FALLBACK
+
+    async def complete_stream(
+        self, system_prompt: str, user_prompt: str, max_tokens: int = 1024
+    ) -> AsyncIterator[str]:
+        yield await self.complete(system_prompt, user_prompt, max_tokens=max_tokens)
 
     @staticmethod
     def _answer_from_faq(user_prompt: str) -> str:
