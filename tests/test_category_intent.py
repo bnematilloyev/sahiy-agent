@@ -4,6 +4,7 @@ from app.domain.category_intent import (
     is_category_browse_intent,
     is_vague_catalog_question,
     should_resolve_via_categories,
+    wants_root_category_list,
 )
 from app.domain.product_search_intent import is_product_search_intent
 
@@ -24,6 +25,12 @@ def test_category_browse_intent():
 
 def test_order_not_category():
     assert not is_category_browse_intent("buyurtmalarim qayerda")
+
+
+def test_wants_root_for_sell_categories_question():
+    assert wants_root_category_list(
+        "qaysi turdagi mahsulotlar sotasizlar (kategoriyalar masalan)"
+    )
 
 
 def test_should_resolve_vague_not_lego():

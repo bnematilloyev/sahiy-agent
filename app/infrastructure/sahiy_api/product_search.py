@@ -73,6 +73,27 @@ def build_product_search_deeplink(
     return f"{root}?{urlencode(params)}"
 
 
+def build_category_search_deeplink(
+    category: str,
+    display_name: str,
+    *,
+    platform: str = "1688",
+    base: Optional[str] = None,
+) -> str:
+    """Veb katalog: /search?category=皮草&displayName=…&platform=1688."""
+    settings = get_settings()
+    root = (base or settings.sahiy_category_search_deeplink_base).strip().rstrip("/?")
+    cat = category.strip()
+    if not cat:
+        raise ValueError("category is required")
+    params: dict[str, str] = {
+        "category": cat,
+        "displayName": (display_name or cat).strip(),
+        "platform": platform.strip() or "1688",
+    }
+    return f"{root}?{urlencode(params)}"
+
+
 def _parse_float(value: Any) -> float:
     try:
         return float(value) if value is not None else 0.0

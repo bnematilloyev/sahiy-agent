@@ -12,6 +12,7 @@ from app.domain.category_present import (
 )
 from app.domain.dto import ChatContext, ChatReply
 from app.domain.enums import QuestionCategory, ResponseType
+from app.core.config import get_settings
 from app.domain.reply_language import UZ_LAT
 from app.handlers.product_search_reply import build_product_search_chat_reply
 from app.services.category_resolution_service import (
@@ -59,9 +60,11 @@ class CategoryBrowseHandler:
             or context.text
         )
         resolved = await self._resolution.resolve_text(query, lang)
-        if resolved.kind == CategoryResolutionKind.LIST and not resolved.matched:
-            return None
-        return await self._to_reply(resolved, lang, query=query)
+        if resolved.kind == CategoryResolutionKind.LIST:
+            return await self._to_reply(resolved, lang, query=query)
+        if resolved.kind == CategoryResolutionKind.SEARCH and resolved.matched:
+            return await self._to_reply(resolved, lang, query=query)
+        return None
 
     async def _to_reply(
         self,
@@ -75,7 +78,12 @@ class CategoryBrowseHandler:
             header = searching_header(lang, resolved.category_name or keyword)
             outcome = await self._product_search.search(keyword, lang)
             reply = build_product_search_chat_reply(
-                outcome, lang, query=query, category=self.category
+                outcome,
+                lang,
+                query=query,
+                category=self.category,
+                see_all_category=resolved.category_cn,
+                see_all_display_name=resolved.category_name,
             )
             if reply.channel_extra is None:
                 reply.channel_extra = {}
@@ -96,11 +104,19 @@ class CategoryBrowseHandler:
                 category=self.category,
             )
 
+        settings = get_settings()
+        is_root = resolved.list_parent_id is None
+        max_buttons = (
+            settings.sahiy_category_root_max_buttons
+            if is_root
+            else settings.sahiy_category_child_max_buttons
+        )
         keyboard = build_category_keyboard(
             cats,
             lang,
             back_target=resolved.back_target,
             current_list_parent=resolved.list_parent_id,
+            max_buttons=max_buttons,
         )
 
         text = list_header(

@@ -24,6 +24,8 @@ def build_product_search_chat_reply(
     *,
     query: str = "",
     category: QuestionCategory = QuestionCategory.FAQ,
+    see_all_category: str = "",
+    see_all_display_name: str = "",
 ) -> ChatReply:
     if outcome.status == ProductSearchStatus.TOO_SHORT:
         return ChatReply(
@@ -54,9 +56,18 @@ def build_product_search_chat_reply(
     extra: Dict[str, Any] = {
         "product_search_items": [asdict(item) for item in outcome.items],
         "product_search_cny_to_uzs": outcome.cny_to_uzs,
-        "product_search_see_all_keyword": see_all_keyword,
         "disable_stream": True,
     }
+    cat_cn = (see_all_category or "").strip()
+    if cat_cn:
+        extra["product_search_see_all_category"] = cat_cn
+        extra["product_search_see_all_display_name"] = (
+            (see_all_display_name or "").strip()
+            or outcome.display_keyword
+            or query
+        )
+    else:
+        extra["product_search_see_all_keyword"] = see_all_keyword
     return ChatReply(
         response_type=ResponseType.AUTO,
         text=header,

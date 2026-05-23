@@ -8,7 +8,8 @@ from app.domain.reply_language import EN, RU, UZ_CYRL, UZ_LAT, ZH
 from app.infrastructure.sahiy_api.categories_1688 import Category1688, category_display_name
 
 CALLBACK_PREFIX = "ct"
-MAX_BUTTONS = 12
+MAX_BUTTONS_CHILD = 12
+MAX_BUTTONS_ROOT = 64
 
 
 _HEADER_LIST: Dict[str, str] = {
@@ -86,11 +87,16 @@ def build_category_keyboard(
     *,
     back_target: int = 0,
     current_list_parent: Optional[int] = None,
+    max_buttons: Optional[int] = None,
 ) -> List[List[Dict[str, str]]]:
     rows: List[List[Dict[str, str]]] = []
     row: List[Dict[str, str]] = []
     list_parent = current_list_parent if current_list_parent is not None else 0
-    for cat in categories[:MAX_BUTTONS]:
+    is_root = current_list_parent is None and back_target == 0
+    limit = max_buttons
+    if limit is None:
+        limit = MAX_BUTTONS_ROOT if is_root else MAX_BUTTONS_CHILD
+    for cat in categories[: max(1, int(limit))]:
         label = category_display_name(cat, lang)[:32]
         row.append(
             {

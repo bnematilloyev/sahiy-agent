@@ -43,11 +43,31 @@ _VAGUE_CATALOG_PHRASES = (
     "boshqa mahsulot",
     "qaysi tovarlar",
     "qaysi mahsulot",
+    "qaysi turdagi",
+    "qanday turdagi",
+    "qaysi tur",
+    "mahsulotlar sotasiz",
+    "nima sotasiz",
+    "nimalar sotasiz",
     "какие товары",
     "что продается",
     "что есть",
     "what products",
     "what do you sell",
+)
+
+_ROOT_LIST_PHRASES = (
+    "kategoriyalar",
+    "kategoriya",
+    "katalog",
+    "bo'limlar",
+    "bolimlar",
+    "razdel",
+    "razdely",
+    "категори",
+    "каталог",
+    "categories",
+    "category",
 )
 
 _SPECIFIC_PRODUCT_RE = re.compile(
@@ -84,6 +104,23 @@ def is_category_browse_intent(text: str) -> bool:
     if any(sig in lowered for sig in _CATEGORY_SIGNALS):
         return True
     return is_vague_catalog_question(raw)
+
+
+def wants_root_category_list(text: str) -> bool:
+    """Asosiy (parent) kategoriyalar ro'yxatini ko'rsatish — fuzzy qidiruv emas."""
+    raw = (text or "").strip()
+    if len(raw) < 2:
+        return False
+    if is_vague_catalog_question(raw):
+        return True
+    lowered = normalize_text(raw)
+    if any(p in lowered for p in _ROOT_LIST_PHRASES):
+        if not _SPECIFIC_PRODUCT_RE.search(lowered):
+            return True
+    if any(w in lowered for w in ("sotasiz", "sotiladi")):
+        if any(w in lowered for w in ("qaysi", "qanday", "nima", "kategoriya", "mahsulot", "tovar")):
+            return True
+    return False
 
 
 def should_resolve_via_categories(text: str) -> bool:

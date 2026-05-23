@@ -5,11 +5,13 @@ from app.domain.product_search_present import product_search_see_all_keyboard
 from app.infrastructure.sahiy_api.categories_1688 import parse_categories_response
 from app.infrastructure.sahiy_api.product_search import (
     ProductSearchItem,
+    build_category_search_deeplink,
     build_goods_deeplink,
     build_product_search_deeplink,
     parse_search_response,
     reply_language_to_api_header,
 )
+from urllib.parse import parse_qs, urlparse
 
 
 def test_parse_search_response_sample():
@@ -54,12 +56,35 @@ def test_build_product_search_deeplink():
     assert "platform=1688" in link
 
 
+def test_build_category_search_deeplink():
+    link = build_category_search_deeplink("皮草", "Mo'ynali kiyimlar")
+    assert link.startswith("https://sahiy.uz/search?")
+    qs = parse_qs(urlparse(link).query)
+    assert qs["category"] == ["皮草"]
+    assert qs["displayName"] == ["Mo'ynali kiyimlar"]
+    assert qs["platform"] == ["1688"]
+
+
 def test_product_search_see_all_keyboard():
     extra = product_search_see_all_keyboard("lego", "uz_lat", page_size=20)
     btn = extra["inline_keyboard"][0][0]
     assert "Hammasini" in btn["text"]
     assert "page_size=20" in btn["url"]
     assert "keyword=lego" in btn["url"]
+
+
+def test_product_search_see_all_keyboard_category():
+    extra = product_search_see_all_keyboard(
+        "",
+        "uz_lat",
+        category="皮草",
+        display_name="Mo'ynali kiyimlar",
+    )
+    btn = extra["inline_keyboard"][0][0]
+    assert "category=" in btn["url"]
+    assert "displayName=" in btn["url"]
+    assert "platform=1688" in btn["url"]
+    assert "PurchaseSearchView" not in btn["url"]
 
 
 def test_parse_categories_response_sample():

@@ -8,6 +8,7 @@ from app.domain.order_present import format_uzs
 from app.domain.reply_language import EN, RU, UZ_CYRL, UZ_LAT, ZH
 from app.infrastructure.sahiy_api.product_search import (
     ProductSearchItem,
+    build_category_search_deeplink,
     build_goods_deeplink,
     build_product_search_deeplink,
 )
@@ -105,8 +106,14 @@ def product_search_see_all_keyboard(
     lang: str,
     *,
     page_size: int = 20,
+    category: str = "",
+    display_name: str = "",
 ) -> Dict[str, Any]:
-    deeplink = build_product_search_deeplink(keyword, page_size=page_size)
+    cat = (category or "").strip()
+    if cat:
+        deeplink = build_category_search_deeplink(cat, display_name or keyword or cat)
+    else:
+        deeplink = build_product_search_deeplink(keyword, page_size=page_size)
     return {
         "inline_keyboard": [
             [{"text": _t(_SEE_ALL, lang), "url": deeplink}],

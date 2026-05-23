@@ -7,12 +7,21 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
 
+from app.domain.category_intent import wants_root_category_list
 from app.domain.category_match import rank_categories
 from app.domain.category_present import category_display_name
 from app.infrastructure.sahiy_api.categories_1688 import Category1688
 from app.services.categories_1688_service import Categories1688Service
 
 logger = logging.getLogger(__name__)
+
+
+def _search_from_category(cat: Category1688, lang: str) -> tuple[str, str, str]:
+    """(api_keyword, category_cn, display_name)"""
+    display = category_display_name(cat, lang)
+    cn = (cat.name_cn or "").strip()
+    api = cn or display or (cat.name_en or "").strip() or (cat.name_uz or "").strip()
+    return api, cn, display or api
 
 
 class CategoryResolutionKind(str, Enum):
@@ -26,6 +35,8 @@ class CategoryResolution:
     categories: tuple[Category1688, ...] = ()
     """Mahsulot qidiruv kaliti (kategoriya nomi / API keyword)."""
     search_keyword: str = ""
+    """1688 kategoriya kaliti (name_cn) — qidiruv API va veb deeplink."""
+    category_cn: str = ""
     category_name: str = ""
     list_parent_id: Optional[int] = None
     parent_name: str = ""
@@ -45,12 +56,21 @@ class CategoryResolutionService:
         lang: str,
     ) -> CategoryResolution:
         query = (text or "").strip()
-        root = await self._categories.list_categories(parent_id=None, lang=lang)
+        root = await self._categories.list_categories(parent_id=0, lang=lang)
         if not root:
             return CategoryResolution(
                 kind=CategoryResolutionKind.SEARCH,
                 search_keyword=query,
                 query_hint=query,
+            )
+
+        if wants_root_category_list(query):
+            return CategoryResolution(
+                kind=CategoryResolutionKind.LIST,
+                categories=tuple(root),
+                list_parent_id=None,
+                query_hint=query,
+                matched=False,
             )
 
         ranked_root = rank_categories(root, query, lang, min_score=2.0, limit=6)
@@ -68,22 +88,24 @@ class CategoryResolutionService:
             if ranked_all:
                 expanded = [c for _s, c in ranked_all]
 
-        if len(expanded) == 1:
+        if len(expanded) == 1 and not wants_root_category_list(query):
             only = expanded[0]
             if only.leaf:
-                name = category_display_name(only, lang)
+                api, cn, name = _search_from_category(only, lang)
                 return CategoryResolution(
                     kind=CategoryResolutionKind.SEARCH,
-                    search_keyword=name or only.name_en or only.name_uz,
+                    search_keyword=api,
+                    category_cn=cn,
                     category_name=name,
                     query_hint=query,
                 )
             children = await self._categories.list_categories(parent_id=only.id, lang=lang)
             if not children:
-                name = category_display_name(only, lang)
+                api, cn, name = _search_from_category(only, lang)
                 return CategoryResolution(
                     kind=CategoryResolutionKind.SEARCH,
-                    search_keyword=name or only.name_en or only.name_uz,
+                    search_keyword=api,
+                    category_cn=cn,
                     category_name=name,
                     query_hint=query,
                 )
@@ -91,10 +113,11 @@ class CategoryResolutionService:
             if len(child_ranked) == 1:
                 child = child_ranked[0][1]
                 if child.leaf:
-                    name = category_display_name(child, lang)
+                    api, cn, name = _search_from_category(child, lang)
                     return CategoryResolution(
                         kind=CategoryResolutionKind.SEARCH,
-                        search_keyword=name or child.name_en or child.name_uz,
+                        search_keyword=api,
+                        category_cn=cn,
                         category_name=name,
                         query_hint=query,
                     )
@@ -116,7 +139,7 @@ class CategoryResolutionService:
 
         return CategoryResolution(
             kind=CategoryResolutionKind.LIST,
-            categories=tuple(root[:12]),
+            categories=tuple(root),
             list_parent_id=None,
             query_hint=query,
             matched=False,
@@ -143,15 +166,18 @@ class CategoryResolutionService:
                 back_target=back_target,
             )
 
-        name = category_display_name(cat, lang) if cat else ""
-        keyword = name or (cat.name_en if cat else "") or (cat.name_uz if cat else "")
-        if not keyword:
+        if cat:
+            api, cn, name = _search_from_category(cat, lang)
+        else:
+            api, cn, name = "", "", ""
+        if not api:
             logger.warning("category %s has no name for search", category_id)
-            keyword = str(category_id)
+            api = str(category_id)
         return CategoryResolution(
             kind=CategoryResolutionKind.SEARCH,
-            search_keyword=keyword,
-            category_name=name or keyword,
+            search_keyword=api,
+            category_cn=cn,
+            category_name=name or api,
         )
 
     async def resolve_back(
@@ -160,10 +186,10 @@ class CategoryResolutionService:
         lang: str,
     ) -> CategoryResolution:
         if list_parent_id <= 0:
-            root = await self._categories.list_categories(parent_id=None, lang=lang)
+            root = await self._categories.list_categories(parent_id=0, lang=lang)
             return CategoryResolution(
                 kind=CategoryResolutionKind.LIST,
-                categories=tuple(root[:12]),
+                categories=tuple(root),
                 list_parent_id=None,
             )
         items = await self._categories.list_categories(parent_id=list_parent_id, lang=lang)

@@ -47,8 +47,17 @@ def category_display_name(cat: Category1688, lang: str) -> str:
     return cat.name_uz or cat.name_ru or cat.name_en or cat.name_cn
 
 
+def _normalize_parent_id(parent_id: Optional[int]) -> int:
+    """API: asosiy kategoriyalar uchun parent_id=0."""
+    if parent_id is None or parent_id <= 0:
+        return 0
+    return int(parent_id)
+
+
 def _cache_key(parent_id: Optional[int]) -> str:
-    return "root" if parent_id is None else str(int(parent_id))
+    if parent_id is None or parent_id <= 0:
+        return "root"
+    return str(int(parent_id))
 
 
 def parse_categories_response(body: Any) -> List[Category1688]:
@@ -123,9 +132,7 @@ async def fetch_categories_1688(
         "x-uuid": uuid,
         "language": reply_language_to_api_header(lang),
     }
-    params: Dict[str, Any] = {}
-    if parent_id is not None:
-        params["parent_id"] = int(parent_id)
+    params: Dict[str, Any] = {"parent_id": _normalize_parent_id(parent_id)}
 
     try:
         async with httpx.AsyncClient(timeout=settings.sahiy_api_timeout_seconds) as client:

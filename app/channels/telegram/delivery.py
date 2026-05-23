@@ -31,6 +31,8 @@ class ReplyPayload:
     product_search_items: Optional[List[Dict[str, Any]]] = None
     product_search_cny_to_uzs: Optional[float] = None
     product_search_see_all_keyword: Optional[str] = None
+    product_search_see_all_category: Optional[str] = None
+    product_search_see_all_display_name: Optional[str] = None
     disable_stream: bool = False
 
     @classmethod
@@ -49,6 +51,14 @@ class ReplyPayload:
             product_search_cny_to_uzs=channel_extra.get("product_search_cny_to_uzs"),
             product_search_see_all_keyword=str(
                 channel_extra.get("product_search_see_all_keyword") or ""
+            ).strip()
+            or None,
+            product_search_see_all_category=str(
+                channel_extra.get("product_search_see_all_category") or ""
+            ).strip()
+            or None,
+            product_search_see_all_display_name=str(
+                channel_extra.get("product_search_see_all_display_name") or ""
             ).strip()
             or None,
             disable_stream=bool(channel_extra.get("disable_stream")),
@@ -120,22 +130,26 @@ async def deliver_product_search_cards(
             lang=lang,
         )
 
-    see_all_kw = (payload.product_search_see_all_keyword or "").strip()
-    if see_all_kw:
-        settings = get_settings()
-        see_all_markup = inline_keyboard_from_extra(
-            product_search_see_all_keyboard(
-                see_all_kw,
-                lang,
-                page_size=settings.sahiy_product_search_see_all_page_size,
-            )
+    markup = _product_search_see_all_markup(payload, lang)
+    if markup is not None:
+        await messenger.reply_text(update, "👇", reply_markup=markup, lang=lang)
+
+
+def _product_search_see_all_markup(payload: ReplyPayload, lang: str):
+    cat = (payload.product_search_see_all_category or "").strip()
+    kw = (payload.product_search_see_all_keyword or "").strip()
+    if not cat and not kw:
+        return None
+    settings = get_settings()
+    return inline_keyboard_from_extra(
+        product_search_see_all_keyboard(
+            kw,
+            lang,
+            page_size=settings.sahiy_product_search_see_all_page_size,
+            category=cat,
+            display_name=(payload.product_search_see_all_display_name or "").strip(),
         )
-        await messenger.reply_text(
-            update,
-            "👇",
-            reply_markup=see_all_markup,
-            lang=lang,
-        )
+    )
 
 
 async def deliver_product_search_to_message(
@@ -177,17 +191,9 @@ async def deliver_product_search_to_message(
         except TelegramError as exc:
             logger.warning("reply_photo failed: %s", exc)
 
-    see_all_kw = (payload.product_search_see_all_keyword or "").strip()
-    if see_all_kw:
-        settings = get_settings()
-        see_all_markup = inline_keyboard_from_extra(
-            product_search_see_all_keyboard(
-                see_all_kw,
-                lang,
-                page_size=settings.sahiy_product_search_see_all_page_size,
-            )
-        )
-        await messenger.reply_to_message(message, "👇", reply_markup=see_all_markup)
+    markup = _product_search_see_all_markup(payload, lang)
+    if markup is not None:
+        await messenger.reply_to_message(message, "👇", reply_markup=markup)
 
 
 async def deliver_follow_ups_and_media(
