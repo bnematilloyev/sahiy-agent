@@ -1,7 +1,18 @@
 from functools import lru_cache
-from typing import List
+from typing import Any, List
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _strip_inline_env_comment(value: Any) -> Any:
+    """`.env` da `KEY=value  # izoh` — izohni qiymatdan ajratish."""
+    if not isinstance(value, str):
+        return value
+    idx = value.find(" #")
+    if idx != -1:
+        return value[:idx].strip()
+    return value.strip()
 
 
 class Settings(BaseSettings):
@@ -11,6 +22,13 @@ class Settings(BaseSettings):
         case_sensitive=False,
         extra="ignore",
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def _strip_dotenv_inline_comments(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            return {key: _strip_inline_env_comment(val) for key, val in data.items()}
+        return data
 
     app_name: str = "sahiy-agent"
     app_env: str = "development"
