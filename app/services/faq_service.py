@@ -70,10 +70,6 @@ class FaqService:
 
         return await self._faq_repo.search_by_keywords(search_text)
 
-    def _should_greet(self, history: List[Message]) -> bool:
-        """Tarixda botning biror xabari borligini tekshiradi."""
-        return not any(m.role == MessageRole.ASSISTANT.value for m in history)
-
     def static_answer_for_question(self, question: str) -> Optional[str]:
         if is_company_question(question):
             return SAHIY_COMPANY_ANSWER
@@ -106,21 +102,16 @@ class FaqService:
                 on_stream=on_stream,
             )
 
-        # 3. Salomlashish qo'shish
-        greeting = (
-            localize("rag_greeting", reply_language) if self._should_greet(history) else ""
-        )
-
-        # 4. AI mavjud bo'lmasa yoki rules mode
+        # 3. AI mavjud bo'lmasa yoki rules mode
         if not self._ai.is_available:
-            text = greeting + self._compose_local_answer(
+            text = self._compose_local_answer(
                 matches, max_chars=3500, reply_language=reply_language
             )
             if on_stream is not None:
                 await on_stream(text)
             return text
 
-        # 5. LLM orqali javob
+        # 4. LLM orqali javob
         settings = get_settings()
         context_limit = max(1, settings.rag_top_k)
         context_matches = matches[:context_limit]
@@ -133,9 +124,7 @@ class FaqService:
         system = system_prompt_with_language(RAG_SYSTEM, reply_language)
 
         try:
-            accumulated = greeting
-            if on_stream is not None and accumulated:
-                await on_stream(accumulated)
+            accumulated = ""
             async for token in self._ai.complete_stream(
                 system,
                 prompt,
@@ -147,7 +136,7 @@ class FaqService:
             return accumulated.strip()
         except Exception as e:
             logger.error(f"RAG LLM failed: {e}")
-            text = greeting + self._compose_local_answer(
+            text = self._compose_local_answer(
                 matches, max_chars=3500, reply_language=reply_language
             )
             if on_stream is not None:
