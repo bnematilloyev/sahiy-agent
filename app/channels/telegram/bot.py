@@ -51,6 +51,7 @@ from app.domain.product_search_present import (
     format_product_caption,
     product_buy_keyboard_extra,
 )
+from app.domain.product_search_intent import is_product_search_intent
 from app.domain.reply_language import resolve_reply_language
 from app.domain.pickup_present import parse_callback
 from app.domain.telegram_menu import (
@@ -660,7 +661,11 @@ class TelegramBot(BotChannel):
             fallback_text = t(FALLBACK_ERROR, lang)
 
         chat_id = update.effective_chat.id
-        use_stream = self._stream_enabled and update.message is not None
+        use_stream = (
+            self._stream_enabled
+            and update.message is not None
+            and not is_product_search_intent(text)
+        )
         sent_message: Optional[Message] = None
         stream_session: Optional[SmoothStreamSession] = None
 
@@ -708,7 +713,11 @@ class TelegramBot(BotChannel):
 
         payload = ReplyPayload.from_channel_extra(reply_text, extra)
 
-        has_follow_ups = bool(payload.follow_up_messages or payload.photo_urls)
+        has_follow_ups = bool(
+            payload.follow_up_messages
+            or payload.photo_urls
+            or payload.product_search_items
+        )
 
         if use_stream and sent_message is not None:
             delivered = await deliver_to_update(

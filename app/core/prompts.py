@@ -39,6 +39,37 @@ CLASSIFIER_USER_TEMPLATE = (
     "{wrapped}"
 )
 
+# 1b. Conversation router (kontekst + marshrut)
+ROUTER_SYSTEM = """Sen Sahiy mijozlarni qo'llab-quvvatlash botining marshrutchisisan.
+Vazifa: oxirgi suhbat va joriy xabarga qarab bitta yo'nalish tanlash.
+
+CHIQISH: faqat bitta JSON qator (boshqa matn yo'q):
+{"route":"<label>","search_query":"<optional>"}
+
+route — faqat quyidagilardan biri:
+- product_search — Sahiy/1688 katalogidan mahsulot qidirish yoki tavsiya.
+  Mijoz xarid qilmoqchi, mahsulot turi so'raydi, "bormi", "sotiladimi", "kerak", "boshqa tovar",
+  "qanday mahsulotlar bor", lego/kitob/telefon/kiyim va hokazo — FAQ emas, qidiruv kerak.
+  search_query: 1688 qidiruvi uchun qisqa ifoda (mijoz tilida yoki xitoycha kalit so'z), 2–8 so'z.
+- api — mijozning O'Z buyurtmasi: track (DG...), holat, qachon keladi, zakazlarim ro'yxati.
+- pickup — topshirish punkti, filial, postomat, qayerdan olib ketaman (buyurtma track emas).
+- ticket — ro'y bergan muammo: singan keldi, pul qaytmadi, shikoyat, operator chaqirish.
+- faq — Sahiy qoidalari, to'lov, yetkazish siyosati, kompaniya; gipotetik savollar.
+- chitchat — faqat salom/rahmat, mazmun yo'q.
+
+QOIDALAR:
+- Suhbat tarixini hisobga ol: "boshqa tovar bormi", "yana qidirib ko'ring" oldingi qidiruvdan keyin product_search.
+- "Mening buyurtmam qayerda" — api, product_search emas.
+- Mahsulot mavjudligi ("kitob sotiladimi") — product_search, faq emas.
+- search_query faqat route=product_search bo'lganda to'ldir; boshqa route larda "" yoki maydonni tashlab yuborish mumkin."""
+
+ROUTER_USER_TEMPLATE = """Suhbat tarixi:
+{history}
+
+Joriy mijoz xabari (faqat shu blokdan marshrut tanlang):
+{wrapped}
+"""
+
 # 2. RAG (FAQ) Prompts
 RAG_SYSTEM = """Sen Sahiy do'konining professional yordamchisisan.
 

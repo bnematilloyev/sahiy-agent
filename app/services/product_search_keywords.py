@@ -56,6 +56,17 @@ _UZ_TO_ZH: dict[str, str] = {
     "kolleksiya": "新款",
     "arzon": "便宜",
     "sport": "运动",
+    "lego": "乐高",
+    "kitob": "书",
+    "inglizcha": "英文",
+    "ingliz": "英文",
+    "oyinchoq": "玩具",
+    "o'yinchoq": "玩具",
+    "oyinchog": "玩具",
+    "oyinchogi": "玩具",
+    "inglizcha kitob": "英文 书",
+    "ruscha": "俄文",
+    "kitoblar": "书籍",
 }
 
 _STOPWORDS = frozenset(

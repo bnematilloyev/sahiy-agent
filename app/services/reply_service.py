@@ -5,9 +5,9 @@ from typing import Any, Awaitable, Callable, Dict, Optional
 from uuid import UUID
 
 from app.core.exceptions import LLMError, LLMTimeoutError
+from app.domain.conversation_route import ConversationRoute, RouteDecision
 from app.domain.dto import ChatContext, ChatReply
 from app.domain.enums import MessageRole, QuestionCategory, ResponseType
-from app.domain.keywords import is_chitchat
 from app.domain.scope import is_off_topic, is_operator_request
 from app.domain.customer_identity import (
     extract_registration_phone,
@@ -17,14 +17,11 @@ from app.domain.customer_identity import (
 )
 from app.domain.pickup_keywords import is_identity_registration_text
 from app.domain.reply_language import UZ_LAT, localize, resolve_reply_language
-from app.domain.order_refs import is_order_lookup_request
-from app.domain.pickup_keywords import (
-    is_pickup_conversation_turn,
-    is_support_or_order_topic,
-)
 from app.handlers.pickup_handler import PickupHandler
+from app.handlers.product_search_handler import ProductSearchHandler
 from app.handlers.routes import IntentRouter
 from app.repositories.ports import MessageRepositoryPort
+from app.services.conversation_router import ConversationRouterService
 from app.services.identity_service import IdentityService
 from app.services.intent_service import IntentService
 
@@ -39,12 +36,16 @@ class ReplyService:
         messages: MessageRepositoryPort,
         intent: IntentService,
         router: IntentRouter,
+        conversation_router: ConversationRouterService,
         pickup: Optional[PickupHandler] = None,
+        product_search: Optional[ProductSearchHandler] = None,
     ) -> None:
         self._messages = messages
         self._intent = intent
         self._router = router
+        self._conversation_router = conversation_router
         self._pickup = pickup or PickupHandler()
+        self._product_search = product_search or ProductSearchHandler()
         self._identity = IdentityService(messages)
 
     async def reply(
@@ -101,55 +102,25 @@ class ReplyService:
                 if stream_callback is not None:
                     await stream_callback(identity_reply.text)
                 return identity_reply
-            chat_context = ChatContext(
-                session_id=session_id,
-                user_id=user_id,
-                text=text,
-                channel=channel,
-                recent_messages=recent,
-                metadata=meta,
-            )
-        else:
-            chat_context = ChatContext(
-                session_id=session_id,
-                user_id=user_id,
-                text=text,
-                channel=channel,
-                recent_messages=recent,
-                metadata=meta,
-            )
+
+        chat_context = ChatContext(
+            session_id=session_id,
+            user_id=user_id,
+            text=text,
+            channel=channel,
+            recent_messages=recent,
+            metadata=meta,
+        )
 
         if is_identity_registration_text(text):
             result = self._identity.verified_user_id_reply(reply_lang)
-        elif is_order_lookup_request(text):
-            order_handler = self._router.pick(QuestionCategory.API)
-            result = await order_handler.reply(chat_context)
-        elif is_support_or_order_topic(text):
-            result = await self._route_intent(chat_context, text)
-        elif is_pickup_conversation_turn(text, recent):
-            result = await self._pickup.reply(chat_context)
-        elif is_chitchat(text):
-            # Salomlashish va chitchatda oldingi tarix kerak emas
-            faq_handler = self._router.pick(QuestionCategory.FAQ)
-            chitchat_context = ChatContext(
-                session_id=chat_context.session_id,
-                user_id=chat_context.user_id,
-                text=chat_context.text,
-                channel=chat_context.channel,
-                recent_messages=[],
-                metadata=chat_context.metadata,
-            )
-            try:
-                result = await faq_handler.reply(chitchat_context, on_stream=stream_callback)
-            except Exception:
-                logger.exception("Chitchat AI reply failed")
-                result = ChatReply(
-                    response_type=ResponseType.AUTO,
-                    text=localize("chitchat", reply_lang),
-                    category=QuestionCategory.FAQ,
-                )
         else:
-            result = await self._route_intent(chat_context, text, on_stream=stream_callback)
+            decision = await self._conversation_router.decide(chat_context)
+            result = await self._dispatch(
+                chat_context,
+                decision,
+                on_stream=stream_callback,
+            )
 
         if not result.text.strip():
             result = ChatReply(
@@ -168,6 +139,90 @@ class ReplyService:
         if stream_callback is not None and not streamed:
             await stream_callback(result.text)
         return result
+
+    async def _dispatch(
+        self,
+        chat_context: ChatContext,
+        decision: RouteDecision,
+        *,
+        on_stream: Optional[Callable[[str], Awaitable[None]]] = None,
+    ) -> ChatReply:
+        route = decision.route
+
+        if route == ConversationRoute.PRODUCT_SEARCH:
+            meta = dict(chat_context.metadata)
+            if decision.search_query:
+                meta["product_search_query"] = decision.search_query
+            ctx = ChatContext(
+                session_id=chat_context.session_id,
+                user_id=chat_context.user_id,
+                text=chat_context.text,
+                channel=chat_context.channel,
+                recent_messages=chat_context.recent_messages,
+                metadata=meta,
+            )
+            return await self._product_search.reply(ctx)
+
+        if route == ConversationRoute.PICKUP:
+            return await self._pickup.reply(chat_context)
+
+        if route == ConversationRoute.API:
+            order_handler = self._router.pick(QuestionCategory.API)
+            return await order_handler.reply(chat_context)
+
+        if route == ConversationRoute.TICKET:
+            support = self._router.pick(QuestionCategory.TICKET)
+            if is_operator_request(chat_context.text):
+                return await support.reply(
+                    chat_context.with_handoff_reason("operator_request")
+                )
+            return await support.reply(chat_context)
+
+        if route == ConversationRoute.CHITCHAT:
+            return await self._reply_faq(
+                chat_context,
+                recent_messages=[],
+                on_stream=on_stream,
+            )
+
+        return await self._reply_faq(chat_context, on_stream=on_stream)
+
+    async def _reply_faq(
+        self,
+        chat_context: ChatContext,
+        *,
+        recent_messages: Optional[list] = None,
+        on_stream: Optional[Callable[[str], Awaitable[None]]] = None,
+    ) -> ChatReply:
+        text = chat_context.text
+        reply_lang = str(chat_context.metadata.get("reply_language") or UZ_LAT)
+        faq_handler = self._router.pick(QuestionCategory.FAQ)
+
+        if recent_messages is None:
+            recent_messages = chat_context.recent_messages
+
+        try:
+            if is_operator_request(text):
+                support = self._router.pick(QuestionCategory.TICKET)
+                return await support.reply(
+                    chat_context.with_handoff_reason("operator_request")
+                )
+            if is_off_topic(text):
+                return await faq_handler.reply(chat_context, on_stream=on_stream)
+            if on_stream is not None:
+                return await faq_handler.reply(chat_context, on_stream=on_stream)
+            return await faq_handler.reply(chat_context)
+        except (LLMTimeoutError, LLMError) as exc:
+            logger.warning("FAQ path failed, retrying static/FAQ: %s", exc)
+            try:
+                return await faq_handler.reply(chat_context)
+            except Exception:
+                logger.exception("FAQ fallback failed")
+                return ChatReply(
+                    response_type=ResponseType.ERROR,
+                    text=localize("busy", reply_lang),
+                    category=QuestionCategory.FAQ,
+                )
 
     async def _ensure_verified_customer(
         self,
@@ -213,41 +268,3 @@ class ReplyService:
             text=identity_required_text(lang),
             category=QuestionCategory.FAQ,
         )
-
-    async def _route_intent(
-        self,
-        chat_context: ChatContext,
-        text: str,
-        *,
-        on_stream: Optional[Callable[[str], Awaitable[None]]] = None,
-    ) -> ChatReply:
-        try:
-            if is_operator_request(text):
-                support = self._router.pick(QuestionCategory.TICKET)
-                result = await support.reply(
-                    chat_context.with_handoff_reason("operator_request")
-                )
-            elif is_off_topic(text):
-                faq_handler = self._router.pick(QuestionCategory.FAQ)
-                result = await faq_handler.reply(chat_context, on_stream=on_stream)
-            else:
-                category = await self._intent.detect(text)
-                handler = self._router.pick(category)
-                if category == QuestionCategory.FAQ and on_stream is not None:
-                    result = await handler.reply(chat_context, on_stream=on_stream)
-                else:
-                    result = await handler.reply(chat_context)
-        except (LLMTimeoutError, LLMError) as exc:
-            logger.warning("AI unavailable, trying FAQ handler: %s", exc)
-            try:
-                faq_handler = self._router.pick(QuestionCategory.FAQ)
-                result = await faq_handler.reply(chat_context)
-            except Exception:
-                logger.exception("FAQ fallback failed")
-                lang = chat_context.metadata.get("reply_language", UZ_LAT)
-                result = ChatReply(
-                    response_type=ResponseType.ERROR,
-                    text=localize("busy", lang),
-                    category=QuestionCategory.FAQ,
-                )
-        return result

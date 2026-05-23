@@ -19,6 +19,7 @@ from app.repositories.session_repository import ChatSessionRepository
 from app.repositories.ticket_repository import TicketRepository
 from app.services.chat_service import ChatService
 from app.services.faq_service import FaqService
+from app.services.conversation_router import ConversationRouterService
 from app.services.intent_service import IntentService
 from app.services.reply_service import ReplyService
 
@@ -51,6 +52,7 @@ def create_reply_service(session: AsyncSession) -> ReplyService:
         messages=MessageRepository(session),
         intent=IntentService(ai),
         router=create_handlers(faq_repo, ticket_repo, ai),
+        conversation_router=ConversationRouterService(ai),
     )
 
 

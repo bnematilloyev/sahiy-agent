@@ -51,13 +51,28 @@ def needs_order_list_menu(text: str) -> bool:
     """
     Aniq track/filtr yo'q — avval turini tugma bilan so'rash.
     «aktiv zakazlarim» kabi aniq so'rovda menyu chiqmaydi.
+    Umumiy «qayerda»/«moi tovary» savollari ham menyu ochadi.
     """
     if extract_track(text):
         return False
     if not is_order_list_question(text) and not _is_vague_show_request(text):
         return False
     intent = parse_order_list_intent(text)
-    return intent == OrderListIntent.default()
+    if intent == OrderListIntent.default():
+        return True
+    # «buyurtmalarim qayerda» / «Где мои товары?» — aniq filtr yo'q, menu kerak
+    lowered = normalize_text(text)
+    has_specific_filter = any(
+        kw in lowered
+        for kw in ("aktiv", "active", "bekor", "cancel", "daigou", "jiyun",
+                   "yakunlangan", "completed", "filialda", "punktda",
+                   "olib ketilmagan", "qachon keladi", "kogda pridet")
+    )
+    if not has_specific_filter and (
+        is_order_list_question(text) or _is_vague_show_request(text)
+    ):
+        return True
+    return False
 
 
 def _is_vague_show_request(text: str) -> bool:
