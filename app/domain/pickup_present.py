@@ -49,6 +49,21 @@ _LOCATION_STOP_TOKENS = frozenset(
         "user",
         "userid",
         "foydalanuvchi",
+        "qanday",
+        "mahsulot",
+        "mahsulotlar",
+        "kategoriya",
+        "kategoriyalar",
+        "katgoriya",
+        "katgoriyalar",
+        "katalog",
+        "sotasiz",
+        "sotasizlar",
+        "sotiladi",
+        "turdagi",
+        "tur",
+        "turi",
+        "masalan",
     }
 )
 

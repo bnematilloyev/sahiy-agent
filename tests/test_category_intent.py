@@ -27,6 +27,10 @@ def test_order_not_category():
     assert not is_category_browse_intent("buyurtmalarim qayerda")
 
 
+def test_katgoriya_typo_is_category_intent():
+    assert is_category_browse_intent("qanday katgoriya")
+
+
 def test_wants_root_for_sell_categories_question():
     assert wants_root_category_list(
         "qaysi turdagi mahsulotlar sotasizlar (kategoriyalar masalan)"

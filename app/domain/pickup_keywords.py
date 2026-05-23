@@ -13,6 +13,17 @@ from app.domain.order_refs import extract_track
 from app.domain.pickup_present import has_location_in_text
 from app.domain.text_normalize import normalize_text
 
+# Kechik import — category_intent pickup_present ga bog'lanmasin
+def _leaves_pickup_for_other_topic(text: str) -> bool:
+    from app.domain.category_intent import is_category_browse_intent
+    from app.domain.product_search_intent import is_product_search_intent
+
+    if is_category_browse_intent(text):
+        return True
+    if is_product_search_intent(text) and not is_pickup_points_question(text):
+        return True
+    return False
+
 _PICKUP_KEYWORDS = (
     "punkt",
     "filial",
@@ -167,15 +178,24 @@ def is_pickup_location_followup(text: str) -> bool:
     """Short continuation with a place name, e.g. 'toshkentdachi?', 'samarqandda ham'."""
     if is_support_or_order_topic(text):
         return False
+    if _leaves_pickup_for_other_topic(text):
+        return False
     lowered = normalize_text(text).strip()
     if not lowered or len(lowered) > 80:
         return False
     words = lowered.split()
     if len(words) > 5:
         return False
-    if has_location_in_text(lowered) and len(words) <= 4:
+    if is_pickup_points_question(text):
         return True
-    if _FOLLOWUP_HINT_RE.search(lowered) and len(words) <= 4:
+    has_place = has_location_in_text(lowered)
+    if has_place and len(words) <= 4:
+        if any(k in lowered for k in _PICKUP_KEYWORDS):
+            return True
+        if "qayerda" in lowered or "qayerdan" in lowered:
+            return True
+        return len(words) <= 2
+    if _FOLLOWUP_HINT_RE.search(lowered) and len(words) <= 4 and has_place:
         return True
     return False
 
@@ -185,6 +205,8 @@ def is_pickup_conversation_turn(text: str, recent_messages: Sequence[Message]) -
     if is_identity_registration_text(text):
         return False
     if is_support_or_order_topic(text):
+        return False
+    if _leaves_pickup_for_other_topic(text):
         return False
     if is_pickup_points_question(text):
         return True

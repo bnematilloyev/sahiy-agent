@@ -13,6 +13,8 @@ _CATEGORY_SIGNALS = (
     "kategoriya",
     "kategoriyalar",
     "kategoriyasi",
+    "katgoriya",
+    "katgoriyalar",
     "bo'lim",
     "bolim",
     "bo'limlar",

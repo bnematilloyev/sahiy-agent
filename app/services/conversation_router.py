@@ -9,14 +9,15 @@ from typing import List, Optional
 
 from app.core.prompts import ROUTER_SYSTEM, ROUTER_USER_TEMPLATE, wrap_user_message
 from app.core.exceptions import LLMError, LLMTimeoutError
+from app.domain.category_intent import is_category_browse_intent
 from app.domain.conversation_route import ConversationRoute, RouteDecision
+from app.domain.conversation_thread import format_thread_hint_for_router
 from app.domain.dto import ChatContext
 from app.domain.entities import Message
 from app.domain.enums import MessageRole, QuestionCategory
 from app.domain.keywords import classify_by_keywords, is_chitchat
 from app.domain.order_refs import extract_track, is_order_lookup_request
 from app.domain.pickup_keywords import is_pickup_conversation_turn
-from app.domain.category_intent import is_category_browse_intent
 from app.domain.product_search_intent import is_product_search_intent
 from app.domain.scope import is_operator_request
 from app.infrastructure.llm.ports import AiClient
@@ -43,35 +44,30 @@ class ConversationRouterService:
         if is_operator_request(text):
             return RouteDecision(route=ConversationRoute.TICKET)
 
-        # Track raqami aniq bo'lsa — LLM sarflamasdan to'g'ridan-to'g'ri API
+        # Track raqami aniq — buyurtma API
         if extract_track(text):
             return RouteDecision(route=ConversationRoute.API)
 
-        if is_pickup_conversation_turn(text, context.recent_messages):
-            return RouteDecision(route=ConversationRoute.PICKUP)
-
-        if is_category_browse_intent(text):
-            return RouteDecision(route=ConversationRoute.CATEGORY)
-
-        # Mahsulot qidiruv sигнали bo'lsa — LLM ishlatib, kontekstdan
-        # foydalanib aniqlaymiz (order lookup bilan kolliziya bo'lishi mumkin)
+        # LLM birinchi: tarix + mavzu almashishi (Anthropic/OpenAI)
         if self._ai.is_available:
             llm_decision = await self._decide_with_llm(context)
             if llm_decision is not None:
-                return llm_decision
-
-        # LLM yo'q yoki xato — heuristikaga qayt
-        if is_order_lookup_request(text):
-            return RouteDecision(route=ConversationRoute.API)
+                reconciled = _reconcile_llm_with_signals(text, context.recent_messages, llm_decision)
+                return reconciled
 
         return self._fallback(context)
 
     async def _decide_with_llm(self, context: ChatContext) -> Optional[RouteDecision]:
         history = self._format_history(context.recent_messages)
+        thread_hint = format_thread_hint_for_router(context.recent_messages)
         wrapped = wrap_user_message(context.text, max_len=1500)
-        user_prompt = ROUTER_USER_TEMPLATE.format(history=history or "(yo'q)", wrapped=wrapped)
+        user_prompt = ROUTER_USER_TEMPLATE.format(
+            thread_hint=thread_hint,
+            history=history or "(yo'q)",
+            wrapped=wrapped,
+        )
         try:
-            raw = await self._ai.complete(ROUTER_SYSTEM, user_prompt, max_tokens=120)
+            raw = await self._ai.complete(ROUTER_SYSTEM, user_prompt, max_tokens=160)
         except (LLMTimeoutError, LLMError) as exc:
             logger.warning("Conversation router LLM failed: %s", exc)
             return None
@@ -92,24 +88,33 @@ class ConversationRouterService:
     @staticmethod
     def _format_history(messages: List[Message]) -> str:
         lines: list[str] = []
-        for message in messages[-8:]:
+        for message in messages[-10:]:
             role = "Mijoz" if message.role == MessageRole.USER.value else "Yordamchi"
             content = (message.content or "").strip()
             if content:
-                lines.append(f"{role}: {content[:500]}")
+                snippet = content[:600]
+                if message.role == MessageRole.ASSISTANT.value:
+                    from app.domain.conversation_thread import infer_topic_from_assistant_text
+
+                    topic = infer_topic_from_assistant_text(content)
+                    if topic:
+                        snippet = f"[{topic}] {snippet}"
+                lines.append(f"{role}: {snippet}")
         return "\n".join(lines)
 
     def _fallback(self, context: ChatContext) -> RouteDecision:
         text = context.text
-        if is_pickup_conversation_turn(text, context.recent_messages):
-            return RouteDecision(route=ConversationRoute.PICKUP)
         if is_category_browse_intent(text):
             return RouteDecision(route=ConversationRoute.CATEGORY)
+        if is_pickup_conversation_turn(text, context.recent_messages):
+            return RouteDecision(route=ConversationRoute.PICKUP)
         if is_product_search_intent(text):
             return RouteDecision(
                 route=ConversationRoute.PRODUCT_SEARCH,
                 search_query=text.strip(),
             )
+        if is_order_lookup_request(text):
+            return RouteDecision(route=ConversationRoute.API)
         if is_chitchat(text):
             return RouteDecision(route=ConversationRoute.CHITCHAT)
 
@@ -121,16 +126,42 @@ class ConversationRouterService:
         return RouteDecision(route=ConversationRoute.FAQ)
 
 
+def _reconcile_llm_with_signals(
+    text: str,
+    recent_messages: List[Message],
+    decision: RouteDecision,
+) -> RouteDecision:
+    """
+    LLM xato qolgan aniq holatlar: kuchli keyword signal > pickup thread inertia.
+  """
+    route = decision.route
+    if route == ConversationRoute.PICKUP and is_category_browse_intent(text):
+        logger.info("router reconcile: pickup -> category (category intent)")
+        return RouteDecision(route=ConversationRoute.CATEGORY)
+    if route == ConversationRoute.PICKUP and is_product_search_intent(text):
+        if not is_pickup_conversation_turn(text, recent_messages):
+            logger.info("router reconcile: pickup -> product_search")
+            return RouteDecision(
+                route=ConversationRoute.PRODUCT_SEARCH,
+                search_query=decision.search_query or text.strip(),
+            )
+    if route == ConversationRoute.PRODUCT_SEARCH and is_category_browse_intent(text):
+        logger.info("router reconcile: product_search -> category")
+        return RouteDecision(route=ConversationRoute.CATEGORY)
+    if route == ConversationRoute.CATEGORY and extract_track(text):
+        return RouteDecision(route=ConversationRoute.API)
+    return decision
+
+
 def _parse_router_json(raw: str) -> Optional[RouteDecision]:
     body = raw.strip()
     if "```" in body:
-        match = re.search(r"\{[^{}]*\}", body, re.DOTALL)
+        match = re.search(r"\{.*\}", body, re.DOTALL)
         if match:
             body = match.group(0)
     try:
         data = json.loads(body)
     except json.JSONDecodeError:
-        # Ba'zan model faqat "product_search" yozadi
         token = body.lower().split()[0] if body else ""
         if token in _VALID_ROUTES:
             return RouteDecision(route=ConversationRoute(token))

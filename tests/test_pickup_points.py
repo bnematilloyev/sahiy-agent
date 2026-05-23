@@ -112,6 +112,22 @@ def test_order_question_not_pickup_even_in_thread():
     assert not is_pickup_conversation_turn(order_q, recent)
 
 
+def test_category_question_exits_pickup_thread():
+    from app.domain.pickup_keywords import is_pickup_conversation_turn
+
+    recent = [
+        _msg(MessageRole.USER.value, "navoiydagi filial qayerda aynan"),
+        _msg(
+            MessageRole.ASSISTANT.value,
+            "📍 Sahiy topshirish punktlari\n🏪 Filial: 18 ta\nViloyatni tanlang",
+        ),
+    ]
+    assert not is_pickup_conversation_turn(
+        "qanday turdagi mahsulot sotasizlar", recent
+    )
+    assert not is_pickup_conversation_turn("qanday katgoriya", recent)
+
+
 def test_pickup_followup_in_thread():
     recent = [
         _msg(MessageRole.USER.value, "Navoiyda filiallariz bormi ?"),

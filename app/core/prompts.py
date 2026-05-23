@@ -41,7 +41,7 @@ CLASSIFIER_USER_TEMPLATE = (
 
 # 1b. Conversation router (kontekst + marshrut)
 ROUTER_SYSTEM = """Sen Sahiy mijozlarni qo'llab-quvvatlash botining marshrutchisisan.
-Vazifa: oxirgi suhbat va joriy xabarga qarab bitta yo'nalish tanlash.
+Vazifa: suhbat tarixi + joriy xabarga qarab bitta yo'nalish tanlash.
 
 CHIQISH: faqat bitta JSON qator (boshqa matn yo'q):
 {"route":"<label>","search_query":"<optional>"}
@@ -57,17 +57,27 @@ route — faqat quyidagilardan biri:
 - faq — Sahiy qoidalari, to'lov, yetkazish siyosati, kompaniya; gipotetik savollar.
 - chitchat — faqat salom/rahmat, mazmun yo'q.
 
-QOIDALAR:
-- Suhbat tarixini hisobga ol: "boshqa tovar bormi", "yana qidirib ko'ring" oldingi qidiruvdan keyin product_search.
-- "Mening buyurtmam qayerda" — api, product_search emas.
-- Mahsulot mavjudligi aniq nom bilan ("kitob sotiladimi") — product_search.
+MAVZU ALMASHISHI (eng muhim):
+- Joriy xabar oldingi mavzudan BOSHQA bo'lsa, faqat joriy xabarga qarab route tanlang.
+- Tarixda filial/postomat muhokamasi bo'lsa ham, keyingi "qanday mahsulot/kategoriya sotasiz" → category (pickup emas).
+- Tarixda mahsulot qidiruv bo'lsa ham, keyingi "Navoiyda filial qayerda" → pickup (product_search emas).
+- Tarixda FAQ bo'lsa ham, keyin track yoki buyurtma holati → api.
+- Qisqa xabar ham yangi mavzu bo'lishi mumkin; oldingi tugmalar/menyuga yopishib qolma.
+- Shubha bo'lsa: joriy xabarning ASOSIY ma nosini aniqlang, tarixni faqat yordamchi kontekst sifatida.
+
+Boshqa qoidalar:
+- "boshqa tovar bormi" / "yana qidirib ko'ring" — oldingi qidiruvdan keyin product_search.
+- "Mening buyurtmam qayerda" (track/holat) — api, product_search emas.
+- Aniq mahsulot nomi ("kitob sotiladimi") — product_search.
 - Umumiy "qanday tovarlar bor" / kategoriya — category, product_search emas.
 - search_query faqat route=product_search bo'lganda to'ldir; boshqa route larda "" yoki maydonni tashlab yuborish mumkin."""
 
-ROUTER_USER_TEMPLATE = """Suhbat tarixi:
+ROUTER_USER_TEMPLATE = """{thread_hint}
+
+Suhbat tarixi (oxirgi xabarlar):
 {history}
 
-Joriy mijoz xabari (faqat shu blokdan marshrut tanlang):
+Joriy mijoz xabari — marshrutni ASOSAN shu xabardan tanlang:
 {wrapped}
 """
 
