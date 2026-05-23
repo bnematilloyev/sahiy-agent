@@ -9,6 +9,7 @@ from app.domain.reply_language import EN, RU, UZ_CYRL, UZ_LAT, ZH
 from app.infrastructure.sahiy_api.product_search import (
     ProductSearchItem,
     build_goods_deeplink,
+    build_product_search_deeplink,
 )
 
 _BUY: Dict[str, str] = {
@@ -51,6 +52,14 @@ _SALES: Dict[str, str] = {
     ZH: "销量",
 }
 
+_SEE_ALL: Dict[str, str] = {
+    UZ_LAT: "📋 Hammasini ko'rish",
+    UZ_CYRL: "📋 Ҳаммасини кўриш",
+    RU: "📋 Смотреть все",
+    EN: "📋 See all results",
+    ZH: "📋 查看全部",
+}
+
 
 def _t(table: Dict[str, str], lang: str) -> str:
     return table.get(lang) or table.get(UZ_LAT, "")
@@ -87,5 +96,19 @@ def product_buy_keyboard_extra(item: ProductSearchItem, lang: str) -> Dict[str, 
     return {
         "inline_keyboard": [
             [{"text": _t(_BUY, lang), "url": deeplink}],
+        ]
+    }
+
+
+def product_search_see_all_keyboard(
+    keyword: str,
+    lang: str,
+    *,
+    page_size: int = 20,
+) -> Dict[str, Any]:
+    deeplink = build_product_search_deeplink(keyword, page_size=page_size)
+    return {
+        "inline_keyboard": [
+            [{"text": _t(_SEE_ALL, lang), "url": deeplink}],
         ]
     }

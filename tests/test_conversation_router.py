@@ -6,6 +6,13 @@ from app.domain.conversation_route import ConversationRoute
 from app.services.conversation_router import _parse_router_json
 
 
+def test_parse_router_json_category():
+    raw = '{"route":"category","search_query":""}'
+    decision = _parse_router_json(raw)
+    assert decision is not None
+    assert decision.route.value == "category"
+
+
 def test_parse_router_json_product_search():
     raw = '{"route":"product_search","search_query":"inglizcha kitob"}'
     decision = _parse_router_json(raw)

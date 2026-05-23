@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from app.domain.product_search_present import format_product_caption, product_buy_keyboard_extra
+from app.domain.product_search_present import product_search_see_all_keyboard
+from app.infrastructure.sahiy_api.categories_1688 import parse_categories_response
 from app.infrastructure.sahiy_api.product_search import (
     ProductSearchItem,
     build_goods_deeplink,
+    build_product_search_deeplink,
     parse_search_response,
     reply_language_to_api_header,
 )
@@ -41,6 +44,44 @@ def test_build_goods_deeplink():
     assert link.startswith("https://sahiy.uz/GoodsDetailView?u=")
     assert "919430791153" in link
     assert "detail.1688.com" in link
+
+
+def test_build_product_search_deeplink():
+    link = build_product_search_deeplink("成人用品", page_size=20)
+    assert link.startswith("https://sahiy.uz/PurchaseSearchView?")
+    assert "keyword=" in link
+    assert "page_size=20" in link
+    assert "platform=1688" in link
+
+
+def test_product_search_see_all_keyboard():
+    extra = product_search_see_all_keyboard("lego", "uz_lat", page_size=20)
+    btn = extra["inline_keyboard"][0][0]
+    assert "Hammasini" in btn["text"]
+    assert "page_size=20" in btn["url"]
+    assert "keyword=lego" in btn["url"]
+
+
+def test_parse_categories_response_sample():
+    body = {
+        "ret": 1,
+        "data": [
+            {
+                "id": 1424,
+                "ali_category_id": 19,
+                "ali_parent_id": 53,
+                "name_uz": "Optik videotasvir",
+                "name_ru": "Optika",
+                "name_en": "optical",
+                "name_cn": "光学",
+                "leaf": 0,
+                "level": 2,
+            }
+        ],
+    }
+    cats = parse_categories_response(body)
+    assert len(cats) == 1
+    assert cats[0].name_uz == "Optik videotasvir"
 
 
 def test_reply_language_header():

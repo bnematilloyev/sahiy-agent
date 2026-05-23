@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from typing import Any, List, Optional
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 import httpx
 
@@ -48,6 +48,29 @@ def build_goods_deeplink(detail_url: str, *, base: Optional[str] = None) -> str:
     if prefix.endswith("="):
         return f"{prefix}{quote(detail_url, safe='')}"
     return f"{prefix}?u={quote(detail_url, safe='')}"
+
+
+def build_product_search_deeplink(
+    keyword: str,
+    *,
+    page_size: Optional[int] = None,
+    platform: str = "1688",
+    sort: Optional[str] = None,
+    base: Optional[str] = None,
+) -> str:
+    """Ilovada to'liq qidiruv ro'yxatini ochish (keyword + page_size)."""
+    settings = get_settings()
+    root = (base or settings.sahiy_product_search_deeplink_base).strip().rstrip("/?")
+    size = page_size if page_size is not None else settings.sahiy_product_search_see_all_page_size
+    params: dict[str, str] = {
+        "keyword": keyword.strip(),
+        "page_size": str(max(1, int(size))),
+        "platform": platform.strip() or "1688",
+    }
+    sort_val = (sort or settings.sahiy_product_search_sort or "").strip()
+    if sort_val:
+        params["sort"] = sort_val
+    return f"{root}?{urlencode(params)}"
 
 
 def _parse_float(value: Any) -> float:

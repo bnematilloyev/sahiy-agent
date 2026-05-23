@@ -18,7 +18,10 @@ from app.domain.customer_identity import (
 from app.domain.pickup_keywords import is_identity_registration_text
 from app.domain.reply_language import UZ_LAT, localize, resolve_reply_language
 from app.handlers.pickup_handler import PickupHandler
+from app.domain.category_intent import should_resolve_via_categories
+from app.handlers.category_browse_handler import CategoryBrowseHandler
 from app.handlers.product_search_handler import ProductSearchHandler
+from app.services.product_search_service import ProductSearchService
 from app.handlers.routes import IntentRouter
 from app.repositories.ports import MessageRepositoryPort
 from app.services.conversation_router import ConversationRouterService
@@ -39,13 +42,21 @@ class ReplyService:
         conversation_router: ConversationRouterService,
         pickup: Optional[PickupHandler] = None,
         product_search: Optional[ProductSearchHandler] = None,
+        category_browse: Optional[CategoryBrowseHandler] = None,
     ) -> None:
         self._messages = messages
         self._intent = intent
         self._router = router
         self._conversation_router = conversation_router
         self._pickup = pickup or PickupHandler()
-        self._product_search = product_search or ProductSearchHandler()
+        search_svc = ProductSearchService()
+        self._category = category_browse or CategoryBrowseHandler(
+            product_search=search_svc
+        )
+        self._product_search = product_search or ProductSearchHandler(
+            service=search_svc,
+            category_browse=self._category,
+        )
         self._identity = IdentityService(messages)
 
     async def reply(
@@ -149,6 +160,9 @@ class ReplyService:
     ) -> ChatReply:
         route = decision.route
 
+        if route == ConversationRoute.CATEGORY:
+            return await self._category.reply(chat_context)
+
         if route == ConversationRoute.PRODUCT_SEARCH:
             meta = dict(chat_context.metadata)
             if decision.search_query:
@@ -161,6 +175,10 @@ class ReplyService:
                 recent_messages=chat_context.recent_messages,
                 metadata=meta,
             )
+            if should_resolve_via_categories(chat_context.text):
+                cat_reply = await self._category.try_resolve_before_product_search(ctx)
+                if cat_reply is not None:
+                    return cat_reply
             return await self._product_search.reply(ctx)
 
         if route == ConversationRoute.PICKUP:

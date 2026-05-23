@@ -16,6 +16,7 @@ from app.domain.enums import MessageRole, QuestionCategory
 from app.domain.keywords import classify_by_keywords, is_chitchat
 from app.domain.order_refs import extract_track, is_order_lookup_request
 from app.domain.pickup_keywords import is_pickup_conversation_turn
+from app.domain.category_intent import is_category_browse_intent
 from app.domain.product_search_intent import is_product_search_intent
 from app.domain.scope import is_operator_request
 from app.infrastructure.llm.ports import AiClient
@@ -48,6 +49,9 @@ class ConversationRouterService:
 
         if is_pickup_conversation_turn(text, context.recent_messages):
             return RouteDecision(route=ConversationRoute.PICKUP)
+
+        if is_category_browse_intent(text):
+            return RouteDecision(route=ConversationRoute.CATEGORY)
 
         # Mahsulot qidiruv sигнали bo'lsa — LLM ishlatib, kontekstdan
         # foydalanib aniqlaymiz (order lookup bilan kolliziya bo'lishi mumkin)
@@ -99,6 +103,8 @@ class ConversationRouterService:
         text = context.text
         if is_pickup_conversation_turn(text, context.recent_messages):
             return RouteDecision(route=ConversationRoute.PICKUP)
+        if is_category_browse_intent(text):
+            return RouteDecision(route=ConversationRoute.CATEGORY)
         if is_product_search_intent(text):
             return RouteDecision(
                 route=ConversationRoute.PRODUCT_SEARCH,

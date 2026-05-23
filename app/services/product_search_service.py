@@ -27,6 +27,7 @@ class ProductSearchStatus(str, Enum):
 class ProductSearchOutcome:
     status: ProductSearchStatus
     display_keyword: str = ""
+    api_keyword: str = ""
     items: tuple[ProductSearchItem, ...] = ()
     cny_to_uzs: Optional[float] = None
 
@@ -71,6 +72,7 @@ class ProductSearchService:
             return ProductSearchOutcome(
                 status=ProductSearchStatus.OK,
                 display_keyword=display_keyword,
+                api_keyword=api_keyword,
                 items=tuple(items),
                 cny_to_uzs=rate,
             )

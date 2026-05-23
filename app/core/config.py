@@ -114,9 +114,12 @@ class Settings(BaseSettings):
     sahiy_exchange_cny_uzs_fallback: float = 1750.0
 
     # Mahsulot qidiruv (client API) va Sahiy ilova deeplink
-    sahiy_product_search_page_size: int = 6
+    sahiy_product_search_page_size: int = 4
+    sahiy_product_search_see_all_page_size: int = 20
     sahiy_product_search_sort: str = "asc"
     sahiy_goods_deeplink_base: str = "https://sahiy.uz/GoodsDetailView?u="
+    sahiy_product_search_deeplink_base: str = "https://sahiy.uz/PurchaseSearchView"
+    sahiy_1688_categories_cache_ttl_seconds: int = 86400
 
     # custom-daigou-orders (service_user — SKU + express_num qidiruv)
     sahiy_custom_daigou_timeout_seconds: int = 45

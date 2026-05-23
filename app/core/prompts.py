@@ -47,10 +47,10 @@ CHIQISH: faqat bitta JSON qator (boshqa matn yo'q):
 {"route":"<label>","search_query":"<optional>"}
 
 route — faqat quyidagilardan biri:
-- product_search — Sahiy/1688 katalogidan mahsulot qidirish yoki tavsiya.
-  Mijoz xarid qilmoqchi, mahsulot turi so'raydi, "bormi", "sotiladimi", "kerak", "boshqa tovar",
-  "qanday mahsulotlar bor", lego/kitob/telefon/kiyim va hokazo — FAQ emas, qidiruv kerak.
-  search_query: 1688 qidiruvi uchun qisqa ifoda (mijoz tilida yoki xitoycha kalit so'z), 2–8 so'z.
+- category — katalog bo'limlari: "qanday kategoriyalar", "qanday tovarlar bor" (aniq nom yo'q),
+  "kattalar uchun", "bolalar uchun" kabi umumiy tur; avval bo'lim tanlash, keyin mahsulot.
+- product_search — aniq mahsulot qidiruv: lego, kitob, telefon, "menga X kerak", "X sotiladimi".
+  search_query: 1688 qidiruvi uchun qisqa ifoda, 2–8 so'z.
 - api — mijozning O'Z buyurtmasi: track (DG...), holat, qachon keladi, zakazlarim ro'yxati.
 - pickup — topshirish punkti, filial, postomat, qayerdan olib ketaman (buyurtma track emas).
 - ticket — ro'y bergan muammo: singan keldi, pul qaytmadi, shikoyat, operator chaqirish.
@@ -60,7 +60,8 @@ route — faqat quyidagilardan biri:
 QOIDALAR:
 - Suhbat tarixini hisobga ol: "boshqa tovar bormi", "yana qidirib ko'ring" oldingi qidiruvdan keyin product_search.
 - "Mening buyurtmam qayerda" — api, product_search emas.
-- Mahsulot mavjudligi ("kitob sotiladimi") — product_search, faq emas.
+- Mahsulot mavjudligi aniq nom bilan ("kitob sotiladimi") — product_search.
+- Umumiy "qanday tovarlar bor" / kategoriya — category, product_search emas.
 - search_query faqat route=product_search bo'lganda to'ldir; boshqa route larda "" yoki maydonni tashlab yuborish mumkin."""
 
 ROUTER_USER_TEMPLATE = """Suhbat tarixi:

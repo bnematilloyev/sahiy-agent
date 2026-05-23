@@ -17,7 +17,12 @@ from telegram.ext import (
 from telegram.request import HTTPXRequest
 
 from app.channels.ports import BotChannel
-from app.channels.telegram.delivery import ReplyPayload, deliver_follow_ups_and_media, deliver_to_update
+from app.channels.telegram.delivery import (
+    ReplyPayload,
+    deliver_follow_ups_and_media,
+    deliver_product_search_to_message,
+    deliver_to_update,
+)
 from app.channels.telegram.i18n_strings import (
     ERR_RETRY,
     FALLBACK_ERROR,
@@ -50,9 +55,12 @@ from app.domain.order_list_menu import parse_order_menu_callback
 from app.domain.product_search_present import (
     format_product_caption,
     product_buy_keyboard_extra,
+    product_search_see_all_keyboard,
 )
 from app.domain.product_search_intent import is_product_search_intent
 from app.domain.reply_language import resolve_reply_language
+from app.domain.category_present import parse_category_callback
+from app.domain.category_intent import is_category_browse_intent
 from app.domain.pickup_present import parse_callback
 from app.domain.telegram_menu import (
     build_rating_inline_extra,
@@ -70,6 +78,7 @@ from app.domain.telegram_menu import (
     PRODUCT_SEARCH_PROMPT,
     PRODUCT_SEARCH_TOO_SHORT,
 )
+from app.handlers.category_browse_handler import CategoryBrowseHandler
 from app.handlers.pickup_handler import PickupHandler
 from app.services.chat_service import ChatService
 from app.services.factory import create_chat_service
@@ -113,6 +122,7 @@ class TelegramBot(BotChannel):
         )
         self._pickup = PickupHandler()
         self._product_search = ProductSearchService(settings)
+        self._category = CategoryBrowseHandler(product_search=self._product_search)
 
         timeout = float(settings.telegram_http_timeout_seconds)
         request = HTTPXRequest(
@@ -139,6 +149,7 @@ class TelegramBot(BotChannel):
         self._app.add_handler(CallbackQueryHandler(self._on_rating_callback, pattern=r"^rate_[1-5]$"))
         self._app.add_handler(CallbackQueryHandler(self._on_pickup_callback, pattern=r"^pp_"))
         self._app.add_handler(CallbackQueryHandler(self._on_order_menu_callback, pattern=r"^ord_"))
+        self._app.add_handler(CallbackQueryHandler(self._on_category_callback, pattern=r"^ct_"))
         self._app.add_error_handler(self._on_error)
 
     async def start(self) -> None:
@@ -414,6 +425,22 @@ class TelegramBot(BotChannel):
                 lang=lang,
             )
 
+        see_all_kw = (outcome.api_keyword or outcome.display_keyword or text).strip()
+        if see_all_kw:
+            see_all_markup = inline_keyboard_from_extra(
+                product_search_see_all_keyboard(
+                    see_all_kw,
+                    lang,
+                    page_size=self._settings.sahiy_product_search_see_all_page_size,
+                )
+            )
+            await self._messenger.reply_text(
+                update,
+                "👇",
+                reply_markup=see_all_markup,
+                lang=lang,
+            )
+
         if update.effective_chat and context.user_data is not None:
             self._schedule_rating_after_inactivity(
                 context,
@@ -608,6 +635,45 @@ class TelegramBot(BotChannel):
         if payload.photo_urls and update.message:
             await self._messenger.send_media_group(update, payload.photo_urls)
 
+    async def _on_category_callback(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        query = update.callback_query
+        if not query or not query.data:
+            return
+        await query.answer()
+
+        parsed = parse_category_callback(query.data)
+        if parsed is None:
+            return
+
+        action, category_id, back_target = parsed
+        lang = _tg_lang(update, context)
+        result = await self._category.reply_for_callback(
+            action, category_id, back_target, lang
+        )
+        extra = getattr(result, "channel_extra", {}) or {}
+        payload = ReplyPayload.from_channel_extra(result.text, extra)
+
+        if payload.product_search_items and query.message:
+            try:
+                await query.edit_message_text(self._messenger.clip_text(result.text))
+            except TelegramError as exc:
+                logger.warning("category callback edit failed: %s", exc)
+                await self._messenger.reply_to_message(query.message, result.text)
+            await deliver_product_search_to_message(
+                query.message, self._messenger, payload, lang=lang
+            )
+            return
+
+        markup = inline_keyboard_from_extra(extra)
+        try:
+            await query.edit_message_text(result.text, reply_markup=markup)
+        except TelegramError as exc:
+            logger.warning("category edit_message_text failed: %s", exc)
+            if query.message:
+                await query.message.reply_text(result.text, reply_markup=markup)
+
     async def _on_pickup_callback(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
@@ -665,6 +731,7 @@ class TelegramBot(BotChannel):
             self._stream_enabled
             and update.message is not None
             and not is_product_search_intent(text)
+            and not is_category_browse_intent(text)
         )
         sent_message: Optional[Message] = None
         stream_session: Optional[SmoothStreamSession] = None

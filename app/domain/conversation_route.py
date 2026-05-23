@@ -13,6 +13,7 @@ class ConversationRoute(str, Enum):
     TICKET = "ticket"
     PICKUP = "pickup"
     PRODUCT_SEARCH = "product_search"
+    CATEGORY = "category"
     CHITCHAT = "chitchat"
 
 
