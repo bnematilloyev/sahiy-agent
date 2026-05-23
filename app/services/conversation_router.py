@@ -14,7 +14,7 @@ from app.domain.dto import ChatContext
 from app.domain.entities import Message
 from app.domain.enums import MessageRole, QuestionCategory
 from app.domain.keywords import classify_by_keywords, is_chitchat
-from app.domain.order_refs import is_order_lookup_request
+from app.domain.order_refs import extract_track, is_order_lookup_request
 from app.domain.pickup_keywords import is_pickup_conversation_turn
 from app.domain.product_search_intent import is_product_search_intent
 from app.domain.scope import is_operator_request
@@ -39,22 +39,26 @@ class ConversationRouterService:
         if is_identity_only_fast_path(text):
             return RouteDecision(route=ConversationRoute.FAQ)
 
-        if is_order_lookup_request(text):
-            return RouteDecision(route=ConversationRoute.API)
-
         if is_operator_request(text):
             return RouteDecision(route=ConversationRoute.TICKET)
 
-        if is_chitchat(text) and not context.recent_messages:
-            return RouteDecision(route=ConversationRoute.CHITCHAT)
+        # Track raqami aniq bo'lsa — LLM sarflamasdan to'g'ridan-to'g'ri API
+        if extract_track(text):
+            return RouteDecision(route=ConversationRoute.API)
 
         if is_pickup_conversation_turn(text, context.recent_messages):
             return RouteDecision(route=ConversationRoute.PICKUP)
 
+        # Mahsulot qidiruv sигнали bo'lsa — LLM ishlatib, kontekstdan
+        # foydalanib aniqlaymiz (order lookup bilan kolliziya bo'lishi mumkin)
         if self._ai.is_available:
             llm_decision = await self._decide_with_llm(context)
             if llm_decision is not None:
                 return llm_decision
+
+        # LLM yo'q yoki xato — heuristikaga qayt
+        if is_order_lookup_request(text):
+            return RouteDecision(route=ConversationRoute.API)
 
         return self._fallback(context)
 

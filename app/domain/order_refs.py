@@ -278,19 +278,18 @@ def is_order_list_question(text: str) -> bool:
         return False
     lowered = normalize_text(text)
     list_hints = (
-        # UZ
+        # UZ — egalik qo'shimchali shakllar (mening buyurtmalarim)
         "zakazlarim", "zakazlar", "buyurtmalarim", "buyurtmalar",
         "hamma zakaz", "barcha buyurtma",
         "buyurtmalarim qayerda", "buyurtmalarim qayda",
-        "tovarlar", "olganman", "nima tovar",
-        # UZ-RU transliteration
+        # "tovarlar" yolg'iz emas — egalik kontekstida:
+        "olganman", "nima tovar olgan", "qanday tovar olgan",
+        # UZ-RU
         "moy zakaz", "moi tovar", "moi tovary", "gde moi", "gde tovar", "tovary",
-        # RU (after normalize_text Cyrillic→latin conversion)
+        # RU (after normalize_text Cyrillic→latin)
         "moi zakazy", "moi zakaz", "moi tovary",
         "gde moi zakaz", "gde zakaz", "gde tovar",
-        "moi zakazы", "moi tovarы",
-        "zakazy", "zakazы",
-        "pokazhi zakaz", "pokazat zakaz",
+        "zakazy", "pokazhi zakaz", "pokazat zakaz",
         "moi posylki", "posylki",
         "status zakaz", "status tovar",
         "vse zakazy", "vse tovary",
@@ -303,7 +302,7 @@ def is_order_list_question(text: str) -> bool:
             for w in ("qayerda", "qayda", "holat", "royxat", "kor", "ko'r", "korsat", "ko'rsat")
         ):
             return True
-    # RU: "мои заказы", "где мои" etc. after normalization
+    # RU: «мои заказы», «где мои» — only with possessive pronoun
     if any(w in lowered for w in ("moi", "moya", "moyi")):
         if any(
             w in lowered
