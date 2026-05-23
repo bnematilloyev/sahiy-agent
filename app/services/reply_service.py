@@ -128,9 +128,18 @@ class ReplyService:
         elif is_pickup_conversation_turn(text, recent):
             result = await self._pickup.reply(chat_context)
         elif is_chitchat(text):
+            # Salomlashish va chitchatda oldingi tarix kerak emas
             faq_handler = self._router.pick(QuestionCategory.FAQ)
+            chitchat_context = ChatContext(
+                session_id=chat_context.session_id,
+                user_id=chat_context.user_id,
+                text=chat_context.text,
+                channel=chat_context.channel,
+                recent_messages=[],
+                metadata=chat_context.metadata,
+            )
             try:
-                result = await faq_handler.reply(chat_context, on_stream=stream_callback)
+                result = await faq_handler.reply(chitchat_context, on_stream=stream_callback)
             except Exception:
                 logger.exception("Chitchat AI reply failed")
                 result = ChatReply(

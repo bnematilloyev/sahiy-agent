@@ -124,9 +124,10 @@ class FaqService:
         settings = get_settings()
         context_limit = max(1, settings.rag_top_k)
         context_matches = matches[:context_limit]
+        faq_history = self._filter_faq_history(history)
         prompt = RAG_USER_TEMPLATE.format(
             context=self._format_matches(context_matches, reply_language),
-            history=self._format_history(history) or "(yo'q)",
+            history=self._format_history(faq_history) or "(yo'q)",
             wrapped_question=wrap_user_message(question),
         )
         system = system_prompt_with_language(RAG_SYSTEM, reply_language)
@@ -178,8 +179,9 @@ class FaqService:
             return text
 
         settings = get_settings()
+        faq_history = self._filter_faq_history(history)
         prompt = GENERIC_ASSISTANT_USER_TEMPLATE.format(
-            history=self._format_history(history) or "(yo'q)",
+            history=self._format_history(faq_history) or "(yo'q)",
             wrapped_question=wrap_user_message(question),
         )
         system = system_prompt_with_language(
@@ -233,6 +235,23 @@ class FaqService:
             f"A: {faq_entry_for_language(e, reply_language).answer}"
             for e in entries
         )
+
+    @staticmethod
+    def _filter_faq_history(messages: List[Message], max_pairs: int = 3) -> List[Message]:
+        """Faqat FAQ/generic (auto) javoblar bilan bog'liq xabarlarni qaytarish.
+
+        API (buyurtma) javoblari tarixda bo'lsa, ular keyingi aloqasiz savolga
+        kontekst sifatida berilmaydi.
+        """
+        # Oxirgi API/ticket javobidan keyingi xabarlarni olamiz
+        filtered: List[Message] = []
+        for msg in reversed(messages):
+            if msg.role == MessageRole.ASSISTANT.value and msg.msg_type in ("api", "ticket"):
+                break
+            filtered.append(msg)
+        filtered.reverse()
+        # Faqat oxirgi max_pairs juftlikni qoldirish
+        return filtered[-(max_pairs * 2):]
 
     @staticmethod
     def _format_history(messages: List[Message]) -> str:
