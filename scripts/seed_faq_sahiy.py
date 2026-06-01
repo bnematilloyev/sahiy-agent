@@ -6,6 +6,11 @@ Use when rows were inserted manually via SQL without vectors:
   python scripts/seed_faq_sahiy.py          # upsert text + embed
   python scripts/seed_faq_sahiy.py --embed-only   # only refresh embeddings
   python scripts/seed_faq_sahiy.py --clear        # delete all, insert fresh
+
+Bitta Excel (faq_100 + quick_replies):
+  pip install openpyxl   # yoki: pip install -e ".[dev]"
+  python scripts/export_faq_to_excel.py
+  → scripts/data/faq_seed.xlsx
 """
 
 from __future__ import annotations

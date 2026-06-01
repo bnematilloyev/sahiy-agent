@@ -65,6 +65,17 @@ def test_build_product_search_deeplink_chinese_query():
     assert "platform=1688" in link
 
 
+def test_build_product_search_deeplink_legacy_purchase_search_view_base():
+    link = build_product_search_deeplink(
+        "内衣",
+        base="https://sahiy.uz/PurchaseSearchView",
+    )
+    assert link.startswith("https://sahiy.uz/search?")
+    qs = parse_qs(urlparse(link).query)
+    assert qs["q"] == ["内衣"]
+    assert "PurchaseSearchView" not in link
+
+
 def test_build_category_search_deeplink():
     link = build_category_search_deeplink("皮草", "Mo'ynali kiyimlar")
     assert link.startswith("https://sahiy.uz/search?")

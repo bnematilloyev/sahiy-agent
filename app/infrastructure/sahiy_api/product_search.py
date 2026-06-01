@@ -40,6 +40,17 @@ def reply_language_to_api_header(lang: str) -> str:
     return _REPLY_LANG_TO_API.get(lang) or "uz_UZ"
 
 
+_WEB_SEARCH_ROOT = "https://sahiy.uz/search"
+
+
+def _web_search_deeplink_root(base: Optional[str], settings_base: str) -> str:
+    """Veb qidiruv bazasi; .env da eski PurchaseSearchView qolsa ham /search ga yo'naltiradi."""
+    root = (base or settings_base).strip().rstrip("/?")
+    if root.rstrip("/").lower().endswith("purchasesearchview"):
+        return _WEB_SEARCH_ROOT
+    return root
+
+
 def build_goods_deeplink(detail_url: str, *, base: Optional[str] = None) -> str:
     settings = get_settings()
     prefix = (base or settings.sahiy_goods_deeplink_base).strip()
@@ -61,7 +72,7 @@ def build_product_search_deeplink(
     """Veb qidiruv: /search?q=kurtka&platform=1688 (PurchaseSearchView emas)."""
     _ = page_size, sort  # eski API — veb /search da ishlatilmaydi
     settings = get_settings()
-    root = (base or settings.sahiy_product_search_deeplink_base).strip().rstrip("/?")
+    root = _web_search_deeplink_root(base, settings.sahiy_product_search_deeplink_base)
     q = keyword.strip()
     if not q:
         raise ValueError("keyword is required")
@@ -81,7 +92,7 @@ def build_category_search_deeplink(
 ) -> str:
     """Veb katalog: /search?category=皮草&displayName=…&platform=1688."""
     settings = get_settings()
-    root = (base or settings.sahiy_category_search_deeplink_base).strip().rstrip("/?")
+    root = _web_search_deeplink_root(base, settings.sahiy_category_search_deeplink_base)
     cat = category.strip()
     if not cat:
         raise ValueError("category is required")
