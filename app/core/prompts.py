@@ -41,36 +41,60 @@ CLASSIFIER_USER_TEMPLATE = (
 
 # 1b. Conversation router (kontekst + marshrut)
 ROUTER_SYSTEM = """Sen Sahiy mijozlarni qo'llab-quvvatlash botining marshrutchisisan.
-Vazifa: suhbat tarixi + joriy xabarga qarab bitta yo'nalish tanlash.
+Vazifa: suhbat tarixi + joriy xabarga qarab marshrutni va javob tilini aniqlash.
 
 CHIQISH: faqat bitta JSON qator (boshqa matn yo'q):
-{"route":"<label>","search_query":"<optional>"}
+{"route":"<label>","search_query":"<optional>","reply_language":"<til>"}
 
-route — faqat quyidagilardan biri:
-- category — katalog bo'limlari: "qanday kategoriyalar", "qanday tovarlar bor" (aniq nom yo'q),
-  "kattalar uchun", "bolalar uchun" kabi umumiy tur; avval bo'lim tanlash, keyin mahsulot.
-- product_search — aniq mahsulot qidiruv: lego, kitob, telefon, "menga X kerak", "X sotiladimi".
-  search_query: 1688 qidiruvi uchun qisqa ifoda, 2–8 so'z.
-- api — mijozning O'Z buyurtmasi: track (DG...), holat, qachon keladi, zakazlarim ro'yxati.
-- pickup — topshirish punkti, filial, postomat, qayerdan olib ketaman (buyurtma track emas).
-- ticket — ro'y bergan muammo: singan keldi, pul qaytmadi, shikoyat, operator chaqirish.
-- faq — Sahiy qoidalari, to'lov, yetkazish siyosati, kompaniya; gipotetik savollar.
-- chitchat — faqat salom/rahmat, mazmun yo'q.
+══════════════════════════════════════════════════════
+TIL ANIQLASH — reply_language (HAR DOIM TO'LDIR)
+══════════════════════════════════════════════════════
+Qiymatlar: uz_lat | uz_cyrl | ru | en | zh
 
-MAVZU ALMASHISHI (eng muhim):
-- Joriy xabar oldingi mavzudan BOSHQA bo'lsa, faqat joriy xabarga qarab route tanlang.
-- Tarixda filial/postomat muhokamasi bo'lsa ham, keyingi "qanday mahsulot/kategoriya sotasiz" → category (pickup emas).
-- Tarixda mahsulot qidiruv bo'lsa ham, keyingi "Navoiyda filial qayerda" → pickup (product_search emas).
-- Tarixda FAQ bo'lsa ham, keyin track yoki buyurtma holati → api.
-- Qisqa xabar ham yangi mavzu bo'lishi mumkin; oldingi tugmalar/menyuga yopishib qolma.
-- Shubha bo'lsa: joriy xabarning ASOSIY ma nosini aniqlang, tarixni faqat yordamchi kontekst sifatida.
+KIRILL MATNNI AJRATING (juda muhim):
+  → O'ZBEK KIRILL (uz_cyrl): қ, ғ, ў, ҳ harflari bo'lsa; "буюртма", "борми",
+    "қачон", "ёрдам", "ёки", "нима", "яхши", "сотасиз" kabi o'zbek so'zlari.
+  → RUS KIRILL (ru): ы, Ы, щ, Щ harflari bo'lsa (masalan: "мы", "вы", "они",
+    "сколько", "здравствуйте"); yoki "вы", "где", "что", "есть", "купить",
+    "продаёте/продаете", "заказ", "доставка", "товар", "стоит", "можно",
+    "нет", "да", "спасибо", "привет" kabi rus so'zlari.
 
-Boshqa qoidalar:
-- "boshqa tovar bormi" / "yana qidirib ko'ring" — oldingi qidiruvdan keyin product_search.
-- "Mening buyurtmam qayerda" (track/holat) — api, product_search emas.
-- Aniq mahsulot nomi ("kitob sotiladimi") — product_search.
-- Umumiy "qanday tovarlar bor" / kategoriya — category, product_search emas.
-- search_query faqat route=product_search bo'lganda to'ldir; boshqa route larda "" yoki maydonni tashlab yuborish mumkin."""
+Misollar:
+  "Вы продаете куртку?"     → ru    (вы + продаете)
+  "Где мой заказ?"          → ru    (где + заказ)
+  "Есть ли у вас пальто?"   → ru    (есть + вас)
+  "Товарим қачон келади"    → uz_cyrl (қ harfi + буюртма o'zbek so'zi)
+  "Буюртмам борми?"         → uz_cyrl (борми o'zbek so'zi)
+  "buyurtmam qayerda"       → uz_lat
+  "salom, narx qancha?"     → uz_lat
+  "Where is my order?"      → en
+
+Qo'shimcha qoidalar:
+- Mijoz suhbat davomida tilini o'zgartirsa — yangi tilni qaytaring.
+- Noaniq bo'lsa (masalan, faqat "ok", "ок", "telefon") — menuda tanlangan tilni saqlang.
+- Har xil tilda aralash yozsa — mazmun ko'p bo'lgan til.
+
+══════════════════════════════════════════════════════
+MARSHRUT — route
+══════════════════════════════════════════════════════
+- category     — katalog bo'limlari: "qanday kategoriyalar", "qanday tovarlar bor",
+                 "kattalar uchun", "bolalar uchun" kabi umumiy tur so'rovlari.
+- product_search — aniq mahsulot: lego, kitob, telefon, kurta, "X sotiladimi".
+                 search_query: 1688 uchun qisqa so'rov, 2–8 so'z, tarjima qilma.
+- api          — mijozning O'Z buyurtmasi: track (DG...), holat, "qachon keladi".
+- pickup       — topshirish punkti, filial, postomat, "qayerdan olib ketaman".
+- ticket       — ro'y bergan muammo: singan keldi, pul qaytmadi, operator.
+- faq          — Sahiy qoidalari, to'lov, yetkazish siyosati, gipotetik savollar.
+- chitchat     — faqat salom/rahmat/emoji, mazmun yo'q.
+
+MAVZU ALMASHISHI:
+- Joriy xabar oldingi mavzudan boshqa bo'lsa → faqat joriy xabardan route tanlang.
+- Tarix: filial/postomat → keyingi "qanday mahsulot sotasiz" → category (pickup emas).
+- Tarix: mahsulot qidiruv → keyingi "Navoiyda filial" → pickup (product_search emas).
+
+Boshqa:
+- "boshqa tovar bormi" oldingi qidiruvdan keyin → product_search.
+- search_query faqat product_search uchun; boshqa route larda "" yoki tashlab yuboring."""
 
 ROUTER_USER_TEMPLATE = """{thread_hint}
 

@@ -21,6 +21,13 @@ def test_parse_router_json_product_search():
     assert decision.search_query == "inglizcha kitob"
 
 
+def test_parse_router_json_reply_language():
+    raw = '{"route":"product_search","search_query":"kurta","reply_language":"ru"}'
+    decision = _parse_router_json(raw)
+    assert decision is not None
+    assert decision.reply_language == "ru"
+
+
 def test_parse_router_json_single_token():
     assert _parse_router_json("product_search").route == ConversationRoute.PRODUCT_SEARCH
 

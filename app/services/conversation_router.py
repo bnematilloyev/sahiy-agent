@@ -21,6 +21,7 @@ from app.domain.pickup_keywords import is_pickup_conversation_turn
 from app.domain.product_search_intent import is_product_search_intent
 from app.domain.scope import is_operator_request
 from app.infrastructure.llm.ports import AiClient
+from app.domain.reply_language import _ALL_LANGS
 
 logger = logging.getLogger(__name__)
 
@@ -60,12 +61,21 @@ class ConversationRouterService:
     async def _decide_with_llm(self, context: ChatContext) -> Optional[RouteDecision]:
         history = self._format_history(context.recent_messages)
         thread_hint = format_thread_hint_for_router(context.recent_messages)
+        preferred = context.metadata.get("reply_language")
+        # Menuda tanlangan til — LLMga ma'lumot sifatida uzatamiz.
+        # LLM joriy xabar tiliga qarab to'g'rilab qaytara oladi.
+        lang_hint = (
+            f"Mijoz menuda tanlagan til: {preferred}. "
+            "Joriy xabar boshqa tilda yozilgan bo'lsa, o'sha tilni reply_language sifatida qaytaring.\n"
+        ) if preferred in _ALL_LANGS else ""
         wrapped = wrap_user_message(context.text, max_len=1500)
         user_prompt = ROUTER_USER_TEMPLATE.format(
             thread_hint=thread_hint,
             history=history or "(yo'q)",
             wrapped=wrapped,
         )
+        if lang_hint:
+            user_prompt = lang_hint + user_prompt
         try:
             raw = await self._ai.complete(ROUTER_SYSTEM, user_prompt, max_tokens=160)
         except (LLMTimeoutError, LLMError) as exc:
@@ -78,9 +88,10 @@ class ConversationRouterService:
             return None
 
         logger.info(
-            "conversation route=%s search_query=%r text=%r",
+            "conversation route=%s search_query=%r reply_language=%s text=%r",
             parsed.route.value,
             (parsed.search_query or "")[:60],
+            parsed.reply_language,
             context.text[:60],
         )
         return parsed
@@ -131,25 +142,34 @@ def _reconcile_llm_with_signals(
     recent_messages: List[Message],
     decision: RouteDecision,
 ) -> RouteDecision:
+    """LLM xato qolgan aniq holatlar: kuchli keyword signal > pickup thread inertia.
+
+    Eslatma: barcha yangi RouteDecision'larda decision.reply_language saqlanadi —
+    aks holda LLM tomonidan aniqlangan til yo'qoladi.
     """
-    LLM xato qolgan aniq holatlar: kuchli keyword signal > pickup thread inertia.
-  """
+    lang = decision.reply_language
     route = decision.route
+
     if route == ConversationRoute.PICKUP and is_category_browse_intent(text):
         logger.info("router reconcile: pickup -> category (category intent)")
-        return RouteDecision(route=ConversationRoute.CATEGORY)
+        return RouteDecision(route=ConversationRoute.CATEGORY, reply_language=lang)
+
     if route == ConversationRoute.PICKUP and is_product_search_intent(text):
         if not is_pickup_conversation_turn(text, recent_messages):
             logger.info("router reconcile: pickup -> product_search")
             return RouteDecision(
                 route=ConversationRoute.PRODUCT_SEARCH,
                 search_query=decision.search_query or text.strip(),
+                reply_language=lang,
             )
+
     if route == ConversationRoute.PRODUCT_SEARCH and is_category_browse_intent(text):
         logger.info("router reconcile: product_search -> category")
-        return RouteDecision(route=ConversationRoute.CATEGORY)
+        return RouteDecision(route=ConversationRoute.CATEGORY, reply_language=lang)
+
     if route == ConversationRoute.CATEGORY and extract_track(text):
-        return RouteDecision(route=ConversationRoute.API)
+        return RouteDecision(route=ConversationRoute.API, reply_language=lang)
+
     return decision
 
 
@@ -175,9 +195,13 @@ def _parse_router_json(raw: str) -> Optional[RouteDecision]:
         return None
 
     search_query = str(data.get("search_query") or "").strip() or None
+    reply_language = str(data.get("reply_language") or "").strip() or None
+    if reply_language not in _ALL_LANGS:
+        reply_language = None
     return RouteDecision(
         route=ConversationRoute(route_raw),
         search_query=search_query,
+        reply_language=reply_language,
     )
 
 

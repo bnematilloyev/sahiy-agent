@@ -16,7 +16,13 @@ from app.domain.customer_identity import (
     requires_customer_identity,
 )
 from app.domain.pickup_keywords import is_identity_registration_text
-from app.domain.reply_language import UZ_LAT, localize, resolve_reply_language
+from app.domain.reply_language import (
+    UZ_LAT,
+    _ALL_LANGS,
+    detect_reply_language,
+    localize,
+    resolve_reply_language,
+)
 from app.handlers.pickup_handler import PickupHandler
 from app.domain.category_intent import should_resolve_via_categories
 from app.handlers.category_browse_handler import CategoryBrowseHandler
@@ -127,16 +133,26 @@ class ReplyService:
             result = self._identity.verified_user_id_reply(reply_lang)
         else:
             decision = await self._conversation_router.decide(chat_context)
+            # LLM router til aniqlagan bo'lsa va heuristic aniqlamagan bo'lsa — qo'llaymiz.
+            # Agar heuristic allaqachon aniq til bergan bo'lsa (reply_lang ≠ uz_lat default),
+            # router tasdig'ini qabul qilamiz lekin aynan heuristic natijasi ustunroq.
+            if decision.reply_language in _ALL_LANGS:
+                # Heuristic None qaytargan (meta yoki default), LLM aniqroq biladi
+                heuristic_detected = detect_reply_language(text)
+                if heuristic_detected is None or heuristic_detected == decision.reply_language:
+                    meta["reply_language"] = decision.reply_language
+                    chat_context.metadata["reply_language"] = decision.reply_language
             result = await self._dispatch(
                 chat_context,
                 decision,
                 on_stream=stream_callback,
             )
 
+        final_lang = str(meta.get("reply_language") or reply_lang)
         if not result.text.strip():
             result = ChatReply(
                 response_type=ResponseType.ERROR,
-                text=localize("busy", reply_lang),
+                text=localize("busy", final_lang),
                 category=result.category,
                 ticket_id=result.ticket_id,
             )

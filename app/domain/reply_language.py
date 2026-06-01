@@ -1,4 +1,11 @@
-"""Mijoz yozgan til — keyingi javoblar shu tilda (lotin / kirill / rus)."""
+"""Mijoz yozgan til — keyingi javoblar shu tilda (lotin / kirill / rus).
+
+Aniqlash ustuvorligi (kirill matn uchun):
+  1. O'zbek-eksklyuziv harflar (қ,ғ,ў,ҳ)      → uz_cyrl (aniq)
+  2. Rus-eksklyuziv harflar   (ы,Ы,щ,Щ)        → ru     (aniq)
+  3. So'z lug'ati: rus vs o'zbek scoring        → g'olib til
+  4. Noaniq                                     → None   (meta/tarixdan olinadi)
+"""
 
 from __future__ import annotations
 
@@ -17,104 +24,125 @@ ZH = "zh"
 
 _ALL_LANGS = (UZ_LAT, UZ_CYRL, RU, EN, ZH)
 
-# O'zbek kirilliga xos harflar
+# ─── Unicode belgilari ────────────────────────────────────────────────────────
+
+# O'zbek kirillida FAQAT ishlatiladigan harflar
 _UZ_CYRL_CHARS = frozenset("қғўҳҚҒЎҲ")
 
-# Rus (kirill yoki lotin)
-_RU_MARKERS = (
-    "где",
-    "мой",
-    "мои",
-    "товар",
-    "товары",
-    "заказ",
-    "когда",
-    "почему",
-    "спасибо",
-    "привет",
-    "что",
-    "это",
-    "или",
-    "нет",
-    "почему",
-    "здравств",
-)
+# Rus kirillida FAQAT ishlatiladigan harflar (o'zbek kirillida yo'q)
+# ё, э, ъ — ikkalasida ham bor, shuning uchun bu ro'yxatda YO'Q
+_RU_ONLY_CHARS = frozenset("ыЫщЩ")
+
+# ─── Rus so'z lug'ati (to'liq so'z, kirill) ──────────────────────────────────
+# Faqat rus tilida mavjud yoki dominant bo'lgan so'zlar
+_RU_CYRL_WORDS = frozenset({
+    # Olmoshlar — shaxs
+    "вы", "вас", "вам", "ваш", "ваша", "ваше", "ваши",
+    "мы", "нас", "нам", "наш", "нашу", "наши",
+    "они", "их", "им", "ими",
+    "ты", "тебя", "тебе", "тобой",
+    "я", "меня", "мне", "мной",
+    # Olmoshlar — egalik (мой/твой/свой — o'zbekda yo'q)
+    "мой", "мою", "моя", "моё", "мои", "моих", "моему",
+    "твой", "твою", "твоя", "твоё", "твои",
+    "свой", "свою", "своя", "своё", "свои",
+    # Ko'rsatish olmoshlari
+    "это", "этот", "эта", "эти", "этого",
+    # So'roq olmoshlari
+    "что", "чего", "чему", "чем",
+    "где", "куда", "откуда",
+    "когда", "почему", "зачем", "как",
+    "который", "которая", "которые",
+    # Inkor/tasdiq
+    "не", "нет", "нету", "ни",
+    # Modal so'zlar
+    "есть", "да",
+    "можно", "нужно", "надо", "нельзя",
+    # Savdo/buyurtma — faqat rus grammatik shakllari (loanword ot SO'ZLARI EMAS)
+    "продаёте", "продаете", "продаётся", "продается",
+    "продают", "продаю", "продаёт", "продает",
+    "купить", "куплю", "покупаю", "покупать",
+    "заказать",
+    "доставки", "доставке",
+    "оплатить",
+    "вернуть",
+    "стоит", "стоимость",
+    "сколько", "почём",
+    # Salomlashish/xayrlashish
+    "привет", "здравствуйте", "здравствуй", "спасибо",
+    "пожалуйста", "извините", "скажите", "подскажите",
+    # Boshqa rus grammatik so'zlari
+    "или", "но", "если", "потому", "хочу",
+    "хотел", "хотела", "хотите", "могу", "можете",
+    "работает", "работаете", "бывает",
+})
+
+# Lotin (transliteratsiya) rus markerlari
 _RU_LAT_STRONG = (
-    "gde",
-    "moi",
-    "tovary",
-    "kogda",
-    "pochemu",
-    "spasibo",
-    "privet",
-    "chto",
-    "eto",
+    "gde", "moi", "tovary", "kogda", "pochemu",
+    "spasibo", "privet", "chto", "eto",
 )
-_UZ_LAT_HINTS = (
-    "qayerda",
-    "buyurtma",
-    "buyurtmalarim",
-    "orderlarim",
-    "zakazlar",
-    "rahmat",
-    "salom",
-    "assalom",
-    "tovarim",
-    "tovarlarim",
-    "kelmagan",
-    "kemagan",
-    "bormi",
-    "kelsa",
-    "uchun",
-    "qabul",
-    "qilgan",
-    "kerak",
-    "rasmlari",
-    "infosi",
-)
+
+# ─── O'zbek kirill so'z ro'yxati ─────────────────────────────────────────────
 _UZ_CYRL_HINTS = (
-    "борми",
-    "келмаган",
-    "кетилмаган",
-    "товарларим",
-    "товарим",
-    "буюртма",
-    "қабул",
-    "керак",
-    "салом",
+    "борми", "борқу",
+    "келмаган", "кетилмаган", "келмади",
+    "товарларим", "товарим",
+    "буюртма", "буюртмам", "буюртмангиз",
+    "қабул", "керак", "сотасиз", "сотилади", "сотилаяпти",
+    "салом", "яхши", "ёрдам", "ёки",
+    "қачон", "нима", "қаерда", "қандай",
 )
+
+# Lotin o'zbek so'z ro'yxati (kirill transliteratsiya orqali ham tekshiriladi)
+_UZ_LAT_HINTS = (
+    "qayerda", "qachon", "qanday", "nimani",
+    "buyurtma", "buyurtmalarim",
+    "orderlarim", "zakazlar",
+    "rahmat", "salom", "assalom",
+    "tovarim", "tovarlarim",
+    "kelmagan", "kemagan",
+    "bormi", "kelsa", "uchun",
+    "qabul", "qilgan", "kerak",
+    "rasmlari", "infosi", "sotiladi",
+)
+
+# ─── Ingliz markerlari ────────────────────────────────────────────────────────
 _EN_MARKERS = (
-    "where",
-    "when",
-    "why",
-    "how",
-    "order",
-    "orders",
-    "delivery",
-    "payment",
-    "refund",
-    "hello",
-    "thanks",
-    "thank you",
-    "my order",
-    "track",
-    "shipment",
+    "where", "when", "why", "how",
+    "order", "orders", "delivery", "payment", "refund",
+    "hello", "thanks", "thank you", "my order",
+    "track", "shipment", "available",
 )
+
 _ZH_RE = re.compile(r"[\u4e00-\u9fff]")
+_CYRL_WORD_RE = re.compile(r"[а-яё]+")
 
 
-def _ru_marker_hits(text: str) -> int:
-    """Rus markerlari — so'z chegarasida (tovar ⊂ tovarlarim bo'lmasin)."""
+def _score_cyrillic(text: str) -> tuple[int, int]:
+    """(ru_score, uz_score) — kirill matn uchun xom ball."""
     low = text.lower()
-    count = 0
-    for marker in _RU_MARKERS:
-        if re.search(rf"(?<![а-яё]){re.escape(marker)}(?![а-яё])", low):
-            count += 1
-    return count
+    words = set(_CYRL_WORD_RE.findall(low))
+
+    ru_score = len(words & _RU_CYRL_WORDS)
+
+    norm = normalize_text(text)
+    uz_score = sum(1 for h in _UZ_LAT_HINTS if h in norm)
+    uz_score += sum(1 for h in _UZ_CYRL_HINTS if h in low)
+
+    return ru_score, uz_score
 
 
 def detect_reply_language(text: str) -> Optional[str]:
-    """Joriy xabardan til; aniqlanmasa None."""
+    """Joriy xabardan til aniqla; aniqlab bo'lmasa None qaytaradi.
+
+    Qaror daraxti (kirill matn):
+      1. O'zbek-eksklyuziv harflar (қ,ғ,ў,ҳ) → uz_cyrl  [yuqori ishonch]
+      2. Rus-eksklyuziv harflar   (ы,Ы,щ,Щ) → ru        [yuqori ishonch]
+      3. Lug'at scoring           ru > uz    → ru
+                                  uz > ru    → uz_cyrl
+      4. Noaniq                              → None
+    """
     raw = (text or "").strip()
     if len(raw) < 2:
         return None
@@ -122,20 +150,28 @@ def detect_reply_language(text: str) -> Optional[str]:
     if _ZH_RE.search(raw):
         return ZH
 
+    # ── Daraja 1: O'zbek-eksklyuziv Unicode harflar ──────────────────────────
     if any(ch in raw for ch in _UZ_CYRL_CHARS):
         return UZ_CYRL
 
     if _has_cyrillic(raw):
-        low = raw.lower()
-        norm = normalize_text(raw)
-        if any(m in norm for m in _UZ_LAT_HINTS):
-            return UZ_CYRL
-        if any(m in low for m in _UZ_CYRL_HINTS):
-            return UZ_CYRL
-        if _ru_marker_hits(raw) >= 1:
+        # ── Daraja 2: Rus-eksklyuziv harflar ─────────────────────────────────
+        if any(ch in raw for ch in _RU_ONLY_CHARS):
             return RU
-        return UZ_CYRL
 
+        # ── Daraja 3: Lug'at scoring ─────────────────────────────────────────
+        ru_score, uz_score = _score_cyrillic(raw)
+
+        # O'zbek so'zlari aniq topilsa — undan ustun bo'lish uchun rus
+        # ko'rsatkichi o'zbekdan ANIQ kattaroq bo'lishi kerak.
+        if ru_score > uz_score and ru_score > 0:
+            return RU
+        if uz_score > 0:
+            return UZ_CYRL
+
+        return None
+
+    # ── Latin matn ───────────────────────────────────────────────────────────
     norm = normalize_text(raw)
     if any(m in norm for m in _RU_LAT_STRONG):
         return RU
@@ -163,12 +199,20 @@ def resolve_reply_language(
     meta: Optional[Dict[str, Any]] = None,
     recent_messages: Optional[Sequence[Message]] = None,
 ) -> str:
-    """Yangi xabar > saqlangan meta > oxirgi user xabarlar > uz_lat."""
+    """Til ustuvorligi:
+      1. Joriy xabarda aniq til aniqlansa → o'sha til (har doim)
+      2. Foydalanuvchi menuda tanlagan til (meta) → saqlanadi
+      3. Oxirgi foydalanuvchi xabarlaridan aniqlash
+      4. Standart: uz_lat
+    """
     detected = detect_reply_language(text)
     if detected:
         return detected
-    if meta and meta.get("reply_language") in _ALL_LANGS:
-        return str(meta["reply_language"])
+
+    preferred = (meta or {}).get("reply_language")
+    if preferred in _ALL_LANGS:
+        return str(preferred)
+
     if recent_messages:
         for msg in reversed(recent_messages):
             if msg.role != MessageRole.USER.value:
@@ -176,6 +220,7 @@ def resolve_reply_language(
             d = detect_reply_language(msg.content)
             if d:
                 return d
+
     return UZ_LAT
 
 
