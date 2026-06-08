@@ -43,3 +43,15 @@ class ChatReply:
     category: QuestionCategory
     ticket_id: Optional[UUID] = None
     channel_extra: Dict[str, Any] = field(default_factory=dict)
+
+    # --- AI control fields ---
+    # confidence is a 0..1 score produced by the RAG/LLM layer.
+    # Go orchestrator uses it (along with `escalate`) to decide whether to
+    # show the AI reply or route to an operator.
+    confidence: float = 0.0
+    # escalate=True means the AI explicitly cannot handle the request.
+    # This is authoritative: Go MUST send the conversation to an operator queue.
+    escalate: bool = False
+    # Short code explaining why escalation is needed.
+    # Values: "operator_request" | "low_confidence" | "concrete_incident" | "off_topic" | "ai_error"
+    handoff_reason: Optional[str] = None

@@ -86,6 +86,8 @@ class Settings(BaseSettings):
 
     go_backend_url: str = "http://localhost:8080"
     go_backend_timeout_seconds: int = 10
+    # Shared secret for Go ↔ Python internal calls (must match Go AI_SERVICE_TOKEN).
+    ai_service_token: str = ""
 
     # Sahiy Laravel API (service_user — buyurtma holati)
     sahiy_api_base_url: str = ""

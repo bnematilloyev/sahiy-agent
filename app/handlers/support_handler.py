@@ -60,14 +60,19 @@ class SupportHandler:
                     text=text,
                     category=self.category,
                     ticket_id=open_ticket.id,
+                    escalate=True,
+                    handoff_reason=reason or "operator_request",
                 )
             if self._faq and _is_policy_question(context.text):
                 return await self._faq.reply(context)
+            # Existing open ticket without special reason — remind the user.
             return ChatReply(
                 response_type=ResponseType.TICKET,
                 text=OPEN_TICKET_REMINDER.format(ticket_id=open_ticket.id),
                 category=self.category,
                 ticket_id=open_ticket.id,
+                escalate=True,
+                handoff_reason="open_ticket",
             )
 
         if not is_concrete_incident(context.text) and reason not in (
@@ -85,11 +90,16 @@ class SupportHandler:
             status=TicketStatus.OPEN.value,
         )
         ack = self._ack_message(ticket.id, ticket_type, reason)
+        # Map internal ticket_type to the handoff_reason vocabulary the Go
+        # orchestrator understands.
+        handoff = _ticket_type_to_handoff_reason(ticket_type, reason)
         return ChatReply(
             response_type=ResponseType.TICKET,
             text=ack,
             category=self.category,
             ticket_id=ticket.id,
+            escalate=True,
+            handoff_reason=handoff,
         )
 
     @staticmethod
@@ -115,6 +125,18 @@ class SupportHandler:
         if ticket_type == "delivery":
             return TICKET_ACK_EMPATHETIC.format(ticket_id=ticket_id)
         return TICKET_ACK_TEMPLATE.format(ticket_id=ticket_id)
+
+
+def _ticket_type_to_handoff_reason(ticket_type: str, reason: str) -> str:
+    """Map internal ticket/reason codes to the Go-facing handoff_reason vocabulary."""
+    if reason == "operator_request" or ticket_type == "operator_request":
+        return "operator_request"
+    if reason == "off_topic" or ticket_type == "off_topic":
+        return "off_topic"
+    if reason == "unresolved" or ticket_type == "unresolved":
+        return "low_confidence"
+    # concrete incident (broken, delivery, refund, etc.) maps to concrete_incident
+    return "concrete_incident"
 
 
 def _is_policy_question(text: str) -> bool:

@@ -75,6 +75,12 @@ class OrderApi:
             return result.to_api_payload()
         return {"error": "unknown", "message": _UNKNOWN_MSG.get(lang, _UNKNOWN_MSG["uz_lat"])}
 
+    def _go_service_headers(self) -> Dict[str, str]:
+        token = self._settings.ai_service_token.strip()
+        if not token:
+            return {}
+        return {"X-Service-Token": token}
+
     async def _lookup_go(
         self,
         user_id: str,
@@ -86,6 +92,7 @@ class OrderApi:
                 response = await client.post(
                     f"{self._base_url}/internal/ai/order-lookup",
                     json={"user_id": user_id, "session_id": session_id, "query": query},
+                    headers=self._go_service_headers(),
                 )
                 if response.status_code == 200:
                     return response.json()

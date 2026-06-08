@@ -25,4 +25,7 @@ async def process_message(
         type=result.response_type.value,
         text=result.text,
         ticket_id=result.ticket_id,
+        confidence=result.confidence,
+        escalate=result.escalate,
+        handoff_reason=result.handoff_reason,
     )
