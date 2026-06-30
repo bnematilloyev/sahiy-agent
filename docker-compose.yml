@@ -6,9 +6,13 @@ services:
       POSTGRES_USER: sahiy
       POSTGRES_PASSWORD: sahiy_test
       POSTGRES_DB: sahiy_agent
-    # Local default 5433; production VPS: use docker-compose.override.yml → 127.0.0.1:5435
-    ports:
-      - "127.0.0.1:5433:5432"
+    # No host port published: the Go services reach Postgres over the compose
+    # network (postgres:5432). This avoids clashing with other projects' DBs on
+    # this host (e.g. attendance_db already owns 5433). For host-side psql use:
+    #   docker compose exec postgres psql -U sahiy -d sahiy_agent
+    # To expose locally, add e.g.  ports: ["127.0.0.1:5436:5432"]  in an override.
+    expose:
+      - "5432"
     volumes:
       - sahiy_pgdata:/var/lib/postgresql/data
     healthcheck:
