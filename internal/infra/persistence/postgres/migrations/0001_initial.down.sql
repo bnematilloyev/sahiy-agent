@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS tickets;
+DROP TABLE IF EXISTS faq_embeddings;
+DROP TABLE IF EXISTS messages;
+DROP TABLE IF EXISTS chat_sessions;

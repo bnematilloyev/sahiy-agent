@@ -17,12 +17,25 @@ services:
       timeout: 5s
       retries: 5
 
-  # Uncomment for containerized API (production: run uvicorn on host instead)
-  # api:
-  #   build: .
+  # Uncomment for containerized Go API
+  # go-api:
+  #   build:
+  #     context: .
+  #     dockerfile: deploy/Dockerfile
   #   ports:
   #     - "8001:8001"
   #   env_file: .env
+  #   command: ["sahiy-api"]
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+
+  # go-bot:
+  #   build:
+  #     context: .
+  #     dockerfile: deploy/Dockerfile
+  #   env_file: .env
+  #   command: ["sahiy-bot"]
   #   depends_on:
   #     postgres:
   #       condition: service_healthy
