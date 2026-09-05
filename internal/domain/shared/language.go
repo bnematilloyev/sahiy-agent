@@ -1,9 +1,6 @@
 package shared
 
-import (
-	"strings"
-	"unicode"
-)
+import "strings"
 
 // Language is a value object for the reply language. Supported codes mirror the
 // FAQ localization columns: uz (Latin), cyr (Uzbek Cyrillic), ru, en, zh.
@@ -56,33 +53,5 @@ func (l Language) EnglishName() string {
 		return "Chinese"
 	default:
 		return "Uzbek (Latin script)"
-	}
-}
-
-// DetectLanguage infers the reply language from message text using script
-// heuristics. It is pure and side-effect free.
-func DetectLanguage(text string) Language {
-	var hasCJK, hasCyrillic, hasUzbekCyrillic bool
-	for _, r := range text {
-		switch {
-		case unicode.Is(unicode.Han, r):
-			hasCJK = true
-		case unicode.Is(unicode.Cyrillic, r):
-			hasCyrillic = true
-			// Uzbek-specific Cyrillic letters distinguish uz-cyrl from ru.
-			if strings.ContainsRune("ўқғҳЎҚҒҲ", r) {
-				hasUzbekCyrillic = true
-			}
-		}
-	}
-	switch {
-	case hasCJK:
-		return LangZh
-	case hasUzbekCyrillic:
-		return LangCyr
-	case hasCyrillic:
-		return LangRu
-	default:
-		return LangUz
 	}
 }

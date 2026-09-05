@@ -29,9 +29,9 @@ func NewPoint(id, regionID int64, name, address, phone, typeLabel string, typeCo
 	}
 }
 
-func (p Point) ID() int64         { return p.id }
-func (p Point) RegionID() int64   { return p.regionID }
-func (p Point) Name() string      { return p.name }
+func (p Point) ID() int64          { return p.id }
+func (p Point) RegionID() int64    { return p.regionID }
+func (p Point) Name() string       { return p.name }
 func (p Point) Address() string    { return p.address }
 func (p Point) Phone() string      { return p.phone }
 func (p Point) TypeLabel() string  { return p.typeLabel }

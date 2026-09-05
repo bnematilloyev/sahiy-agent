@@ -9,14 +9,14 @@ import (
 
 // ProductSearchItem is the wire shape for Telegram product cards.
 type ProductSearchItem struct {
-	Title           string  `json:"title"`
-	PicURL          string  `json:"pic_url"`
-	DetailURL       string  `json:"detail_url"`
-	PriceCNY        float64 `json:"price_cny"`
-	DirectPriceCNY  float64 `json:"direct_price_cny"`
-	CargoFeeCNY     float64 `json:"cargo_fee_cny"`
-	Sales           int     `json:"sales"`
-	NumIID          any     `json:"num_iid,omitempty"`
+	Title          string  `json:"title"`
+	PicURL         string  `json:"pic_url"`
+	DetailURL      string  `json:"detail_url"`
+	PriceCNY       float64 `json:"price_cny"`
+	DirectPriceCNY float64 `json:"direct_price_cny"`
+	CargoFeeCNY    float64 `json:"cargo_fee_cny"`
+	Sales          int     `json:"sales"`
+	NumIID         any     `json:"num_iid,omitempty"`
 }
 
 // BuildProductSearchExtra builds channel_extra for Telegram product cards.
@@ -27,13 +27,13 @@ func BuildProductSearchExtra(products []Product, keyword string, rate float64, s
 			continue
 		}
 		items = append(items, map[string]any{
-			"title":             p.Title(),
-			"pic_url":           p.PicURL(),
-			"detail_url":        p.Deeplink(),
-			"price_cny":         p.PriceCNY(),
-			"direct_price_cny":  p.PriceCNY(),
-			"cargo_fee_cny":     0.0,
-			"sales":             p.Sales(),
+			"title":            p.Title(),
+			"pic_url":          p.PicURL(),
+			"detail_url":       p.Deeplink(),
+			"price_cny":        p.PriceCNY(),
+			"direct_price_cny": p.PriceCNY(),
+			"cargo_fee_cny":    0.0,
+			"sales":            p.Sales(),
 		})
 	}
 	return map[string]any{

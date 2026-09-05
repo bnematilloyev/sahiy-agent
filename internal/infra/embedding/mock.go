@@ -4,7 +4,12 @@ import (
 	"context"
 	"hash/fnv"
 	"math"
+
+	"github.com/sahiy-backend/sahiy-agent/internal/app/ai"
 )
+
+// mockEmbedderName is the chain entry name that marks a result as degraded.
+const mockEmbedderName = "mock"
 
 // MockEmbedder produces deterministic pseudo-random unit vectors from text. It
 // lets the system run (and tests pass) without any embedding API. Similarity is
@@ -23,7 +28,7 @@ func NewMockEmbedder(dim int) *MockEmbedder {
 }
 
 // Embed implements ai.Embedder with a deterministic hash-seeded vector.
-func (e *MockEmbedder) Embed(_ context.Context, text string) ([]float32, error) {
+func (e *MockEmbedder) Embed(_ context.Context, text string) (ai.Embedding, error) {
 	seed := fnv.New64a()
 	_, _ = seed.Write([]byte(text))
 	state := seed.Sum64()
@@ -46,5 +51,5 @@ func (e *MockEmbedder) Embed(_ context.Context, text string) ([]float32, error) 
 			vec[i] = float32(float64(vec[i]) / norm)
 		}
 	}
-	return vec, nil
+	return ai.Embedding{Vector: vec, Degraded: true}, nil
 }

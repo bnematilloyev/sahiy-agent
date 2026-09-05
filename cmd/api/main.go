@@ -39,7 +39,7 @@ func run() error {
 	}
 	defer app.Close()
 
-	h := handler.New(app.ReplyService, app.Pool, log)
+	h := handler.New(app.ReplyService, app.FAQService, app.Pool, log)
 	addr := fmt.Sprintf("%s:%d", cfg.App.Host, cfg.App.Port)
 	server := api.NewServer(addr, h, cfg.AI.ServiceToken, log)
 

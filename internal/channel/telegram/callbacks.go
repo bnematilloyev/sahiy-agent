@@ -121,7 +121,7 @@ func (b *Bot) handleOrderMenuCallback(ctx context.Context, tgBot *bot.Bot, updat
 
 	userID := q.From.ID
 	lang := b.langFor(userID, "")
-	state := b.users.Get(userID)
+	state := b.users.Snapshot(userID)
 	meta := map[string]any{
 		"channel":        channelName,
 		"reply_language": langHint(lang),
@@ -142,7 +142,7 @@ func (b *Bot) handleOrderMenuCallback(ctx context.Context, tgBot *bot.Bot, updat
 		b.log.Error("telegram: order menu callback", "error", err)
 		return
 	}
-	state.SessionID = reply.SessionID.String()
+	b.users.SetSessionID(userID, reply.SessionID.String())
 	payload := PayloadFromExtra(reply.Text, reply.ChannelExtra)
 	b.msgr.SendText(ctx, tgBot, msg.Chat.ID, payload.Text, inlineMarkupFromExtra(reply.ChannelExtra))
 	b.deliverRichContent(ctx, tgBot, msg.Chat.ID, lang, payload)

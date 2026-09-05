@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	maxMessageLen   = 4096
+	maxMessageLen     = 4096
 	streamPlaceholder = "⏳"
 )
 

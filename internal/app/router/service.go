@@ -8,7 +8,6 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
-	"strings"
 
 	"github.com/sahiy-backend/sahiy-agent/internal/app/ai"
 	"github.com/sahiy-backend/sahiy-agent/internal/domain/conversation"
@@ -31,7 +30,7 @@ func New(completer ai.Completer, log *slog.Logger) *Service {
 
 // Decide returns the routing decision for the current message.
 func (s *Service) Decide(ctx context.Context, history []conversation.Message, text string, meta map[string]any) routing.Decision {
-	lang := resolveLanguage(text, meta)
+	lang, langCertain := resolveLanguage(text, meta, history)
 
 	// Deterministic hard overrides take precedence over the LLM.
 	if routing.IsOperatorRequest(text) {
@@ -42,7 +41,7 @@ func (s *Service) Decide(ctx context.Context, history []conversation.Message, te
 	}
 
 	if s.completer.Available() {
-		if decision, ok := s.decideWithLLM(ctx, history, text, lang); ok {
+		if decision, ok := s.decideWithLLM(ctx, history, text, lang, langCertain); ok {
 			return decision
 		}
 	}
@@ -50,22 +49,28 @@ func (s *Service) Decide(ctx context.Context, history []conversation.Message, te
 	return routing.Decision{Route: routing.FallbackRoute(text), Language: lang}
 }
 
-func (s *Service) decideWithLLM(ctx context.Context, history []conversation.Message, text string, lang shared.Language) (routing.Decision, bool) {
+func (s *Service) decideWithLLM(ctx context.Context, history []conversation.Message, text string, lang shared.Language, langCertain bool) (routing.Decision, bool) {
 	req := ai.CompletionRequest{
 		System:      ai.RouterSystemPrompt(),
 		Messages:    []ai.Message{{Role: ai.RoleUser, Content: ai.BuildRouterUser(toAIMessages(history), text)}},
 		MaxTokens:   200,
 		Temperature: 0,
+		Route:       "router",
 	}
-	raw, err := s.completer.Complete(ctx, req)
+	out, err := s.completer.Complete(ctx, req)
 	if err != nil {
 		s.log.Warn("router: llm failed, using fallback", "error", err)
 		return routing.Decision{}, false
 	}
+	if out.Degraded {
+		// No real model classified this message; keyword routing is more
+		// trustworthy than a canned placeholder.
+		return routing.Decision{}, false
+	}
 
-	parsed, ok := parseRouterJSON(raw)
+	parsed, ok := parseRouterJSON(out.Text)
 	if !ok {
-		s.log.Warn("router: could not parse llm output, using fallback", "raw", raw)
+		s.log.Warn("router: could not parse llm output, using fallback", "raw", out.Text)
 		return routing.Decision{}, false
 	}
 
@@ -74,7 +79,9 @@ func (s *Service) decideWithLLM(ctx context.Context, history []conversation.Mess
 		Language:    lang,
 		SearchQuery: parsed.SearchQuery,
 	}
-	if parsed.ReplyLanguage != "" {
+	// The word-list detector is deterministic and tested; the model's guess only
+	// fills in when the message itself gave us nothing to go on.
+	if parsed.ReplyLanguage != "" && !langCertain {
 		decision.Language = shared.NewLanguage(parsed.ReplyLanguage)
 	}
 	return decision, true
@@ -89,13 +96,12 @@ type routerJSON struct {
 // parseRouterJSON extracts the JSON object from the model output, tolerating any
 // surrounding prose or code fences.
 func parseRouterJSON(raw string) (routerJSON, bool) {
-	start := strings.IndexByte(raw, '{')
-	end := strings.LastIndexByte(raw, '}')
-	if start < 0 || end <= start {
+	obj, ok := ai.ExtractJSONObject(raw)
+	if !ok {
 		return routerJSON{}, false
 	}
 	var out routerJSON
-	if err := json.Unmarshal([]byte(raw[start:end+1]), &out); err != nil {
+	if err := json.Unmarshal([]byte(obj), &out); err != nil {
 		return routerJSON{}, false
 	}
 	if out.Route == "" {
@@ -104,15 +110,28 @@ func parseRouterJSON(raw string) (routerJSON, bool) {
 	return out, true
 }
 
-// resolveLanguage uses an explicit reply_language hint from metadata when valid,
-// otherwise detects the language from the message text.
-func resolveLanguage(text string, meta map[string]any) shared.Language {
-	if meta != nil {
-		if hint, ok := meta["reply_language"].(string); ok && strings.TrimSpace(hint) != "" {
-			return shared.NewLanguage(hint)
+// resolveLanguage decides which language to answer in. What the customer just
+// wrote wins over their stored preference: someone who switches language expects
+// the reply to switch too. When the current message is inconclusive the stored
+// preference applies, then the language of their earlier messages.
+// The bool reports whether the current message itself was decisive; when it is,
+// the LLM's own language guess must not override it.
+func resolveLanguage(text string, meta map[string]any, history []conversation.Message) (shared.Language, bool) {
+	if lang, ok := shared.DetectReplyLanguage(text); ok {
+		return lang, true
+	}
+	return shared.ResolveReplyLanguage(text, shared.LanguageHintFromMeta(meta), userTexts(history)), false
+}
+
+// userTexts extracts the customer's own turns, oldest first.
+func userTexts(history []conversation.Message) []string {
+	out := make([]string, 0, len(history))
+	for _, m := range history {
+		if m.Role() == conversation.RoleUser {
+			out = append(out, m.Content().String())
 		}
 	}
-	return shared.DetectLanguage(text)
+	return out
 }
 
 func toAIMessages(history []conversation.Message) []ai.Message {

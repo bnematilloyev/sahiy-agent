@@ -23,4 +23,15 @@ type Outcome struct {
 	HandoffReason shared.HandoffReason
 	TicketID      *string
 	ChannelExtra  map[string]any
+
+	// The fields below describe how the answer was produced. They do not
+	// affect what the customer sees; they exist so the turn can be recorded
+	// for the learning loop.
+
+	// Route is the route that handled the message ("faq", "api", ...).
+	Route string
+	// Language is the reply language code.
+	Language string
+	// Degraded reports that no real model answered - the rules fallback did.
+	Degraded bool
 }

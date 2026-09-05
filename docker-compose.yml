@@ -1,18 +1,22 @@
+# sahiy-agent (Go): Postgres + the API service and the Telegram bot.
+#
+#   docker compose up -d --build
+#
+# Schema migrations and the baseline FAQ seed are applied by the Go services
+# themselves on startup - there is no separate migrate or seed step.
 services:
   postgres:
     image: pgvector/pgvector:pg16
     container_name: sahiy-agent-db
     environment:
       POSTGRES_USER: sahiy
-      POSTGRES_PASSWORD: sahiy_test
+      POSTGRES_PASSWORD: ${SAHIY_DB_PASSWORD:-sahiy_test}
       POSTGRES_DB: sahiy_agent
-    # No host port published: the Go services reach Postgres over the compose
-    # network (postgres:5432). This avoids clashing with other projects' DBs on
-    # this host (e.g. attendance_db already owns 5433). For host-side psql use:
-    #   docker compose exec postgres psql -U sahiy -d sahiy_agent
-    # To expose locally, add e.g.  ports: ["127.0.0.1:5436:5432"]  in an override.
-    expose:
-      - "5432"
+    # Bound to loopback so the database is reachable for local development
+    # (.env points DATABASE_URL at localhost:5433) without being exposed to the
+    # network. The Go services reach it over the compose network instead.
+    ports:
+      - "127.0.0.1:5433:5432"
     volumes:
       - sahiy_pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -25,12 +29,13 @@ services:
     build:
       context: .
       dockerfile: deploy/Dockerfile
+    container_name: sahiy-agent-api
     ports:
       - "8001:8001"
     env_file: .env
     # Inside the compose network reach Postgres by service name, not localhost.
     environment:
-      DATABASE_URL: "postgres://sahiy:sahiy_test@postgres:5432/sahiy_agent"
+      DATABASE_URL: "postgres://sahiy:${SAHIY_DB_PASSWORD:-sahiy_test}@postgres:5432/sahiy_agent?sslmode=disable"
     command: ["sahiy-api"]
     restart: unless-stopped
     depends_on:
@@ -41,9 +46,10 @@ services:
     build:
       context: .
       dockerfile: deploy/Dockerfile
+    container_name: sahiy-agent-bot
     env_file: .env
     environment:
-      DATABASE_URL: "postgres://sahiy:sahiy_test@postgres:5432/sahiy_agent"
+      DATABASE_URL: "postgres://sahiy:${SAHIY_DB_PASSWORD:-sahiy_test}@postgres:5432/sahiy_agent?sslmode=disable"
     command: ["sahiy-bot"]
     restart: unless-stopped
     depends_on:

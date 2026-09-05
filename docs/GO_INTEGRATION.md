@@ -1,6 +1,6 @@
 # Go backend integration
 
-Python AI service runs on `localhost:8001`. Go gateway calls it after saving the user message.
+The sahiy-agent service runs on `localhost:8001`. The Go gateway calls it after saving the user message.
 
 ## Request flow
 
@@ -22,10 +22,20 @@ Client → POST /chat/message (Go :8080)
   "text": "Buyurtmam qayerda?",
   "context": {
     "channel": "web",
-    "locale": "uz"
+    "reply_language": "uz"
   }
 }
 ```
+
+### `context` fields
+
+| Key | Effect |
+|-----|--------|
+| `channel` | Stored on the session; defaults to `api`. |
+| `reply_language` | Preferred reply language: `uz`, `cyr`, `ru`, `en`, `zh`. A **hint** only — if the customer's own message is clearly in another language, that wins. `locale` is accepted as an alias. |
+
+Everything else in `context` is passed through untouched and may carry identity
+markers (see the identity gate).
 
 **Response 200**
 
@@ -70,33 +80,34 @@ func (c *AIClient) Process(ctx context.Context, req ProcessRequest) (*ProcessRes
     )
     httpReq.Header.Set("Content-Type", "application/json")
     httpReq.Header.Set("X-Request-ID", requestIDFromCtx(ctx))
+    httpReq.Header.Set("X-Service-Token", c.serviceToken) // must match AI_SERVICE_TOKEN
 
     resp, err := c.http.Do(httpReq) // Client.Timeout = 30 * time.Second
     // handle resp...
 }
 ```
 
-## Tool call endpoint (Go → Python → Go)
+## Order lookups
 
-When classifier returns `api`, Python calls:
+When the router returns `api`, the agent resolves order data by calling the
+Sahiy Laravel API directly with its own service-user credentials. The gateway
+does not need to implement anything for this.
 
-`POST {GO_BACKEND_URL}/internal/ai/order-lookup`
-
-Implement this on Go side, or rely on mock data until ready.
+`GO_BACKEND_URL` is a legacy setting from an earlier design where the agent
+called back into the gateway; it is unused on the order path.
 
 ## Operations
 
 | Protection            | Where        | Value        |
 |-----------------------|-------------|--------------|
 | User rate limit       | Go middleware | 20 req/hour |
-| GPT concurrency       | Python semaphore | 10       |
-| Upstream timeout      | Go → Python | 30s          |
-| GPT timeout           | Python      | 30s (`AI_TIMEOUT_SECONDS`) |
+| Upstream timeout      | Go gateway → agent | 30s   |
+| LLM timeout           | agent       | 30s (`AI_TIMEOUT_SECONDS`) |
 
 ## Production
 
 ```bash
-uvicorn app.main:app --host 127.0.0.1 --port 8001 --workers 2
+docker compose up -d --build     # or: go run ./cmd/api
 ```
 
-Set `LOG_JSON=true` for structured logs. Bind to localhost only; Nginx/Go faces the public internet.
+Set `LOG_JSON=true` for structured logs. Bind to localhost only; Nginx / the Go gateway faces the public internet.

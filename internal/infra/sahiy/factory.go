@@ -33,11 +33,13 @@ func NewClient(cfg config.Sahiy, log *slog.Logger) *Client {
 
 func newCustomerAPI(client *Client, cfg config.Sahiy, log *slog.Logger) *CustomerAPI {
 	api := &CustomerAPI{
-		client:         client,
-		daigouList:     NewDaigouList(client, log),
-		daigouPageSize: cfg.DaigouPageSize,
-		skuEnabled:     cfg.SKUPhotosEnabled,
-		log:            log,
+		client:               client,
+		daigouList:           NewDaigouList(client, log),
+		daigouPageSize:       cfg.DaigouPageSize,
+		skuEnabled:           cfg.SKUPhotosEnabled,
+		skuEnrichMaxOrders:   cfg.SKUEnrichMaxOrders,
+		skuEnrichConcurrency: cfg.SKUEnrichConcurrency,
+		log:                  log,
 	}
 	if cfg.HasAdminAPI() && cfg.SKUPhotosEnabled {
 		adminAuth := NewAdminAuth(cfg)

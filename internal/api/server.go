@@ -22,12 +22,21 @@ type Server struct {
 
 // NewServer builds the router and HTTP server.
 //
-// serviceToken protects /process; an empty token disables the guard for local
-// development.
+// serviceToken protects /process and /faq; an empty token disables the guard
+// for local development.
 func NewServer(addr string, h *handler.Handler, serviceToken string, log *slog.Logger) *Server {
 	r := chi.NewRouter()
 	r.Use(mw.RequestID)
+	// Logging wraps Recover, so a panicking request still produces a normal
+	// access-log line (with status 500) instead of vanishing from the log.
 	r.Use(mw.Logging(log))
+	r.Use(mw.Recover(log))
+
+	if serviceToken == "" {
+		// config.Load only permits this in development, but say it out loud so
+		// nobody mistakes an open endpoint for a configured one.
+		log.Warn("service token is empty: POST /process and POST /faq are UNAUTHENTICATED (development only)")
+	}
 
 	// Health is unauthenticated so probes never need the service token.
 	r.Get("/health", h.Health)
@@ -35,6 +44,7 @@ func NewServer(addr string, h *handler.Handler, serviceToken string, log *slog.L
 	r.Group(func(r chi.Router) {
 		r.Use(mw.ServiceToken(serviceToken))
 		r.Post("/process", h.Process)
+		r.Post("/faq", h.IngestFAQ)
 	})
 
 	return &Server{
@@ -42,6 +52,12 @@ func NewServer(addr string, h *handler.Handler, serviceToken string, log *slog.L
 			Addr:              addr,
 			Handler:           r,
 			ReadHeaderTimeout: 10 * time.Second,
+			ReadTimeout:       30 * time.Second,
+			// Answering costs up to two LLM round-trips, so the write budget is
+			// generous - but not unbounded, or a stuck handler holds the
+			// connection forever.
+			WriteTimeout: 120 * time.Second,
+			IdleTimeout:  120 * time.Second,
 		},
 		log: log,
 	}

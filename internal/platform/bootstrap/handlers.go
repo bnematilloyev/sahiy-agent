@@ -4,19 +4,19 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/sahiy-backend/sahiy-agent/internal/app/ai"
 	appcatalog "github.com/sahiy-backend/sahiy-agent/internal/app/catalog"
 	"github.com/sahiy-backend/sahiy-agent/internal/app/chat"
-	"github.com/sahiy-backend/sahiy-agent/internal/app/ai"
 	apporder "github.com/sahiy-backend/sahiy-agent/internal/app/order"
 	apppickup "github.com/sahiy-backend/sahiy-agent/internal/app/pickup"
 	appsupport "github.com/sahiy-backend/sahiy-agent/internal/app/support"
+	"github.com/sahiy-backend/sahiy-agent/internal/channel/telegram"
 	"github.com/sahiy-backend/sahiy-agent/internal/config"
 	"github.com/sahiy-backend/sahiy-agent/internal/domain/conversation"
 	"github.com/sahiy-backend/sahiy-agent/internal/domain/shared"
 	"github.com/sahiy-backend/sahiy-agent/internal/infra/exchange"
 	"github.com/sahiy-backend/sahiy-agent/internal/infra/persistence/postgres"
 	sahiyinfra "github.com/sahiy-backend/sahiy-agent/internal/infra/sahiy"
-	"github.com/sahiy-backend/sahiy-agent/internal/channel/telegram"
 )
 
 func buildHandlers(cfg *config.Config, stack *sahiyinfra.ServiceStack, ticketRepo *postgres.TicketRepository, completer ai.Completer, log *slog.Logger) (chat.Handlers, telegram.CallbackServices) {
@@ -29,7 +29,7 @@ func buildHandlers(cfg *config.Config, stack *sahiyinfra.ServiceStack, ticketRep
 		categoriesAPI := sahiyinfra.NewCategoriesAPI(stack.Client, cfg.Sahiy.CategoriesCacheTTL)
 		pickupAPI := sahiyinfra.NewPickupPointsAPI(stack.Client, cfg.Sahiy.PickupCacheTTL)
 
-		orderSvc := apporder.New(stack.CustomerAPI, completer, cfg.AI.OrderMaxTokens, log)
+		orderSvc := apporder.New(stack.CustomerAPI, rates, completer, cfg.AI.OrderMaxTokens, cfg.AI.EscalationThreshold, log)
 		productSvc := appcatalog.NewProductSearchService(productAPI, rates, log)
 		categorySvc := appcatalog.NewCategoryService(categoriesAPI, cfg.Sahiy.CategoryDeeplinkBase, log)
 		pickupSvc := apppickup.New(pickupAPI, log)
@@ -57,8 +57,8 @@ type orderHandlerAdapter struct {
 	svc *apporder.Service
 }
 
-func (a *orderHandlerAdapter) Respond(ctx context.Context, query string, lang shared.Language, meta map[string]any) (chat.Outcome, error) {
-	res, err := a.svc.Respond(ctx, query, lang, meta)
+func (a *orderHandlerAdapter) Respond(ctx context.Context, history []conversation.Message, query string, lang shared.Language, meta map[string]any) (chat.Outcome, error) {
+	res, err := a.svc.Respond(ctx, history, query, lang, meta)
 	if err != nil {
 		return chat.Outcome{}, err
 	}

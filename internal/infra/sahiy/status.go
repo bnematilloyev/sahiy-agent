@@ -93,12 +93,6 @@ func dashboardLabel(code int, lang string) string {
 	}
 }
 
-// isUnpickedDashboard reports whether a dashboard status means the parcel is
-// still at the branch awaiting pickup. Mirrors status_maps.is_unpicked_dashboard.
-func isUnpickedDashboard(code int) bool {
-	return code == 1 || code == 8 || code == 9
-}
-
 // daigouLabel maps a Sahiy daigou (China purchase) status code to a label.
 // Mirrors app/infrastructure/sahiy_api/status_maps.py daigou_label.
 func daigouLabel(code int, lang string) string {

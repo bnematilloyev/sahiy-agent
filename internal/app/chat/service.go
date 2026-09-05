@@ -6,12 +6,17 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/sahiy-backend/sahiy-agent/internal/app/ai"
 	appidentity "github.com/sahiy-backend/sahiy-agent/internal/app/identity"
 	"github.com/sahiy-backend/sahiy-agent/internal/domain/conversation"
+	"github.com/sahiy-backend/sahiy-agent/internal/domain/feedback"
 	domainidentity "github.com/sahiy-backend/sahiy-agent/internal/domain/identity"
 	"github.com/sahiy-backend/sahiy-agent/internal/domain/shared"
 	domainsupport "github.com/sahiy-backend/sahiy-agent/internal/domain/support"
 )
+
+// telemetryTimeout bounds a background learning-loop write.
+const telemetryTimeout = 5 * time.Second
 
 // ReplyService is the Reply use case. It resolves the session aggregate, records
 // the user turn, asks the Responder for an answer, records the assistant turn,
@@ -22,6 +27,7 @@ type ReplyService struct {
 	responder   Responder
 	identity    *appidentity.Service
 	events      EventPublisher
+	feedback    feedback.Recorder
 	idleTimeout time.Duration
 	log         *slog.Logger
 }
@@ -33,6 +39,7 @@ func NewReplyService(
 	responder Responder,
 	identity *appidentity.Service,
 	events EventPublisher,
+	recorder feedback.Recorder,
 	idleTimeout time.Duration,
 	log *slog.Logger,
 ) *ReplyService {
@@ -42,6 +49,7 @@ func NewReplyService(
 		responder:   responder,
 		identity:    identity,
 		events:      events,
+		feedback:    recorder,
 		idleTimeout: idleTimeout,
 		log:         log,
 	}
@@ -49,6 +57,7 @@ func NewReplyService(
 
 // Reply processes one user message and returns the assistant reply.
 func (s *ReplyService) Reply(ctx context.Context, cmd ReplyCommand) (Reply, error) {
+	start := time.Now()
 	userID, err := shared.NewUserID(cmd.UserID)
 	if err != nil {
 		return Reply{}, err
@@ -64,6 +73,10 @@ func (s *ReplyService) Reply(ctx context.Context, cmd ReplyCommand) (Reply, erro
 	if err != nil {
 		return Reply{}, err
 	}
+	// Tag the context once here so every LLM call made while answering this
+	// message - router, FAQ, and any route handler - is attributable to this
+	// session in token-usage accounting, without each of them having to know.
+	ctx = ai.WithSessionID(ctx, session.ID().String())
 
 	if _, err := session.Append(conversation.RoleUser, userContent, ""); err != nil {
 		return Reply{}, err
@@ -90,7 +103,15 @@ func (s *ReplyService) Reply(ctx context.Context, cmd ReplyCommand) (Reply, erro
 			return Reply{}, fmt.Errorf("chat: identity gate: %w", err)
 		}
 		if block != "" {
-			return s.completeReply(ctx, session, block, conversation.MessageTypeAuto, shared.NewConfidence(1), false, shared.NoHandoff, nil, nil)
+			reply, rerr := s.completeReply(ctx, session, block, conversation.MessageTypeAuto, shared.NewConfidence(1), false, shared.NoHandoff, nil, nil)
+			if rerr == nil {
+				// The identity gate answered instead of a route, so it is
+				// recorded under its own name rather than an empty route.
+				s.recordTurn(ctx, session, cmd.Channel, Outcome{
+					Route: "identity", Language: lang.Code(), Confidence: shared.NewConfidence(1),
+				}, start)
+			}
+			return reply, rerr
 		}
 		if len(session.PendingMessages()) > 0 {
 			if err := s.sessions.Save(ctx, session); err != nil {
@@ -104,7 +125,70 @@ func (s *ReplyService) Reply(ctx context.Context, cmd ReplyCommand) (Reply, erro
 		return Reply{}, fmt.Errorf("chat: responder: %w", err)
 	}
 
-	return s.completeReply(ctx, session, outcome.Text, outcome.Type, outcome.Confidence, outcome.Escalate, outcome.HandoffReason, outcome.TicketID, outcome.ChannelExtra)
+	reply, err := s.completeReply(ctx, session, outcome.Text, outcome.Type, outcome.Confidence, outcome.Escalate, outcome.HandoffReason, outcome.TicketID, outcome.ChannelExtra)
+	if err == nil {
+		s.recordTurn(ctx, session, cmd.Channel, outcome, start)
+	}
+	return reply, err
+}
+
+// recordTurn hands one answered message to the learning loop. It runs on a
+// detached context in the background: the customer already has their reply,
+// and a slow telemetry write must not hold the turn open.
+func (s *ReplyService) recordTurn(_ context.Context, session *conversation.Session, channel string, out Outcome, start time.Time) {
+	if s.feedback == nil {
+		return
+	}
+	turn := feedback.Turn{
+		SessionID:     session.ID().String(),
+		Channel:       channel,
+		Route:         out.Route,
+		ReplyLanguage: out.Language,
+		Confidence:    out.Confidence.Float(),
+		Escalated:     out.Escalate,
+		HandoffReason: out.HandoffReason.Code(),
+		Degraded:      out.Degraded,
+		Duration:      time.Since(start),
+	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), telemetryTimeout)
+		defer cancel()
+		s.feedback.RecordTurn(ctx, turn)
+	}()
+}
+
+// RecordRating stores a customer's star rating for their current conversation.
+//
+// Unlike turn telemetry this runs inline rather than in the background: a
+// rating is a direct customer action that only ever happens once per session,
+// so it is worth the single insert to not lose it. Errors are returned for the
+// caller to log; they must not change what the customer is told, since they
+// have already been thanked.
+func (s *ReplyService) RecordRating(ctx context.Context, userID, channel string, stars int) error {
+	if s.feedback == nil {
+		return nil
+	}
+	uid, err := shared.NewUserID(userID)
+	if err != nil {
+		return err
+	}
+
+	// Attach the rating to the conversation it is about, when there is still
+	// one open. A rating given after the session rotated is kept anyway, just
+	// without a session to join it to.
+	var sessionID string
+	if session, serr := s.sessions.FindActive(ctx, uid, conversation.NewChannel(channel)); serr != nil {
+		s.log.Warn("chat: could not resolve session for rating", "error", serr, "user_id", userID)
+	} else if session != nil {
+		sessionID = session.ID().String()
+	}
+
+	rating, err := feedback.NewRating(userID, channel, sessionID, stars)
+	if err != nil {
+		return err
+	}
+	s.feedback.RecordRating(ctx, rating)
+	return nil
 }
 
 // RegisterVerifiedPhone validates a Telegram contact phone against Sahiy and
@@ -178,12 +262,7 @@ func (s *ReplyService) completeReply(
 }
 
 func languageFromMeta(meta map[string]any, text string) shared.Language {
-	if meta != nil {
-		if raw, ok := meta["reply_language"].(string); ok && raw != "" {
-			return shared.NewLanguage(raw)
-		}
-	}
-	return shared.DetectLanguage(text)
+	return shared.ResolveReplyLanguage(text, shared.LanguageHintFromMeta(meta), nil)
 }
 
 // resolveSession honours an explicit session id, otherwise reuses the user's

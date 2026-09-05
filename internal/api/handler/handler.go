@@ -10,18 +10,21 @@ import (
 
 	"github.com/sahiy-backend/sahiy-agent/internal/api/schema"
 	"github.com/sahiy-backend/sahiy-agent/internal/app/chat"
+	appfaq "github.com/sahiy-backend/sahiy-agent/internal/app/faq"
 )
 
 // Handler holds the dependencies shared by the HTTP endpoints.
 type Handler struct {
 	reply *chat.ReplyService
+	faq   *appfaq.Service
 	pool  *pgxpool.Pool
 	log   *slog.Logger
 }
 
-// New constructs an HTTP handler set.
-func New(reply *chat.ReplyService, pool *pgxpool.Pool, log *slog.Logger) *Handler {
-	return &Handler{reply: reply, pool: pool, log: log}
+// New constructs an HTTP handler set. faq may be nil, which disables the
+// knowledge-base ingestion endpoint.
+func New(reply *chat.ReplyService, faq *appfaq.Service, pool *pgxpool.Pool, log *slog.Logger) *Handler {
+	return &Handler{reply: reply, faq: faq, pool: pool, log: log}
 }
 
 func writeJSON(w http.ResponseWriter, status int, body any) {

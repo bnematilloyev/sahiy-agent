@@ -15,8 +15,13 @@ import (
 var migrationFiles embed.FS
 
 // Migrate applies every embedded *.up.sql migration not yet recorded in
-// schema_migrations. Migrations use IF NOT EXISTS guards so they coexist safely
-// with a schema previously created by the Python (Alembic) service.
+// schema_migrations.
+//
+// Migrations use IF NOT EXISTS guards so they are safe to re-run and safe on a
+// database whose tables predate this service. Note the trap that comes with
+// that: CREATE TABLE IF NOT EXISTS silently skips an existing table, so a later
+// column addition needs its own ALTER ... ADD COLUMN IF NOT EXISTS migration
+// (see 0002) rather than an edit to the CREATE in 0001.
 func Migrate(ctx context.Context, pool *pgxpool.Pool, log *slog.Logger) error {
 	if _, err := pool.Exec(ctx, `
 		CREATE TABLE IF NOT EXISTS schema_migrations (

@@ -1,5 +1,5 @@
-// Package llm provides Completer adapters (Anthropic, OpenAI, a rules-based
-// fallback) and a failover chain that ties them together.
+// Package llm provides Completer adapters (Anthropic, a rules-based fallback)
+// and a failover chain that ties them together.
 package llm
 
 import (

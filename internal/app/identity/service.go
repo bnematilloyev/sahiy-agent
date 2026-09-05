@@ -68,11 +68,11 @@ func (s *Service) VerifyPhone(ctx context.Context, phone string) PhoneVerifyResu
 
 // PersistIdentity appends PHONE:/SAHIY_USER: markers to the session aggregate.
 func (s *Service) PersistIdentity(session *conversation.Session, phone string, sahiyUserID int64) error {
-	if _, err := session.Append(conversation.RoleUser, content(domainidentity.PhoneMessagePrefix+phone), ""); err != nil {
+	if err := appendMarker(session, domainidentity.PhoneMessagePrefix+phone); err != nil {
 		return fmt.Errorf("identity: persist phone marker: %w", err)
 	}
 	marker := domainidentity.SahiyUserMessagePrefix + strconv.FormatInt(sahiyUserID, 10)
-	if _, err := session.Append(conversation.RoleUser, content(marker), ""); err != nil {
+	if err := appendMarker(session, marker); err != nil {
 		return fmt.Errorf("identity: persist user marker: %w", err)
 	}
 	return nil
@@ -118,8 +118,8 @@ func (s *Service) RegisterSahiyUserIDInSession(ctx context.Context, session *con
 		}
 	}
 	marker := domainidentity.SahiyUserMessagePrefix + strconv.FormatInt(sahiyUserID, 10)
-	if _, err := session.Append(conversation.RoleUser, content(marker), ""); err != nil {
-		return 0, "", fmt.Errorf("identity: persist user marker: %w", err)
+	if err := appendMarker(session, marker); err != nil {
+		return 0, "", err
 	}
 	if identityOnly {
 		return sahiyUserID, domainidentity.SahiyUserIDVerifiedText(lang), nil
@@ -159,12 +159,19 @@ func (s *Service) EnsureVerified(ctx context.Context, session *conversation.Sess
 	return domainidentity.IdentityRequiredText(lang), nil
 }
 
-func content(raw string) conversation.Content {
+// appendMarker writes an identity marker into the session history. Markers are
+// built from validated values, so a rejection here means a programming error -
+// it is still returned as an error rather than a panic, because this runs on the
+// request path and must not take the process down.
+func appendMarker(session *conversation.Session, raw string) error {
 	c, err := conversation.NewContent(raw)
 	if err != nil {
-		panic("identity: invalid marker content: " + err.Error())
+		return fmt.Errorf("identity: invalid marker content %q: %w", raw, err)
 	}
-	return c
+	if _, err := session.Append(conversation.RoleUser, c, ""); err != nil {
+		return fmt.Errorf("identity: append marker: %w", err)
+	}
+	return nil
 }
 
 func metaInt64(v any) (int64, bool) {
